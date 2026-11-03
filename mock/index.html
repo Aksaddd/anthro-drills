@@ -168,7 +168,7 @@
   }
   function renderExam() {
     $("app").innerHTML = `<div class="ebar" id="ebar">
-        <div class="row1"><div class="info" id="einfo"></div><div class="acts"><button class="chip" id="pauseBtn">Pause</button><button class="chip" id="submitTop">Submit</button></div></div>
+        <div class="row1"><div class="info" id="einfo"></div><div class="acts"><button class="chip" id="settingsBtn">← Exam settings</button><button class="chip" id="pauseBtn">Pause</button><button class="chip" id="submitTop">Submit</button></div></div>
         <details class="gridbox" id="gridBox"${innerWidth > 560 ? " open" : ""}><summary>Question grid: jump to any question</summary>
           <div class="grid100" id="grid"></div>
           <div class="legend2" style="margin-top:8px"><span><i style="background:var(--accent)"></i>Answered</span><span><i style="background:var(--lv-shaky)"></i>Flagged</span><span><i style="background:#e7ebf2"></i>Not answered</span></div>
@@ -178,6 +178,7 @@
       <main class="card" id="qcard"></main>`;
     $("grid").onclick = e => { const b = e.target.closest(".gq"); if (b) go(+b.dataset.k) };
     $("pauseBtn").onclick = () => setPaused(true);
+    $("settingsBtn").onclick = toSettings;
     $("submitTop").onclick = askSubmit;
     paintBar(); paintQ(); startClock();
   }
@@ -235,7 +236,7 @@
         <div class="score"><div class="big">${E.score}<small>/${n}</small></div>
           <div><div class="verdict ${band(pct)}">${pct}% correct</div><div class="sub">Time ${mmss(E.secs || 0)}${prev ? ` · last exam ${prev.pct}%` : ""}</div></div></div>
         <div class="scale" role="img" aria-label="Score ${pct}%"><i style="width:${pct}%;background:var(--lv-${pct >= PASS ? "mastered" : pct >= 80 ? "shaky" : "learning"})"></i></div>
-        <div class="nav" style="justify-content:flex-start;gap:10px"><button class="btn" id="again"><span>Take a new exam</span></button><a class="btn ghost" href="../exam2/index.html#progress" style="text-decoration:none"><span>Practice in the drills</span></a></div>
+        <div class="nav" style="justify-content:flex-start;gap:10px"><button class="btn" id="again"><span>Take a new exam</span></button><button class="btn ghost" id="toSet"><span>Exam settings</span></button><a class="btn ghost" href="../exam2/index.html#progress" style="text-decoration:none"><span>Practice in the drills</span></a></div>
       </section>
       <section class="panel"><b>By subject <span class="hint">weakest first</span></b>
         <ul class="bysub">${subs.map(([s, v]) => { const p = Math.round(v.r / v.n * 100); return `<li><b>${esc(s)}</b><span>${v.r}/${v.n} · ${p}%</span><span class="sb"><i style="width:${p}%;background:var(--lv-${p >= PASS ? "mastered" : p >= 80 ? "shaky" : "learning"})"></i></span></li>` }).join("")}</ul>
@@ -252,9 +253,13 @@
           </article>`).join("") : `<p class="hint">Nothing here.</p>`}</div>
       </section>`;
     $("again").onclick = newExam;
+    $("toSet").onclick = () => { E = null; try { localStorage.removeItem(KEY) } catch (e) { } renderStart(); window.scrollTo({ top: 0 }) };
     $("app").querySelectorAll("[data-f]").forEach(b => b.onclick = () => { filter = b.dataset.f; renderResults() });
     $("rgrid").onclick = e => { const b = e.target.closest(".gq"); if (!b) return; const k = +b.dataset.k; if (!$("r" + k)) { filter = "all"; renderResults() } $("r" + k).scrollIntoView({ block: "start", behavior: "smooth" }) };
   }
+
+  // Back to the setup screen: the timer stops and the exam in progress is kept (Continue exam picks it up).
+  function toSettings() { stopClock(); paused = false; confirmOpen = false; renderStart(); window.scrollTo({ top: 0 }) }
 
   // ----- Pause, lightbox, keyboard, leaving
   function setPaused(on) { paused = on; $("pausedCover").hidden = !on; if (on) stopClock(); else startClock(); paintBar() }
