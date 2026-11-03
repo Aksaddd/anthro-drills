@@ -56,10 +56,8 @@
 .score .big small{font-size:24px;color:var(--muted)}
 .verdict{font:700 16px var(--body)}
 .verdict.pass{color:var(--good)} .verdict.near{color:var(--gold)} .verdict.low{color:var(--bad)}
-.scale{position:relative;height:14px;border-radius:7px;background:var(--line);overflow:visible;margin:18px 0 6px}
+.scale{position:relative;height:14px;border-radius:7px;background:var(--line);overflow:hidden;margin:8px 0 6px}
 .scale i{position:absolute;left:0;top:0;bottom:0;border-radius:7px;background:var(--accent)}
-.scale .line90{position:absolute;top:-6px;bottom:-6px;left:90%;width:2px;background:var(--ink)}
-.scale .line90 span{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font:700 11px var(--mono);white-space:nowrap}
 .bysub{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .bysub li{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;font-size:14px}
 .bysub .sb{grid-column:1/-1;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
@@ -136,7 +134,6 @@
     $("app").innerHTML = `<section class="panel">
       <div class="facts">
         <div class="fact"><b>${BANK.length}</b><span>in the question pool</span></div>
-        <div class="fact"><b>90%</b><span>your target</span></div>
         <div class="fact"><b>${hist.length}</b><span>exams taken</span></div>
       </div>
       <div class="sizepick"><span class="sizelbl">Exam length</span><div class="seg2" role="radiogroup" aria-label="Exam length">${SIZES.map(n => `<button type="button" role="radio" aria-checked="${n === N}" data-n="${n}"><b>${n}</b> questions<small>${n === 50 ? "Same length as the real exam" : "Extra-long practice"}</small></button>`).join("")}</div></div>
@@ -232,14 +229,12 @@
     const rows = E.items.map((it, k) => { const q = byId[it.id], a = E.ans[k]; return { k, q, it, a, ok: a !== null && it.opts[a] === q.ok } });
     const subj = {}; rows.forEach(r => { const s = subj[r.q.subject] = subj[r.q.subject] || { n: 0, r: 0 }; s.n++; if (r.ok) s.r++ });
     const subs = Object.entries(subj).sort((x, y) => x[1].r / x[1].n - y[1].r / y[1].n);
-    const need = Math.max(0, Math.ceil(PASS / 100 * n) - E.score);
-    const verdict = pct >= PASS ? "At or above 90%. Keep it there." : `${need} more right would reach 90%.`;
     const hist = read(HIST, []), prev = hist.length > 1 ? hist[hist.length - 2] : null;
     const list = rows.filter(r => filter === "all" || (filter === "wrong" ? !r.ok : E.flag[r.k]));
     $("app").innerHTML = `<section class="panel">
         <div class="score"><div class="big">${E.score}<small>/${n}</small></div>
-          <div><div class="verdict ${band(pct)}">${pct}% · ${verdict}</div><div class="sub">Time ${mmss(E.secs || 0)}${prev ? ` · last exam ${prev.pct}%` : ""}</div></div></div>
-        <div class="scale" role="img" aria-label="Score ${pct}%, target 90%"><i style="width:${pct}%;background:var(--lv-${pct >= PASS ? "mastered" : pct >= 80 ? "shaky" : "learning"})"></i><span class="line90"><span>90%</span></span></div>
+          <div><div class="verdict ${band(pct)}">${pct}% correct</div><div class="sub">Time ${mmss(E.secs || 0)}${prev ? ` · last exam ${prev.pct}%` : ""}</div></div></div>
+        <div class="scale" role="img" aria-label="Score ${pct}%"><i style="width:${pct}%;background:var(--lv-${pct >= PASS ? "mastered" : pct >= 80 ? "shaky" : "learning"})"></i></div>
         <div class="nav" style="justify-content:flex-start;gap:10px"><button class="btn" id="again"><span>Take a new exam</span></button><a class="btn ghost" href="../exam2/index.html#progress" style="text-decoration:none"><span>Practice in the drills</span></a></div>
       </section>
       <section class="panel"><b>By subject <span class="hint">weakest first</span></b>
