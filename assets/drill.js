@@ -30,8 +30,31 @@
   // ===== State
   const L = B.storageKey;
   let S = fresh(), missed = new Set(), answered = false, view = "deck";
-  function fresh() { return { v: 2, updatedAt: 0, deck: FIRST, shuffle: true, onlyMissed: false, missed: [], hist: {}, stats: {}, rounds: {}, focus: null } }
+  function fresh() { return { v: 2, updatedAt: 0, deck: FIRST, shuffle: true, onlyMissed: false, missed: [], hist: {}, stats: {}, log: {}, rounds: {}, focus: null } }
   function pool(d) { return d === "FOCUS" ? (S.focus ? S.focus.ids : []) : IDS[d] }
+
+  // ===== Mastery model
+  // A question counts as MASTERED only when the student has shown they know it reliably:
+  //   1. Streak: right several times in a row, with no miss in between. The streak needed depends on how easy it
+  //      is to guess. With 3+ choices you need 3 in a row (a lucky guess streak is under 4% likely); with 2 choices
+  //      you need 4 (about 6%). Any miss resets the streak to zero.
+  //   2. Spacing: the streak has to stretch across at least an hour, so it's knowledge, not short-term memory of the
+  //      screen you just saw. Three right answers in one sitting leaves the question "almost" until it's confirmed later.
+  //   3. Fading: a mastered question not seen for 5 days becomes "due for review" until answered right again.
+  const SPACING = 60 * 60 * 1000, FADE = 5 * 24 * 60 * 60 * 1000;
+  const need = id => Q[id].wrong.length + 1 <= 2 ? 4 : 3;
+  const LEVELS = ["learning", "due", "shaky", "new", "mastered"];   // also the review order: weakest first
+  const LEVEL_TEXT = { new: "New", learning: "Learning", shaky: "Getting there", due: "Due for review", mastered: "Mastered" };
+  function lvl(id) {
+    const st = S.stats[id], g = S.log[id];
+    if (!st || !st[0]) return "new";
+    if (!g || !g.s) return "learning";
+    if (g.s >= need(id) && g.last - g.t0 >= SPACING) return Date.now() - g.last > FADE ? "due" : "mastered";
+    return "shaky";
+  }
+  const WEIGHT = { new: 0, learning: 0, shaky: .5, due: .75, mastered: 1 };   // for a topic's mastery score
+  // Weakest questions first, shuffled within each group, so practice goes where it's needed.
+  const byNeed = ids => { const g = {}; for (const id of shuffle(ids)) (g[lvl(id)] = g[lvl(id)] || []).push(id); return LEVELS.flatMap(l => g[l] || []) };
 
   function apply(s) {
     if (!s || s.v !== 2) return false;
@@ -41,6 +64,8 @@
     for (const k in (s.hist || {})) if (Q[k]) n.hist[k] = s.hist[k] ? 1 : 0;
     for (const k in (s.stats || {})) if (Q[k] && Array.isArray(s.stats[k])) n.stats[k] = [s.stats[k][0] | 0, s.stats[k][1] | 0];
     for (const k in n.hist) if (!n.stats[k]) n.stats[k] = [1, n.hist[k]];   // older saves only kept the last answer
+    for (const k in (s.log || {})) { const g = s.log[k]; if (Q[k] && g) n.log[k] = { s: g.s | 0, t0: +g.t0 || 0, last: +g.last || 0 } }
+    for (const k in n.hist) if (!n.log[k]) n.log[k] = { s: n.hist[k], t0: 0, last: 0 };   // before the mastery model: one right answer = streak 1
     if (s.focus && Array.isArray(s.focus.ids)) { const ids = s.focus.ids.filter(id => Q[id]); if (ids.length) n.focus = { label: String(s.focus.label || "Focus"), ids } }
     n.deck = DECKS[s.deck] || (s.deck === "FOCUS" && n.focus) ? s.deck : FIRST;
     S = n; missed = new Set(n.missed);
@@ -58,20 +83,21 @@
   const R = () => S.rounds[S.deck];
   function newRound(d) {
     let ids = pool(d).slice(); if (S.onlyMissed) ids = ids.filter(id => missed.has(id));
-    S.rounds[d] = { order: S.shuffle ? shuffle(ids) : ids, i: 0, right: 0, done: 0, streak: 0, money: 0 };
+    S.rounds[d] = { order: S.shuffle ? byNeed(ids) : ids, i: 0, right: 0, done: 0, streak: 0, money: 0 };
   }
   function restart() { newRound(S.deck); answered = false; view = "deck"; paint(); save() }
   function startFocus(label, ids) {
     S.focus = { label, ids }; S.deck = "FOCUS"; S.onlyMissed = false;
-    S.rounds.FOCUS = { order: shuffle(ids), i: 0, right: 0, done: 0, streak: 0, money: 0 };
+    S.rounds.FOCUS = { order: byNeed(ids), i: 0, right: 0, done: 0, streak: 0, money: 0 };
     answered = false; view = "deck"; paint(); save(); window.scrollTo({ top: 0 });
   }
 
   // ===== Numbers for the Progress tab
   function sumUp(ids) {
-    let a = 0, c = 0, seen = 0, mastered = 0;
-    for (const id of ids) { const s = S.stats[id]; if (s && s[0]) { a += s[0]; c += s[1]; seen++ } if (S.hist[id] === 1) mastered++ }
-    return { a, c, seen, mastered, total: ids.length, acc: pct(c, a) };
+    let a = 0, c = 0, seen = 0, w = 0;
+    const n = { new: 0, learning: 0, shaky: 0, due: 0, mastered: 0 };
+    for (const id of ids) { const s = S.stats[id]; if (s && s[0]) { a += s[0]; c += s[1]; seen++ } const l = lvl(id); n[l]++; w += WEIGHT[l] }
+    return { a, c, seen, mastered: n.mastered, n, total: ids.length, acc: pct(c, a), mastery: Math.round(w / Math.max(1, ids.length) * 100) };
   }
   function topics() {
     const m = new Map();
@@ -93,11 +119,11 @@
     });
     make("PROG", "Progress", () => { view = "progress"; paint() });
   }
-  const mastered = d => pool(d).filter(id => S.hist[id] === 1).length;
+  const mastered = d => pool(d).filter(id => lvl(id) === "mastered").length;
   function stats() {
     for (const d in DECKS) { $("tab" + d).setAttribute("aria-selected", view === "deck" && d === S.deck); $("tc" + d).textContent = mastered(d) + "/" + IDS[d].length }
     const all = sumUp(ALL);
-    $("tabPROG").setAttribute("aria-selected", view === "progress"); $("tcPROG").textContent = all.a ? all.acc + "% right" : "not started";
+    $("tabPROG").setAttribute("aria-selected", view === "progress"); $("tcPROG").textContent = all.a ? all.mastery + "% mastery" : "not started";
     const inDeck = view === "deck";
     for (const id of ["statsRow", "controls", "barRow"]) $(id).hidden = !inDeck;
     if (!inDeck) { $("deckSub").textContent = "Your strengths and weak spots, from every answer you've given on this device."; return }
@@ -140,7 +166,7 @@
     c.innerHTML = `<div class="meta"><span class="meta-l"><span class="origin" title="Where this question comes from">${esc(srcOf(id))}</span><span class="tagt">${esc(x.tag)}</span></span>${right}</div>
     <p class="q">${txt(x.q)}</p>${im ? `<figure class="fig"><img src="${im[0]}" alt="${esc(im[1])}"></figure>` : ""}
     <div class="opts">${opts.map((o, k) => `<button class="opt" id="o${k}" data-c="${o.c}"><span class="bub">${"ABCDE"[k]}</span><span>${txt(o.t)}</span></button>`).join("")}</div>
-    ${s && s[0] ? `<p class="hint">Your record on this one: ${s[1]} of ${s[0]} right.</p>` : ""}
+    ${s && s[0] ? `<p class="hint"><span class="lv lv-${lvl(id)}">${LEVEL_TEXT[lvl(id)]}</span> Your record: ${s[1]} of ${s[0]} right${S.log[id] && S.log[id].s ? ` · streak ${S.log[id].s}` : ""}.</p>` : ""}
     <div id="fb"></div>`;
     c.querySelectorAll(".opt").forEach(b => b.onclick = () => pick(b, id));
   }
@@ -152,17 +178,28 @@
     b.classList.add("picked"); if (!good) b.classList.add("wrong");
     r.done++; if (good) { r.right++; r.streak++; missed.delete(id) } else { r.streak = 0; missed.add(id) }
     S.hist[id] = good ? 1 : 0;
+    const before = lvl(id), now = Date.now();
     const s = S.stats[id] || [0, 0]; S.stats[id] = [s[0] + 1, s[1] + (good ? 1 : 0)];
+    const g = S.log[id] || { s: 0, t0: 0, last: 0 };
+    if (good) { if (!g.s) g.t0 = now; g.s++ } else { g.s = 0; g.t0 = 0 }
+    g.last = now; S.log[id] = g;
+    const after = lvl(id), k = need(id);
+    let note;
+    if (!good) note = before === "mastered" || before === "due" ? "Streak reset. This one drops out of mastered until you rebuild it." : "Streak reset. It moves to the front of your next round.";
+    else if (after === "mastered") note = before === "mastered" ? "Still mastered." : `Mastered: right ${g.s} times in a row, spread over time.`;
+    else if (g.s >= k) note = `Right ${g.s} in a row. Get it right again in a later session (an hour or more from now) to lock it in as mastered.`;
+    else note = `Streak ${g.s} of ${k}. Keep it going to master this one.`;
     r.i++; save(); stats();
     $("fb").innerHTML = `<div class="explain"><strong>${good ? "Correct." : "Answer: " + txt(x.ok)}</strong>${txt(x.ex || "")}</div>
-    <div class="nav" style="margin-top:14px"><span class="hint">${good ? "" : "Saved to your review list."}</span><button class="btn" id="next">Next</button></div>`;
+    <p class="lvnote"><span class="lv lv-${after}">${LEVEL_TEXT[after]}</span>${note}</p>
+    <div class="nav" style="margin-top:6px"><span class="hint">${good ? "" : "Saved to your review list."}</span><button class="btn" id="next">Next</button></div>`;
     $("next").onclick = paint; $("next").focus();
   }
 
   function paintProgress() {
     stats();
     const c = $("card"), all = sumUp(ALL), ts = topics();
-    const started = ts.filter(t => t.a).sort((x, y) => x.acc - y.acc || y.a - x.a);
+    const started = ts.filter(t => t.a).sort((x, y) => x.mastery - y.mastery || x.acc - y.acc);
     const fresh = ts.filter(t => !t.a);
     const worst = ALL.map(id => ({ id, s: S.stats[id] })).filter(o => o.s && o.s[0] > o.s[1])
       .sort((x, y) => (y.s[0] - y.s[1]) - (x.s[0] - x.s[1]) || x.s[1] / x.s[0] - y.s[1] / y.s[0]).slice(0, 8);
@@ -172,19 +209,30 @@
       <div class="nav"><button class="btn" id="goStart">Start with ${esc(DECKS[FIRST].name)}</button></div>`;
       $("goStart").onclick = () => { view = "deck"; S.deck = FIRST; paint() }; return;
     }
-    const strong = started.filter(t => t.a >= 3 && t.acc >= 80).slice(-2).reverse();
-    const weak = started.filter(t => t.acc < 70).slice(0, 2);
+    const strong = started.filter(t => t.mastery >= 50).slice(-2).reverse();
+    const weak = started.filter(t => t.acc < 70).sort((x, y) => x.acc - y.acc).slice(0, 2);
+    const seg = t => ["mastered", "due", "shaky", "learning"].map(l => t.n[l] ? `<i class="sg-${l}" style="width:${t.n[l] / t.total * 100}%" title="${LEVEL_TEXT[l]}: ${t.n[l]}"></i>` : "").join("");
     const row = t => `<li class="trow">
-        <div class="tname"><b>${esc(t.name)}</b><span>${t.a ? `${t.acc}% right · ${t.seen} of ${t.total} seen` : `Not started · ${t.total} questions`}</span></div>
-        <div class="tbar"><i class="${t.a ? level(t.acc) : ""}" style="width:${t.a ? t.acc : 0}%"></i></div>
+        <div class="tname"><b>${esc(t.name)}</b><span>${t.a ? `${t.mastered}/${t.total} mastered · ${t.acc}% right` : `Not started · ${t.total} questions`}</span></div>
+        <div class="tbar stack" role="img" aria-label="${t.n.mastered} mastered, ${t.n.due} due, ${t.n.shaky} getting there, ${t.n.learning} learning, ${t.n.new} new">${seg(t)}</div>
         <button class="chip" data-topic="${esc(t.name)}">Practice</button></li>`;
     c.innerHTML = `
       <div class="pgrid">
+        <div><b>${all.mastered}/${all.total}</b>mastered</div>
+        <div><b>${all.mastery}%</b>mastery score</div>
         <div><b>${all.acc}%</b>accuracy</div>
-        <div><b>${all.seen}/${all.total}</b>seen</div>
-        <div><b>${all.mastered}</b>mastered</div>
-        <div><b>${all.a}</b>answers</div>
+        <div><b>${all.n.due}</b>due for review</div>
       </div>
+      <div class="legend">${["mastered", "due", "shaky", "learning", "new"].map(l => `<span><i class="sg-${l}"></i>${LEVEL_TEXT[l]} ${all.n[l]}</span>`).join("")}</div>
+      <details class="how2"><summary>How mastery is measured</summary>
+        <p>One right answer can be a lucky guess, so a question only counts as <b>mastered</b> when you've shown you know it reliably:</p>
+        <ul>
+          <li><b>Right 3 times in a row</b> with no miss in between (4 in a row for two-choice questions). Guessing your way to that streak is under a 4–6% chance.</li>
+          <li><b>Spread over time:</b> the streak has to stretch across at least an hour, so it reflects memory, not the screen you just saw.</li>
+          <li><b>Kept fresh:</b> a mastered question you haven't seen in 5 days becomes <i>due for review</i>.</li>
+        </ul>
+        <p>A miss resets the streak. Rounds show your weakest questions first: learning, then due, then getting there, then new, then mastered. Your <b>mastery score</b> gives full credit for mastered, ¾ for due and ½ for getting there.</p>
+      </details>
       ${strong.length || weak.length ? `<div class="callouts">
         ${weak.length ? `<p class="callout bad"><strong>Needs work</strong>${weak.map(t => esc(t.name) + " (" + t.acc + "%)").join(" · ")}</p>` : ""}
         ${strong.length ? `<p class="callout good"><strong>Strongest</strong>${strong.map(t => esc(t.name) + " (" + t.acc + "%)").join(" · ")}</p>` : ""}
@@ -197,13 +245,10 @@
       <p class="hint">Saved in this browser on this device only. Clearing your browser data erases it.</p>`;
     c.querySelectorAll("[data-topic]").forEach(b => b.onclick = () => {
       const t = ts.find(x => x.name === b.dataset.topic);
-      // put the ones you've missed or never seen first, then the rest
-      const ids = shuffle(t.ids).sort((a, z) => score(a) - score(z));
-      startFocus(t.name, ids);
+      startFocus(t.name, t.ids);   // startFocus orders weakest first
     });
     if ($("drillWorst")) $("drillWorst").onclick = () => startFocus("Most-missed questions", worst.map(o => o.id));
   }
-  const score = id => { const s = S.stats[id]; return !s ? 0.5 : s[1] / s[0] };
 
   // ===== Controls
   document.addEventListener("keydown", e => {

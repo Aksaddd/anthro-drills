@@ -86,7 +86,7 @@ footer{font-size:12.5px;color:var(--muted)}
         <span class="mname">Exam 1</span><span class="mbar"><i></i></span><span class="mtext">No answers yet</span><span class="arrow" aria-hidden="true">→</span>
       </a>
     </div>
-    <p class="mnote">Tap an exam to see accuracy by topic and your most-missed questions. Saved in this browser only.</p>
+    <p class="mnote">Tap an exam to see mastery by topic and your most-missed questions. Saved in this browser only.</p>
   </section>
 
   <div class="how">
@@ -105,13 +105,14 @@ footer{font-size:12.5px;color:var(--muted)}
 document.querySelectorAll(".mrow").forEach(row=>{
   let s=null; try{s=JSON.parse(localStorage.getItem(row.dataset.key)||"null")}catch(e){}
   if(!s)return;
-  const st=s.stats||{}, hist=s.hist||{}; let a=0,c=0,seen=0;
+  const st=s.stats||{}, hist=s.hist||{}, log=s.log||{}, now=Date.now(); let a=0,c=0,seen=0,m=0;
+  for(const k in log){const g=log[k];if(g&&g.s>=3&&g.last-g.t0>=3600e3&&now-g.last<=5*864e5)m++}   // same rule as the drills (approx. for two-choice questions)
   for(const k in st){a+=st[k][0]|0;c+=st[k][1]|0;if(st[k][0])seen++}
   if(!a)for(const k in hist){a++;c+=hist[k]?1:0;seen++}   // older saves
   if(!a)return;
   const acc=Math.round(c/a*100), tot=+row.dataset.total;
   const i=row.querySelector(".mbar i"); i.style.width=acc+"%"; i.className=acc>=80?"good":acc>=60?"ok":"bad";
-  row.querySelector(".mtext").textContent=acc+"% right · "+Math.min(seen,tot)+" of "+tot+" seen";
+  row.querySelector(".mtext").textContent=m+" of "+tot+" mastered · "+acc+"% right";
 });
 </script>
 </body></html>

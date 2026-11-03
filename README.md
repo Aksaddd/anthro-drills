@@ -15,7 +15,10 @@ Everything is plain static HTML, CSS and JavaScript, with no build step and no s
 
 Each student's progress is saved **in their own browser, on the device they study on** (`localStorage`). Nothing is sent to a server, there are no accounts, and classmates never see each other's data.
 
-- Every answer is recorded per question: how many times it was tried and how many times it was right.
+- Every answer is recorded per question: attempts, correct answers, current streak, and when the streak started.
+- **Mastery** is stricter than "got it right once". A question is *mastered* only when it's answered right **3 times in a row** (4 for two-choice questions, so a lucky guess streak stays under about 6%), and that streak **spans at least an hour**, so it reflects memory, not the screen just seen. A miss resets the streak. A mastered question not seen for **5 days** becomes *due for review*.
+- Each question has a level: New → Learning (last answer wrong) → Getting there (streak building) → Mastered (or Due for review). Rounds serve the weakest levels first.
+- A topic's **mastery score** gives full credit for mastered, ¾ for due and ½ for getting there. The rules live at the top of `assets/drill.js` (`SPACING`, `FADE`, `need`).
 - The **Progress** tab in each drill shows overall accuracy, accuracy by topic (weakest first), strongest and weakest areas, and the most-missed questions. Each row has a **Practice** button that starts a focused round.
 - Exam 1 and Exam 2 keep separate histories (`ant1-progress-v2` and `ant2-progress-v1`).
 - History doesn't move between devices or browsers, and it's erased if the student clears their browser data. Safari can also clear it after about 7 days without a visit.
