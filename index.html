@@ -76,6 +76,15 @@ main.inner{padding-block:28px 48px;display:flex;flex-direction:column;gap:18px}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
 .legend .c-new{background:var(--lv-new)}
+.sources p{margin:6px 0 0}
+.srcgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px 24px;margin-top:12px}
+.srcgrid h3{font:700 13px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink);margin:0 0 6px}
+.srcgrid ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.srcgrid li{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:6px 0;border-bottom:1px solid var(--line)}
+.srcgrid li:last-child{border-bottom:0}
+.srcgrid li span{min-width:0}
+.srcgrid em{font:600 13px var(--mono);font-style:normal;color:var(--ink);font-variant-numeric:tabular-nums;flex:none}
+.sources .note{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--sunk);color:var(--ink);font-size:13.5px}
 footer{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
 footer a{color:inherit}
 @media (max-width:560px){
@@ -126,6 +135,36 @@ footer a{color:inherit}
     </ul>
     <div class="legend"><span><i class="c-mastered"></i>Mastered</span><span><i class="c-due"></i>Due for review</span><span><i class="c-shaky"></i>Getting there</span><span><i class="c-learning"></i>Learning</span><span><i class="c-new"></i>New</span></div>
   </div>
+
+  <section class="how sources" id="sources" aria-labelledby="srcTitle">
+    <b id="srcTitle">Where these questions come from</b>
+    <p>Every question was gathered from, or written to match, ANTH 102 class materials. No outside question banks were used. Each question shows its source in a blue label above it.</p>
+    <div class="srcgrid">
+      <div>
+        <h3>Exam 2 · 186 questions</h3>
+        <ul>
+          <li><span>Top Hat lecture questions</span><em>27</em></li>
+          <li><span>Brightspace Activity 4 (Life in Trees film)</span><em>25</em></li>
+          <li><span>Brightspace Activity 5 (Primate Biology &amp; Taxonomy)</span><em>10</em></li>
+          <li><span>Primate Classification worksheet</span><em>36</em></li>
+          <li><span>“Why Sex” film worksheet</span><em>10</em></li>
+          <li><span>Practice, from the lecture slides</span><em>60</em></li>
+          <li><span>Practice, from the study guide</span><em>18</em></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Exam 1 · 192 questions</h3>
+        <ul>
+          <li><span>Top Hat lecture questions</span><em>44</em></li>
+          <li><span>Brightspace Review Activities 1–3</span><em>67</em></li>
+          <li><span>Anthro-pardy (in-class game)</span><em>35</em></li>
+          <li><span>Practice: DNA sequences, using the course's genetic code table</span><em>30</em></li>
+          <li><span>Practice: scientists and thinkers</span><em>16</em></li>
+        </ul>
+      </div>
+    </div>
+    <p class="note">Practice questions follow the lecture slides and the Exam 2 study guide. The 18 labeled “from the study guide” cover study-guide topics that weren't in the slides used to build this, so check them against your own notes. If an answer ever disagrees with what was taught in class, go with the class.</p>
+  </section>
 
   <footer>
     <span>Made by a classmate as a study aid. Not official course material; check anything you're unsure of against the lecture slides.</span>

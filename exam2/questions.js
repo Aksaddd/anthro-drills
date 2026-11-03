@@ -293,4 +293,9 @@ const SUBJECTS2 = [
   { name: "Primate sociality", short: "Sociality", sub: "Group living, social structures, mating systems, dimorphism, dominance, grooming, tool use and culture." },
   { name: "Chimps vs. bonobos", short: "Chimps & bonobos", sub: "The “Why Sex” film: chimpanzee and bonobo societies. Exam questions are drawn from the worksheet." }
 ];
+// Practice questions say exactly where they come from: the lecture slides, or a study-guide topic
+// that wasn't in the slides used to build this (students should check those against their notes).
+const GUIDE_ONLY = new Set(["Species concepts", "Pace of change", "Phylogeny", "Dominance", "Altruism", "Displays", "Play", "Learning"]);
+for (const id of IDS.PR) Q[id].src = GUIDE_ONLY.has(Q[id].tag) ? "Practice, from the study guide" : "Practice, from the lecture slides";
+
 window.BANK = { title: "Anthro Exam 2 Drill", storageKey: "ant2-progress-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true, topics: SUBJECTS2 };

@@ -102,6 +102,10 @@ npx vercel --prod
 
 Netlify and Cloudflare Pages also work: point either one at the repository with no build command and the publish directory set to `/`.
 
+## Where the questions come from
+
+Every question was gathered from, or written to match, ANTH 102 class materials: Top Hat questions, Brightspace activities, worksheets, the in-class Anthro-pardy game, the lecture slides and the Exam 2 study guide. Exam 2 practice questions are labeled either "from the lecture slides" or "from the study guide"; the second group covers study-guide topics that weren't in the slides used, and students are told to check those against their notes. The landing page lists the count per source (update it when adding questions).
+
 ## A note on content
 
 The question figures are cropped from course slides and screenshots. They're shared here as a study aid for classmates and aren't official course material.

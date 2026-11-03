@@ -11,7 +11,7 @@
   const plain = s => String(s).replace(/<[^>]*>/g, "");
   const imgOf = id => Q[id].img || (B.img && B.img[id]) || null;
   const topicOf = id => Q[id].topic || SRC[Q[id].d].name;
-  const srcOf = id => SRC[Q[id].d].src || SRC[Q[id].d].name;
+  const srcOf = id => Q[id].src || SRC[Q[id].d].src || SRC[Q[id].d].name;
   const shuffle = a => { a = a.slice(); for (let k = a.length - 1; k > 0; k--) { const j = Math.random() * (k + 1) | 0; [a[k], a[j]] = [a[j], a[k]] } return a };
   const pct = (c, a) => a ? Math.round(c / a * 100) : 0;
   const plural = (n, w) => n + " " + w + (n === 1 ? "" : "s");
