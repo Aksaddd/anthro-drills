@@ -30,6 +30,7 @@
   // ===== State
   const L = B.storageKey;
   let S = fresh(), missed = new Set(), answered = false, view = "deck";
+  let rev = null, curOpts = null;   // rev = index of an earlier question being reviewed (read-only)
   function fresh() { return { v: 2, updatedAt: 0, deck: FIRST, shuffle: true, onlyMissed: false, missed: [], hist: {}, stats: {}, log: {}, rounds: {}, focus: null } }
   function pool(d) { return d === "FOCUS" ? (S.focus ? S.focus.ids : []) : IDS[d] }
 
@@ -72,7 +73,8 @@
     for (const d of [...Object.keys(DECKS), "FOCUS"]) {
       const r = (s.rounds || {})[d]; if (!r || !Array.isArray(r.order)) continue;
       const ok = new Set(pool(d)); const order = r.order.filter(id => ok.has(id));
-      n.rounds[d] = { order, i: Math.min(r.i | 0, order.length), right: r.right | 0, done: r.done | 0, streak: r.streak | 0, money: r.money | 0 };
+      const log = order.length === r.order.length && Array.isArray(r.log) ? r.log.slice(0, order.length) : [];
+      n.rounds[d] = { order, i: Math.min(r.i | 0, order.length), right: r.right | 0, done: r.done | 0, streak: r.streak | 0, money: r.money | 0, log };
     }
     return true;
   }
@@ -85,9 +87,17 @@
     let ids = pool(d).slice(); if (S.onlyMissed) ids = ids.filter(id => missed.has(id));
     S.rounds[d] = { order: S.shuffle ? byNeed(ids) : ids, i: 0, right: 0, done: 0, streak: 0, money: 0 };
   }
-  function restart() { newRound(S.deck); answered = false; view = "deck"; paint(); save() }
+  function restart() { newRound(S.deck); answered = false; rev = null; view = "deck"; paint(); save() }
+  // Which earlier question "Previous" should open, or -1 if there isn't one.
+  function prevIndex() {
+    const r = R(); if (!r || !r.log) return -1;
+    const k = rev !== null ? rev - 1 : answered ? r.i - 2 : r.i - 1;
+    return k >= 0 && r.log[k] ? k : -1;
+  }
+  function goPrev() { const k = prevIndex(); if (k < 0) return; rev = k; answered = false; paint() }
+  function goNextFromReview() { const r = R(); rev = rev + 1 <= r.i - 1 && r.log[rev + 1] ? rev + 1 : null; paint() }
   function startFocus(label, ids) {
-    S.focus = { label, ids }; S.deck = "FOCUS"; S.onlyMissed = false;
+    S.focus = { label, ids }; S.deck = "FOCUS"; S.onlyMissed = false; rev = null;
     S.rounds.FOCUS = { order: byNeed(ids), i: 0, right: 0, done: 0, streak: 0, money: 0 };
     answered = false; view = "deck"; paint(); save(); window.scrollTo({ top: 0 });
   }
@@ -115,9 +125,9 @@
     };
     for (const d in DECKS) make(d, DECKS[d].name, () => {
       if (S.deck === d && view === "deck") return;
-      view = "deck"; S.deck = d; answered = false; if (!S.rounds[d]) newRound(d); paint(); save();
+      view = "deck"; S.deck = d; answered = false; rev = null; if (!S.rounds[d]) newRound(d); paint(); save();
     });
-    make("PROG", "Progress", () => { view = "progress"; paint() });
+    make("PROG", "Progress", () => { view = "progress"; rev = null; paint() });
   }
   const mastered = d => pool(d).filter(id => lvl(id) === "mastered").length;
   function stats() {
@@ -143,6 +153,8 @@
     if (S.deck === "FOCUS" && !S.focus) S.deck = FIRST;
     if (!S.rounds[S.deck]) newRound(S.deck);
     stats(); const c = $("card"), r = R(), d = S.deck, ids = pool(d);
+    if (!r.log) r.log = [];
+    if (rev !== null) return paintReview(rev);
     if (!r.order.length) {
       c.className = "card done";
       c.innerHTML = `<h2>Nothing to review</h2><p class="sub">${S.onlyMissed ? "No missed questions in this set. Turn off “Only my missed” to see everything." : "No questions here yet."}</p>`; return
@@ -152,27 +164,48 @@
       c.className = "card done";
       c.innerHTML = `<h2>${r.right} / ${r.done} · ${p}%</h2>
       <p class="sub">${m ? m + " question" + (m > 1 ? "s" : "") + " here saved for review." : "Nothing left to review here."}</p>
-      <div class="nav" style="justify-content:center"><button class="btn" id="again">Go again</button>${m && !S.onlyMissed ? '<button class="btn ghost" id="drill">Drill missed</button>' : ""}<button class="btn ghost" id="seeProg">See progress</button></div>`;
+      <div class="nav" style="justify-content:center">${prevIndex() >= 0 ? '<button class="btn ghost" id="prevBtn">← Previous</button>' : ""}<button class="btn" id="again">Go again</button>${m && !S.onlyMissed ? '<button class="btn ghost" id="drill">Drill missed</button>' : ""}<button class="btn ghost" id="seeProg">See progress</button></div>`;
       $("again").onclick = restart;
       if ($("drill")) $("drill").onclick = () => { S.onlyMissed = true; restart() };
       $("seeProg").onclick = () => { view = "progress"; paint() };
+      if ($("prevBtn")) $("prevBtn").onclick = goPrev;
       $("prog").style.width = "100%"; return;
     }
     answered = false;
     const id = r.order[r.i], x = Q[id], im = imgOf(id), s = S.stats[id];
     const opts = shuffle([{ t: x.ok, c: true }, ...x.wrong.map(t => ({ t, c: false }))]);
+    curOpts = opts;
     const right = x.val ? `<span class="val">$${x.val}</span>` : `<span>${r.i + 1} of ${r.order.length}</span>`;
     c.className = "card";
     c.innerHTML = `<div class="meta"><span class="meta-l"><span class="origin" title="Where this question comes from">${esc(srcOf(id))}</span><span class="tagt">${esc(x.tag)}</span></span>${right}</div>
     <p class="q">${txt(x.q)}</p>${im ? `<figure class="fig"><img src="${im[0]}" alt="${esc(im[1])}"></figure>` : ""}
     <div class="opts">${opts.map((o, k) => `<button class="opt" id="o${k}" data-c="${o.c}"><span class="bub">${"ABCDE"[k]}</span><span>${txt(o.t)}</span></button>`).join("")}</div>
     ${s && s[0] ? `<p class="hint"><span class="lv lv-${lvl(id)}">${LEVEL_TEXT[lvl(id)]}</span> Your record: ${s[1]} of ${s[0]} right${S.log[id] && S.log[id].s ? ` · streak ${S.log[id].s}` : ""}.</p>` : ""}
-    <div id="fb"></div>`;
-    c.querySelectorAll(".opt").forEach(b => b.onclick = () => pick(b, id));
+    <div id="fb">${prevIndex() >= 0 ? `<div class="nav"><button class="btn ghost" id="prevBtn">← Previous</button></div>` : ""}</div>`;
+    c.querySelectorAll(".opt").forEach((b, k) => b.onclick = () => pick(b, id, k));
+    if ($("prevBtn")) $("prevBtn").onclick = goPrev;
   }
 
-  function pick(b, id) {
+  // An earlier question in this round, read-only: what you picked, the answer, the explanation.
+  function paintReview(k) {
+    const c = $("card"), r = R(), e = r.log[k], id = r.order[k], x = Q[id], im = imgOf(id);
+    const after = k + 1 <= r.i - 1 && r.log[k + 1];
+    const nextLabel = after ? "Next →" : r.i >= r.order.length ? "Back to results →" : `Back to question ${r.i + 1} →`;
+    c.className = "card review";
+    c.innerHTML = `<div class="meta"><span class="meta-l"><span class="origin">${esc(srcOf(id))}</span><span class="tagt">${esc(x.tag)}</span></span><span class="revtag">Reviewing ${k + 1} of ${r.order.length}</span></div>
+    <p class="q">${txt(x.q)}</p>${im ? `<figure class="fig"><img src="${im[0]}" alt="${esc(im[1])}"></figure>` : ""}
+    <div class="opts">${e.o.map((t, j) => `<button class="opt${j === e.c ? " right" : ""}${j === e.p ? " picked" : ""}${j === e.p && j !== e.c ? " wrong" : ""}" disabled><span class="bub">${"ABCDE"[j]}</span><span>${txt(t)}</span></button>`).join("")}</div>
+    <div class="explain"><strong>${e.p === e.c ? "You got this one right." : "You picked " + "ABCDE"[e.p] + ". Answer: " + txt(x.ok)}</strong>${txt(x.ex || "")}</div>
+    <p class="hint">Review only. Answers can't be changed, so your mastery stays honest.</p>
+    <div class="nav">${prevIndex() >= 0 ? '<button class="btn ghost" id="prevBtn">← Previous</button>' : "<span></span>"}<button class="btn" id="fwdBtn">${nextLabel}</button></div>`;
+    if ($("prevBtn")) $("prevBtn").onclick = goPrev;
+    $("fwdBtn").onclick = goNextFromReview; $("fwdBtn").focus();
+  }
+
+  function pick(b, id, pickedIdx) {
     if (answered) return; answered = true;
+    if (!R().log) R().log = [];
+    R().log[R().i] = { o: curOpts.map(o => o.t), p: pickedIdx, c: curOpts.findIndex(o => o.c) };
     const x = Q[id], r = R(), good = b.dataset.c === "true";
     $("card").querySelectorAll(".opt").forEach(o => { o.disabled = true; if (o.dataset.c === "true") o.classList.add("right") });
     b.classList.add("picked"); if (!good) b.classList.add("wrong");
@@ -192,8 +225,9 @@
     r.i++; save(); stats();
     $("fb").innerHTML = `<div class="explain"><strong>${good ? "Correct." : "Answer: " + txt(x.ok)}</strong>${txt(x.ex || "")}</div>
     <p class="lvnote"><span class="lv lv-${after}">${LEVEL_TEXT[after]}</span>${note}</p>
-    <div class="nav" style="margin-top:6px"><span class="hint">${good ? "" : "Saved to your review list."}</span><button class="btn" id="next">Next</button></div>`;
+    <div class="nav" style="margin-top:6px">${prevIndex() >= 0 ? '<button class="btn ghost" id="prevBtn">← Previous</button>' : `<span class="hint">${good ? "" : "Saved to your review list."}</span>`}<button class="btn" id="next">Next</button></div>`;
     $("next").onclick = paint; $("next").focus();
+    if ($("prevBtn")) $("prevBtn").onclick = goPrev;
   }
 
   function paintProgress() {
@@ -253,6 +287,9 @@
   // ===== Controls
   document.addEventListener("keydown", e => {
     if (view !== "deck") return;
+    if (e.key === "ArrowLeft") { if (prevIndex() >= 0) { e.preventDefault(); goPrev() } return }
+    if (rev !== null) { if ((e.key === "ArrowRight" || e.key === "Enter") && $("fwdBtn")) { e.preventDefault(); $("fwdBtn").click() } return }
+    if (e.key === "ArrowRight" && answered && $("next")) { e.preventDefault(); $("next").click(); return }
     if (!answered && /^[1-5]$/.test(e.key)) { const o = $("o" + (e.key - 1)); if (o) o.click() }
     else if (answered && e.key === "Enter" && $("next")) { e.preventDefault(); $("next").click() }
   });

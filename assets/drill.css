@@ -115,3 +115,5 @@ h1{font:800 clamp(26px,6vw,34px)/1.05 var(--display);margin:0;letter-spacing:-.0
 .how2 summary{cursor:pointer;font-weight:600;color:var(--accent)}
 .how2 p,.how2 ul{margin:8px 0 0} .how2 ul{padding-left:18px} .how2 li{margin-top:4px}
 .tbar.stack i.sg-mastered{background:var(--lv-mastered)} .tbar.stack i.sg-due{background:var(--lv-due)} .tbar.stack i.sg-shaky{background:var(--lv-shaky)} .tbar.stack i.sg-learning{background:var(--lv-learning)}
+.revtag{font:600 11px var(--mono);letter-spacing:.04em;color:var(--accent);white-space:nowrap}
+.card.review{border-style:dashed}
