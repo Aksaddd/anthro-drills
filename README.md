@@ -42,7 +42,7 @@ Each student's progress is saved **in their own browser, on the device they stud
 
 ## Mock exam
 
-`mock/index.html` builds a fresh 100-question exam each time from the Exam 2 and Classification drills (288 unique questions; shared and repeated questions appear once). Answers can be changed until submitting; results show the score against 90%, a subject breakdown and a full review. Exams in progress and past scores are saved per device.
+`mock/index.html` builds a fresh 50- or 100-question exam (student's choice, 50 by default) each time from the Exam 2 and Classification drills (288 unique questions; shared and repeated questions appear once). Answers can be changed until submitting; results show the score against 90%, a subject breakdown and a full review. Exams in progress and past scores are saved per device.
 
 The mock exam reads `mock/bank.js`, which is generated. **After changing either question bank, run:**
 

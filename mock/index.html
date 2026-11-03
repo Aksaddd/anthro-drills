@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Exam 2 Mock Exam</title>
-<meta name="description" content="A fresh 100-question practice exam for ANTH 102 Exam 2 every time, drawn from the Exam 2 and Classification drills.">
+<meta name="description" content="A fresh 50- or 100-question practice exam for ANTH 102 Exam 2 every time, drawn from the Exam 2 and Classification drills.">
 <meta name="theme-color" content="#2a46cf">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
@@ -16,6 +16,13 @@
 .fact{background:var(--sunk);border-radius:12px;padding:12px 14px}
 .fact b{display:block;font:800 24px/1.1 var(--display);font-variant-numeric:tabular-nums}
 .fact span{font-size:13px;color:var(--muted)}
+.sizepick{display:flex;flex-direction:column;gap:6px}
+.sizelbl{font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg2 button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid var(--line);background:var(--paper);border-radius:12px;padding:12px 14px;cursor:pointer;font:500 14px var(--body)}
+.seg2 button b{font:800 22px var(--display)}
+.seg2 button small{font-size:12.5px;color:var(--muted)}
+.seg2 button[aria-checked="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1px var(--accent)}
 .rules{margin:0;padding-left:18px;color:var(--muted);font-size:14.5px;display:flex;flex-direction:column;gap:4px}
 .history{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 .history li{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:14px;font-variant-numeric:tabular-nums}
@@ -79,7 +86,7 @@
   <header class="examhead">
     <a class="back" href="../index.html">← All drills</a>
     <h1>Exam 2 Mock Exam</h1>
-    <p class="sub">100 random questions from the Exam 2 and Classification drills. A brand-new exam every time.</p>
+    <p class="sub">50 or 100 random questions from the Exam 2 and Classification drills. A brand-new exam every time.</p>
   </header>
   <main id="app"></main>
 </div>
@@ -88,7 +95,8 @@
 <script src="bank.js"></script>
 <script>
 (() => {
-  const BANK = window.MOCK_BANK, N = 100, PASS = 90;
+  const BANK = window.MOCK_BANK, SIZES = [50, 100], PASS = 90, SIZE_KEY = "anthro-mock-size";
+  let N = 50; try { const v = +localStorage.getItem(SIZE_KEY); if (SIZES.includes(v)) N = v } catch (e) { }
   const KEY = "anthro-mock-v1", HIST = "anthro-mock-history-v1";
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -127,11 +135,11 @@
     const subj = {}; BANK.forEach(q => subj[q.subject] = (subj[q.subject] || 0) + 1);
     $("app").innerHTML = `<section class="panel">
       <div class="facts">
-        <div class="fact"><b>100</b><span>questions per exam</span></div>
         <div class="fact"><b>${BANK.length}</b><span>in the question pool</span></div>
         <div class="fact"><b>90%</b><span>your target</span></div>
         <div class="fact"><b>${hist.length}</b><span>exams taken</span></div>
       </div>
+      <div class="sizepick"><span class="sizelbl">Exam length</span><div class="seg2" role="radiogroup" aria-label="Exam length">${SIZES.map(n => `<button type="button" role="radio" aria-checked="${n === N}" data-n="${n}"><b>${n}</b> questions<small>${n === 50 ? "Same length as the real exam" : "Extra-long practice"}</small></button>`).join("")}</div></div>
       <ul class="rules">
         <li>Questions come from every Exam 2 subject and the Classification chart, mixed together at random.</li>
         <li>Pick an answer and change it as often as you like. Nothing is marked until you submit.</li>
@@ -139,13 +147,14 @@
         <li>The timer can be paused. Your exam is saved if you leave and come back.</li>
       </ul>
       <div class="nav" style="justify-content:flex-start;gap:10px">
-        ${inProg ? `<button class="btn" id="resume"><span>Continue exam (${E.ans.filter(a => a !== null).length}/100 answered)</span></button><button class="btn ghost" id="fresh"><span>Start a new exam</span></button>` : `<button class="btn" id="fresh"><span>Start a new exam</span></button>`}
+        ${inProg ? `<button class="btn" id="resume"><span>Continue exam (${E.ans.filter(a => a !== null).length}/${E.items.length} answered)</span></button><button class="btn ghost" id="fresh"><span>Start a new exam</span></button>` : `<button class="btn" id="fresh"><span>Start a new exam</span></button>`}
       </div>
       ${inProg ? `<p class="hint">Starting a new exam discards the one in progress.</p>` : ""}
     </section>
     ${hist.length ? `<section class="panel"><b>Your past exams</b><ul class="history">${hist.slice().reverse().slice(0, 10).map(h => `<li><span>${new Date(h.at).toLocaleDateString(undefined, { month: "short", day: "numeric" })} <small>${new Date(h.at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })} · ${mmss(h.secs)}</small></span><span class="pct ${band(h.pct)}">${h.pct}%</span><small>${h.right}/${h.total}</small></li>`).join("")}</ul></section>` : ""}`;
     if ($("resume")) $("resume").onclick = () => render(true);
     $("fresh").onclick = () => { if (inProg && !confirm2()) return; newExam() };
+    $("app").querySelectorAll("[data-n]").forEach(b => b.onclick = () => { N = +b.dataset.n; try { localStorage.setItem(SIZE_KEY, N) } catch (e) { } renderStart() });
   }
   let armed = false;
   function confirm2() {   // the viewer can't show confirm() dialogs, so ask in the page: first tap arms, second tap confirms
@@ -203,7 +212,7 @@
     const left = E.ans.filter(a => a === null).length, flagged = E.flag.filter(Boolean).length;
     if (confirmOpen) return submit();
     confirmOpen = true;
-    $("confirmBox").innerHTML = `<div class="confirm"><span>${left ? `<b>${left} unanswered</b> (they count as wrong).` : "All 100 answered."}${flagged ? ` ${flagged} still flagged.` : ""} Submit now?</span><span style="display:flex;gap:8px"><button class="btn ghost" id="keep"><span>Keep working</span></button><button class="btn" id="doSubmit"><span>Submit exam</span></button></span></div>`;
+    $("confirmBox").innerHTML = `<div class="confirm"><span>${left ? `<b>${left} unanswered</b> (they count as wrong).` : `All ${E.items.length} answered.`}${flagged ? ` ${flagged} still flagged.` : ""} Submit now?</span><span style="display:flex;gap:8px"><button class="btn ghost" id="keep"><span>Keep working</span></button><button class="btn" id="doSubmit"><span>Submit exam</span></button></span></div>`;
     $("keep").onclick = () => { confirmOpen = false; $("confirmBox").innerHTML = "" };
     $("doSubmit").onclick = submit;
     if (left) { const k = E.ans.findIndex(a => a === null); if (k >= 0 && k !== E.pos) { E.pos = k; paintBar(); paintQ() } }
@@ -238,7 +247,7 @@
       </section>
       <section class="panel"><b>Review your answers</b>
         <div class="grid100" id="rgrid">${rows.map(r => `<button class="gq ${r.ok ? "right" : "wrongq"}" data-k="${r.k}" aria-label="Question ${r.k + 1}: ${r.ok ? "right" : "wrong"}">${r.k + 1}</button>`).join("")}</div>
-        <div class="filters"><button class="chip" data-f="wrong" aria-pressed="${filter === "wrong"}">Missed (${rows.filter(r => !r.ok).length})</button><button class="chip" data-f="flag" aria-pressed="${filter === "flag"}">Flagged (${E.flag.filter(Boolean).length})</button><button class="chip" data-f="all" aria-pressed="${filter === "all"}">All 100</button></div>
+        <div class="filters"><button class="chip" data-f="wrong" aria-pressed="${filter === "wrong"}">Missed (${rows.filter(r => !r.ok).length})</button><button class="chip" data-f="flag" aria-pressed="${filter === "flag"}">Flagged (${E.flag.filter(Boolean).length})</button><button class="chip" data-f="all" aria-pressed="${filter === "all"}">All ${n}</button></div>
         <div class="rev">${list.length ? list.map(r => `<article class="rcard ${r.ok ? "good" : "bad"}" id="r${r.k}">
             <div class="meta"><span class="meta-l"><span class="origin">Source: ${esc(r.q.src)}</span><span>${esc(r.q.subject)}</span></span><span>Q${r.k + 1}</span></div>
             <p class="q">${esc(r.q.q)}</p>
