@@ -90,8 +90,6 @@ main.inner{padding-block:28px 48px;display:flex;flex-direction:column;gap:18px}
 .srcgrid em{font:600 13px var(--mono);font-style:normal;color:var(--ink);font-variant-numeric:tabular-nums;flex:none}
 .sources .note{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--sunk);color:var(--ink);font-size:13.5px}
 .ctas{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
-.ddcta.mc{background:linear-gradient(135deg,#14532d 0%,#16a34a 100%)}
-.ddcta.mc .ddgo{color:#15803d}
 .ddcta{position:relative;z-index:1;display:flex;align-items:center;gap:14px;padding:10px 14px 10px 10px;border-radius:12px;background:linear-gradient(135deg,var(--accent) 0%,#4f6bed 100%);color:#fff;text-decoration:none;transition:transform .15s}
 .ddcta:hover{transform:translateY(-1px)}
 .ddcta:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
@@ -116,12 +114,6 @@ main.inner{padding-block:28px 48px;display:flex;flex-direction:column;gap:18px}
 
 .mc-q{fill:rgba(255,255,255,.85)} .mc-opt{fill:rgba(255,255,255,.16);stroke:rgba(255,255,255,.5);stroke-width:.8}
 .mc-b{fill:none;stroke:#fff;stroke-width:1.2} .mc-t{fill:rgba(255,255,255,.7)}
-.mc-pick .mc-opt{animation:mcOpt 3.2s ease-in-out infinite} .mc-pick .mc-b{animation:mcB 3.2s ease-in-out infinite}
-.mc-hand{animation:mcHand 3.2s ease-in-out infinite}
-@keyframes mcHand{0%,10%{transform:translate(100px,70px)}45%,100%{transform:translate(70px,43px)}}
-@keyframes mcOpt{0%,45%{fill:rgba(255,255,255,.16)}52%,92%{fill:rgba(134,239,172,.6);stroke:#fff}100%{fill:rgba(255,255,255,.16)}}
-@keyframes mcB{0%,45%{fill:none}52%,92%{fill:#fff}100%{fill:none}}
-@media (prefers-reduced-motion:reduce){.mc-hand,.mc-pick .mc-opt,.mc-pick .mc-b{animation:none}.mc-hand{transform:translate(70px,43px)}.mc-pick .mc-opt{fill:rgba(134,239,172,.6)}.mc-pick .mc-b{fill:#fff}}
 footer{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
 footer a{color:inherit}
 @media (max-width:560px){
@@ -167,10 +159,9 @@ footer a{color:inherit}
         <a class="ddcta mc" href="classification/index.html"><svg class="dd-illu sm" viewBox="0 0 132 84" aria-hidden="true">
   <rect x="6" y="4" width="92" height="6" rx="3" class="mc-q"/><rect x="6" y="13" width="60" height="5" rx="2.5" class="mc-q"/>
   <g class="mc-row"><rect x="4" y="24" width="124" height="12" rx="6" class="mc-opt"/><circle cx="12" cy="30" r="3.4" class="mc-b"/><rect x="20" y="28.5" width="54" height="3" rx="1.5" class="mc-t"/></g>
-  <g class="mc-row mc-pick"><rect x="4" y="39" width="124" height="12" rx="6" class="mc-opt"/><circle cx="12" cy="45" r="3.4" class="mc-b"/><rect x="20" y="43.5" width="70" height="3" rx="1.5" class="mc-t"/></g>
+  <g class="mc-row"><rect x="4" y="39" width="124" height="12" rx="6" class="mc-opt"/><circle cx="12" cy="45" r="3.4" class="mc-b"/><rect x="20" y="43.5" width="70" height="3" rx="1.5" class="mc-t"/></g>
   <g class="mc-row"><rect x="4" y="54" width="124" height="12" rx="6" class="mc-opt"/><circle cx="12" cy="60" r="3.4" class="mc-b"/><rect x="20" y="58.5" width="46" height="3" rx="1.5" class="mc-t"/></g>
   <g class="mc-row"><rect x="4" y="69" width="124" height="12" rx="6" class="mc-opt"/><circle cx="12" cy="75" r="3.4" class="mc-b"/><rect x="20" y="73.5" width="62" height="3" rx="1.5" class="mc-t"/></g>
-  <path class="dd-hand mc-hand" d="M0 0 L0 13 L3.5 10 L6 15.5 L8.2 14.5 L5.8 9.2 L10.5 9 Z"/>
 </svg><span><strong>Multiple choice</strong><small>149 questions on where each trait goes and how the chart fits together</small></span><span class="ddgo">Open →</span></a>
         <a class="ddcta" href="classification/chart.html"><svg class="dd-illu sm" viewBox="0 0 132 84" aria-hidden="true">
   <rect x="2" y="2" width="128" height="18" rx="5" class="dd-box"/>
