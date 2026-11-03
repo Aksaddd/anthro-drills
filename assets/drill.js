@@ -39,13 +39,16 @@
   const LEVEL_TEXT = { new: "New", learning: "Learning", shaky: "Getting there", due: "Due for review", mastered: "Mastered" };
   const WEIGHT = { new: 0, learning: 0, shaky: .5, due: .75, mastered: 1 };
   function lvl(id) {
-    const st = S.stats[id], g = S.log[id];
+    const st = S.stats[id], g = S.log[id], mk = S.mark[id];
+    if (mk && mk.m === "mastered") return Date.now() - Math.max(mk.t, (g && g.last) || 0) > FADE ? "due" : "mastered";
     if (!st || !st[0]) return "new";
     if (!g || !g.s) return "learning";
     if (g.s >= need(id) && g.last - g.t0 >= SPACING) return Date.now() - g.last > FADE ? "due" : "mastered";
     return "shaky";
   }
-  const byNeed = ids => { const g = {}; for (const id of shuffle(ids)) (g[lvl(id)] = g[lvl(id)] || []).push(id); return ORDER.flatMap(l => g[l] || []) };
+  // Questions marked for review come first, then the weakest levels.
+  const flagged = id => S.mark[id] && S.mark[id].m === "review";
+  const byNeed = ids => { const g = {}; for (const id of shuffle(ids)) { const k = flagged(id) ? "flag" : lvl(id); (g[k] = g[k] || []).push(id) } return ["flag", ...ORDER].flatMap(l => g[l] || []) };
 
   // ===== Daily activity (no quota: just a count and a day streak)
   const AUTO_MS = 1800;
@@ -63,7 +66,7 @@
   // each position is either unanswered (live question) or answered (read-only review).
   const L = B.storageKey;
   let S = fresh(), missed = new Set(), answered = false, view = "deck", curOpts = null, autoTimer = null, menuOpen = false;
-  function fresh() { return { v: 2, updatedAt: 0, deck: FIRST, shuffle: true, onlyMissed: false, auto: true, missed: [], hist: {}, stats: {}, log: {}, days: {}, rounds: {}, focus: null } }
+  function fresh() { return { v: 2, updatedAt: 0, deck: FIRST, shuffle: true, onlyMissed: false, auto: true, missed: [], hist: {}, stats: {}, log: {}, mark: {}, days: {}, rounds: {}, focus: null } }
   const pool = d => d === "FOCUS" ? (S.focus ? S.focus.ids : []) : IDS[d];
   function apply(s) {
     if (!s || s.v !== 2) return false;
@@ -76,6 +79,7 @@
     for (const k in (s.log || {})) { const g = s.log[k]; if (Q[k] && g) n.log[k] = { s: g.s | 0, t0: +g.t0 || 0, last: +g.last || 0 } }
     for (const k in n.hist) if (!n.log[k]) n.log[k] = { s: n.hist[k], t0: 0, last: 0 };
     for (const k in (s.days || {})) if (/^\d{4}-\d\d-\d\d$/.test(k)) n.days[k] = s.days[k] | 0;
+    for (const k in (s.mark || {})) { const m = s.mark[k]; if (Q[k] && m && (m.m === "mastered" || m.m === "review")) n.mark[k] = { m: m.m, t: +m.t || Date.now() } }
     if (s.focus && Array.isArray(s.focus.ids)) { const ids = s.focus.ids.filter(id => Q[id] && !Q[id].dup); if (ids.length) n.focus = { label: String(s.focus.label || "Focus"), ids } }
     n.deck = DECKS[s.deck] || (s.deck === "FOCUS" && n.focus) ? s.deck : FIRST;
     S = n; missed = new Set(n.missed);
@@ -103,7 +107,7 @@
     return -1;
   }
   function newRound(d) {
-    let ids = pool(d).slice(); if (S.onlyMissed) ids = ids.filter(id => missed.has(id));
+    let ids = pool(d).slice(); if (S.onlyMissed) ids = ids.filter(id => missed.has(id) || flagged(id));
     S.rounds[d] = { order: S.shuffle ? byNeed(ids) : ids, pos: 0, streak: 0, best: 0, m0: masteredIn(pool(d)), log: [] };
   }
   function restart() { newRound(S.deck); answered = false; view = "deck"; paint(); save() }
@@ -123,6 +127,32 @@
   const goNext = () => { const r = R(); if (r && r.pos < r.order.length) goTo(r.pos + 1) };
   // After answering: the next question you haven't answered yet, or the results when none are left.
   const goNextQuestion = () => { const r = R(); const k = nextUnanswered(r, r.pos); goTo(k < 0 ? r.order.length : k) };
+
+  // ===== Manual marks: the student can mark a question as mastered, or flag it for review.
+  function marksRow(id) {
+    const m = S.mark[id] ? S.mark[id].m : "";
+    return `<div class="marks" role="group" aria-label="Mark this question">
+      <button type="button" class="mk mk-mastered" data-mark="mastered" aria-pressed="${m === "mastered"}"><span aria-hidden="true">✓</span> ${m === "mastered" ? "Marked as mastered" : "Mark as mastered"}</button>
+      <button type="button" class="mk mk-review" data-mark="review" aria-pressed="${m === "review"}"><span aria-hidden="true">⚑</span> ${m === "review" ? "Marked for review" : "Mark for review"}</button></div>`;
+  }
+  function wireMarks(id) {
+    $("card").querySelectorAll("[data-mark]").forEach(b => b.onclick = () => {
+      stopAuto();
+      const m = b.dataset.mark, cur = S.mark[id] && S.mark[id].m;
+      if (cur === m) { delete S.mark[id]; toast(m === "mastered" ? "No longer marked as mastered" : "Removed from review", "blue") }
+      else {
+        S.mark[id] = { m, t: Date.now() };
+        if (m === "mastered") { missed.delete(id); toast("Marked as mastered") } else toast("Marked for review", "gold");
+      }
+      save();
+      const box = $("card").querySelector(".marks"); if (box) { box.outerHTML = marksRow(id); wireMarks(id) }
+      $("card").querySelectorAll(".lvb").forEach(e => { const l = lvl(id); e.className = "lv lvb lv-" + l; e.textContent = LEVEL_TEXT[l] + (S.mark[id] && S.mark[id].m === "mastered" ? " (by you)" : "") });
+      if ($("rec")) $("rec").innerHTML = recordInner(id);
+      paintChrome();
+    });
+  }
+  const recordInner = id => { const s = S.stats[id]; return s && s[0] || S.mark[id] ? `${badge(id)}${streakDots(id)}<span>${s && s[0] ? `${s[1]} of ${s[0]} right so far` : ""}</span>` : "" };
+  const badge = id => `<span class="lv lvb lv-${lvl(id)}">${LEVEL_TEXT[lvl(id)]}${S.mark[id] && S.mark[id].m === "mastered" ? " (by you)" : ""}</span>`;
 
   // ===== Summaries
   function sumUp(ids) {
@@ -176,7 +206,8 @@
     const r = R();
     $("map").innerHTML = r.order.map((id, k) => {
       const l = lvl(id), done = !!r.log[k];
-      return `<button type="button" class="sq lv-c-${l}${done ? " done" : ""}${k === r.pos ? " cur" : ""}" data-k="${k}" aria-label="Question ${k + 1}: ${LEVEL_TEXT[l]}${done ? ", answered" : ""}"${k === r.pos ? ' aria-current="step"' : ""}></button>`;
+      const fl = flagged(id);
+      return `<button type="button" class="sq lv-c-${l}${done ? " done" : ""}${fl ? " flag" : ""}${k === r.pos ? " cur" : ""}" data-k="${k}" aria-label="Question ${k + 1}: ${LEVEL_TEXT[l]}${done ? ", answered" : ""}${fl ? ", marked for review" : ""}"${k === r.pos ? ' aria-current="step"' : ""}></button>`;
     }).join("");
   }
   function paintChrome() {
@@ -236,9 +267,11 @@
     c.innerHTML = `${metaRow(id, x.val ? `<span class="val">$${x.val}</span>` : `<span>${k + 1} / ${r.order.length}</span>`)}
       <p class="q">${txt(x.q)}</p>${figure(id)}
       <div class="opts">${opts.map((o, j) => `<button class="opt" id="o${j}" data-c="${o.c}"><span class="bub">${"ABCDE"[j]}</span><span>${txt(o.t)}</span></button>`).join("")}</div>
-      ${s && s[0] ? `<p class="record"><span class="lv lv-${lvl(id)}">${LEVEL_TEXT[lvl(id)]}</span>${streakDots(id)}<span>${s[1]} of ${s[0]} right so far</span></p>` : ""}
+      <p class="record" id="rec">${recordInner(id)}</p>
+      ${marksRow(id)}
       <div id="fb">${navBar(isLast ? lastLabel(r) : "Skip →", "skipBtn", true)}</div>`;
     c.querySelectorAll(".opt").forEach((b, j) => b.onclick = () => pick(b, id, j));
+    wireMarks(id);
     $("prevBtn").onclick = goPrev; $("skipBtn").onclick = goNext;
     wireZoom();
   }
@@ -250,6 +283,8 @@
     $("card").querySelectorAll(".opt").forEach(o => { o.disabled = true; if (o.dataset.c === "true") o.classList.add("right") });
     b.classList.add("picked", good ? "pop" : "shake"); if (!good) b.classList.add("wrong");
     const before = lvl(id);
+    const unmarked = !good && S.mark[id] && S.mark[id].m === "mastered";
+    if (unmarked) delete S.mark[id];
     if (good) { r.streak++; r.best = Math.max(r.best | 0, r.streak); missed.delete(id) } else { r.streak = 0; missed.add(id) }
     S.hist[id] = good ? 1 : 0;
     const s = S.stats[id] || [0, 0]; S.stats[id] = [s[0] + 1, s[1] + (good ? 1 : 0)];
@@ -259,7 +294,7 @@
     const dk = dayKey(); S.days[dk] = (S.days[dk] | 0) + 1;
     const after = lvl(id), k = need(id);
     let note;
-    if (!good) note = before === "mastered" || before === "due" ? "Streak reset. This one leaves mastered until you rebuild it." : "Streak reset. It comes back early in your next round.";
+    if (!good) note = unmarked ? "You'd marked this as mastered, so the mark is removed. It comes back early in your next round." : before === "mastered" || before === "due" ? "Streak reset. This one leaves mastered until you rebuild it." : "Streak reset. It comes back early in your next round.";
     else if (after === "mastered") note = before === "mastered" ? "Still mastered." : `Mastered: right ${g.s} times in a row, spread over time.`;
     else if (g.s >= k) note = "Streak complete. Get it right again an hour or more from now to lock it in.";
     else note = `${k - g.s} more right in a row to master it.`;
@@ -267,8 +302,9 @@
     const sq = $("map").querySelector(`[data-k="${r.pos}"]`); if (sq) sq.classList.add("just");
     const more = nextUnanswered(r, r.pos) >= 0;
     $("fb").innerHTML = `<div class="explain ${good ? "good" : "bad"}"><strong>${good ? "Correct." : "Answer: " + txt(x.ok)}</strong>${txt(x.ex || "")}</div>
-      <p class="lvnote"><span class="lv lv-${after}">${LEVEL_TEXT[after]}</span>${streakDots(id)}<span>${note}</span></p>
+      <p class="lvnote">${badge(id)}${streakDots(id)}<span>${note}</span></p>
       ${navBar(more ? "Next question →" : "See results →", "next")}`;
+    const mr = $("card").querySelector(".marks"); if (mr) { mr.outerHTML = marksRow(id); wireMarks(id) }
     $("next").onclick = goNextQuestion; $("next").focus({ preventScroll: true });
     $("prevBtn").onclick = goPrev;
     if (after === "mastered" && before !== "mastered") toast(`Mastered. ${masteredIn(pool(S.deck))} of ${pool(S.deck).length} in ${S.deck === "FOCUS" ? "this focus round" : DECKS[S.deck].name}`);
@@ -299,8 +335,10 @@
       <div class="opts">${e.o.map((t, j) => `<button class="opt${j === e.c ? " right" : ""}${j === e.p ? " picked" : ""}${j === e.p && j !== e.c ? " wrong" : ""}" disabled><span class="bub">${"ABCDE"[j]}</span><span>${txt(t)}</span></button>`).join("")}</div>
       <div class="explain ${e.p === e.c ? "good" : "bad"}"><strong>${e.p === e.c ? "You got this one right." : "You picked " + "ABCDE"[e.p] + ". Answer: " + txt(x.ok)}</strong>${txt(x.ex || "")}</div>
       <p class="hint">Already answered in this round, so it can't be changed. That keeps your mastery honest.</p>
+      ${marksRow(id)}
       ${navBar(isLast ? lastLabel(r) : "Next →", "fwdBtn")}`;
     $("prevBtn").onclick = goPrev; $("fwdBtn").onclick = goNext; $("fwdBtn").focus({ preventScroll: true });
+    wireMarks(id);
     wireZoom();
   }
 
@@ -345,6 +383,7 @@
     const weak = started.filter(t => t.acc < 70).sort((x, y) => x.acc - y.acc).slice(0, 2);
     const worst = ALL.map(id => ({ id, s: S.stats[id] })).filter(o => o.s && o.s[0] > o.s[1])
       .sort((x, y) => (y.s[0] - y.s[1]) - (x.s[0] - x.s[1]) || x.s[1] / x.s[0] - y.s[1] / y.s[0]).slice(0, 8);
+    const flaggedIds = ALL.filter(flagged);
     const days = []; for (let k = 6; k >= 0; k--) { const d = new Date(); d.setDate(d.getDate() - k); days.push({ key: dayKey(d), label: d.toLocaleDateString(undefined, { weekday: "short" }).slice(0, 2), n: S.days[dayKey(d)] | 0, today: k === 0 }) }
     const top = Math.max(10, ...days.map(d => d.n));
     const row = t => `<li class="trow">
@@ -363,6 +402,7 @@
         ${weak.length ? `<p class="callout bad"><strong>Needs work</strong>${weak.map(t => esc(t.name) + " (" + t.acc + "% right)").join(" · ")}</p>` : ""}
         ${strong.length ? `<p class="callout good"><strong>Strongest</strong>${strong.map(t => esc(t.name) + " (" + t.mastery + "% mastery)").join(" · ")}</p>` : ""}
       </div>` : ""}
+      ${flaggedIds.length ? `<div class="callout flagc"><strong>Marked for review</strong>${plural(flaggedIds.length, "question")} you flagged. <button class="chip" id="drillFlag">Drill marked</button></div>` : ""}
       <h3 class="ph3">By subject <span>weakest first</span></h3>
       <ul class="topics">${started.map(row).join("")}${fresh.map(row).join("")}</ul>
       <h3 class="ph3">This week <span>questions answered per day</span></h3>
@@ -379,11 +419,12 @@
           <li><b>Spread over time:</b> the streak has to stretch across at least an hour, so it reflects memory, not the screen you just saw.</li>
           <li><b>Kept fresh:</b> a mastered question you haven't seen in 5 days becomes <i>due for review</i>.</li>
         </ul>
-        <p>A miss resets the streak. Rounds show your weakest questions first. Your <b>mastery</b> gives full credit for mastered, ¾ for due and ½ for getting there.</p>
+        <p>You can also mark a question as mastered yourself, or flag it for review; a miss removes your “mastered” mark. A miss resets the streak. Rounds show flagged questions first, then your weakest. Your <b>mastery</b> gives full credit for mastered, ¾ for due and ½ for getting there.</p>
       </details>
       <p class="hint">Saved in this browser on this device only. Clearing your browser data erases it.</p>`;
     c.querySelectorAll("[data-topic]").forEach(b => b.onclick = () => { const t = ts.find(x => x.key === b.dataset.topic); startFocus(t.name, t.ids) });
     if ($("drillWorst")) $("drillWorst").onclick = () => startFocus("Most-missed questions", worst.map(o => o.id));
+    if ($("drillFlag")) $("drillFlag").onclick = () => startFocus("Marked for review", flaggedIds);
   }
 
   // ===== Lightbox

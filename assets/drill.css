@@ -231,3 +231,14 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 .seg button{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:7px 0;cursor:pointer;font-weight:600}
 .seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .menu{max-height:min(80vh,620px);overflow:auto}
+
+/* ===== Manual marks */
+.marks{display:flex;flex-wrap:wrap;gap:8px}
+.mk{display:inline-flex;align-items:center;gap:6px;font:500 13px var(--body);border:1px dashed var(--line);background:transparent;color:var(--muted);padding:6px 12px;border-radius:999px;cursor:pointer}
+.mk:hover{border-color:var(--accent);color:var(--ink)}
+.mk-mastered[aria-pressed="true"]{border-style:solid;border-color:var(--lv-mastered);background:var(--good-soft);color:var(--good)}
+.mk-review[aria-pressed="true"]{border-style:solid;border-color:var(--lv-shaky);background:var(--gold-soft);color:var(--gold)}
+.sq.flag::before{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--lv-learning);border:1.5px solid var(--bg);z-index:1}
+.callout.flagc{background:var(--gold-soft);display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.callout.flagc strong{color:var(--gold);width:100%;margin:0}
+.record:empty{display:none}
