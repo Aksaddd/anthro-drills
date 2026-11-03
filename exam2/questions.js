@@ -252,7 +252,7 @@ for (const d in DECKS) {
   });
 }
 // Origin labels shown on each question
-DECKS.TH.src = "Top Hat"; DECKS.A5.src = "Activity 5"; DECKS.CH.src = "Classification chart"; DECKS.WS.src = "Why Sex film"; DECKS.PR.src = "Practice";
+DECKS.TH.src = "Top Hat (lecture)"; DECKS.A5.src = "Brightspace Activity 5"; DECKS.CH.src = "Primate Classification worksheet"; DECKS.WS.src = "“Why Sex” film worksheet"; DECKS.PR.src = "Practice, from the study guide";
 // Subject tabs, in study-guide order
 const SUBJECTS2 = [
   { name: "Macroevolution & speciation", short: "Speciation", sub: "Species concepts, gradualism vs. punctuated equilibrium, modes and types of speciation, extinction." },

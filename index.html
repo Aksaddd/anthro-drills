@@ -104,7 +104,7 @@ footer{font-size:12.5px;color:var(--muted)}
     <ul>
       <li>Pick a subject and answer. Your weakest questions come first.</li>
       <li>A question is <b>mastered</b> after 3 right answers in a row, spread over at least an hour. One lucky guess doesn't count.</li>
-      <li>Aim for 25 questions a day. Your progress is saved in this browser on this device, and nothing is sent anywhere.</li>
+      <li>Every question shows its source: Top Hat, a Brightspace activity, a worksheet, or practice. Your progress is saved in this browser on this device, and nothing is sent anywhere.</li>
     </ul>
     <div class="legend"><span><i class="c-mastered"></i>Mastered</span><span><i class="c-due"></i>Due for review</span><span><i class="c-shaky"></i>Getting there</span><span><i class="c-learning"></i>Learning</span><span><i class="c-new"></i>New</span></div>
   </div>
@@ -116,7 +116,7 @@ footer{font-size:12.5px;color:var(--muted)}
   const $ = id => document.getElementById(id);
   const read = k => { try { return JSON.parse(localStorage.getItem(k) || "null") } catch (e) { return null } };
   const dayKey = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-  const HOUR = 3600e3, FADE = 5 * 864e5, GOAL = 25;
+  const HOUR = 3600e3, FADE = 5 * 864e5;
   // Same levels as the drills (two-choice questions are approximated with the 3-in-a-row rule).
   function levels(s, total) {
     const n = { mastered: 0, due: 0, shaky: 0, learning: 0 }, now = Date.now(); let a = 0, c = 0, seen = 0;
@@ -150,7 +150,7 @@ footer{font-size:12.5px;color:var(--muted)}
   if (s2 && s2.stats && Object.keys(s2.stats).length) $("goBtn").textContent = "Continue: weakest subject →";
   const t = s2 && s2.days ? (s2.days[dayKey(new Date())] | 0) : 0;
   let streak = 0; if (s2 && s2.days) { const d = new Date(); if (!s2.days[dayKey(d)]) d.setDate(d.getDate() - 1); while (s2.days[dayKey(d)]) { streak++; d.setDate(d.getDate() - 1) } }
-  $("todayTxt").textContent = (t >= GOAL ? `Daily goal met: ${t} today` : `${t} of ${GOAL} today`) + (streak ? ` · ${streak}-day streak` : "");
+  $("todayTxt").textContent = t || streak ? `${t} answered today` + (streak ? ` · ${streak}-day streak` : "") : "";
 })();
 </script>
 </body></html>

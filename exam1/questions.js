@@ -270,7 +270,7 @@ for(const d in IDS) IDS[d].forEach((id,n)=>{
   Q[id].topic=TOPIC1[t]||DECKS[d].name;
 });
 // Origin labels shown on each question
-DECKS.TH.src="Top Hat"; DECKS.AC.src="Review activity"; DECKS.AP.src="Anthro-pardy"; DECKS.SQ.src="Sequence practice"; DECKS.PP.src="Practice";
+DECKS.TH.src="Top Hat (lecture)"; DECKS.AC.src="Brightspace Review Activities 1–3"; DECKS.AP.src="Anthro-pardy (in-class game)"; DECKS.SQ.src="Practice: DNA sequences"; DECKS.PP.src="Practice: scientists";
 // People repeats 20 questions and Sequences repeats 8 from the other sets. Show each question once,
 // and file the people questions under Scientists & thinkers.
 PPLINK.forEach((src,n)=>{Q["PP"+n].dup=true;Q[src].topic=TOPIC1.PEO});

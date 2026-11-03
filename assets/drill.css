@@ -36,7 +36,7 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 .ring .track{stroke:var(--line)} .ring .fill{stroke:var(--accent);transition:stroke-dashoffset .5s ease}
 .ring.done .fill{stroke:var(--lv-mastered)}
 .ring b{position:absolute;inset:0;display:grid;place-items:center;font:700 12px var(--mono);font-variant-numeric:tabular-nums}
-.habit-text{display:flex;flex-direction:column;line-height:1.25;font-size:12px;color:var(--muted)}
+.habit-text{display:flex;flex-direction:column;align-items:flex-end;text-align:right;line-height:1.3;font-size:12px;color:var(--muted)}
 .habit-text strong{font:600 13px var(--body);color:var(--ink);font-variant-numeric:tabular-nums}
 
 /* ===== Subject tabs */
@@ -90,7 +90,7 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 .meta{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;color:var(--muted)}
 .meta-l{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;min-width:0;letter-spacing:.04em;text-transform:uppercase}
 .meta>span:last-child{white-space:nowrap;flex:none;font:500 12px var(--mono);font-variant-numeric:tabular-nums}
-.origin{font:600 10.5px/1 var(--mono);letter-spacing:.04em;color:var(--accent);background:var(--accent-soft);padding:4px 7px;border-radius:999px;white-space:nowrap;text-transform:none}
+.origin{font:600 11.5px/1.2 var(--body);color:var(--accent);background:var(--accent-soft);padding:4px 9px;border-radius:999px;text-transform:none;letter-spacing:0}
 .val{font:600 12px var(--mono);color:var(--gold);background:var(--gold-soft);padding:2px 8px;border-radius:6px}
 .q{font:600 clamp(18px,4.6vw,21px)/1.4 var(--body);margin:0;text-wrap:pretty}
 .seq{font-family:var(--mono);letter-spacing:.06em}
@@ -209,7 +209,6 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 @media (max-width:440px){
   .card{padding:18px}
   .tab b{font-size:13px}
-  .habit-text{display:none}
   .pgrid b{font-size:19px}
   .map i{width:10px;height:10px}
 }

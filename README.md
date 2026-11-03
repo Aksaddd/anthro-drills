@@ -7,7 +7,7 @@ Multiple-choice study drills for **ANTH 102: Introduction to Human Evolution**. 
 | Exam 1 | `exam1/` | Science · Natural selection · Scientists · Cells & DNA · Protein synthesis · Genetics · Forces of evolution (192 questions) |
 | Exam 2 | `exam2/` | Speciation · Phylogeny · Primate traits · Taxonomy · Picture ID · Sociality · Chimps & bonobos (161 questions) |
 
-Each drill also has a **Mixed** tab and a **Progress** tab. Tabs group questions by subject; a small label on each question shows its source (Top Hat, Activity 5, a worksheet, practice).
+Each drill also has a **Mixed** tab and a **Progress** tab. Tabs group questions by subject; every question shows a "Source:" label above it (Top Hat, a Brightspace activity, a worksheet, or practice).
 
 Everything is plain static HTML, CSS and JavaScript, with no build step and no server code.
 
@@ -27,9 +27,9 @@ Each student's progress is saved **in their own browser, on the device they stud
 
 - **Subject tabs** with a small mastery bar each, a **Mixed** tab, and a **Progress** tab.
 - A **subject map**: one square per question, colored by mastery level, with the current question outlined.
-- A **daily goal ring** (25 questions) and a day-streak count in the header.
+- How many questions you answered today and your day streak, in the header (no quota).
 - Instant feedback: a pop on right answers, a shake on wrong ones, the explanation, the question's mastery level and streak. After a right answer the next question comes up on its own (switch off under **Options**); any tap pauses it.
-- Short messages for 5/10/15/20… in a row, newly mastered questions and reaching the daily goal.
+- Short messages for 5/10/15/20… in a row and for newly mastered questions.
 - **← Previous** to review earlier questions in the round (read-only).
 - End-of-round summary with score, newly mastered count, best streak and the weakest subject to practice next.
 - Tap any picture to zoom.

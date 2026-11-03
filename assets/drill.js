@@ -48,7 +48,7 @@
   const byNeed = ids => { const g = {}; for (const id of shuffle(ids)) (g[lvl(id)] = g[lvl(id)] || []).push(id); return ORDER.flatMap(l => g[l] || []) };
 
   // ===== Daily habit
-  const GOAL = 25, AUTO_MS = 1800;
+  const AUTO_MS = 1800;
   const dayKey = (d = new Date()) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   const today = () => S.days[dayKey()] | 0;
   function dayStreak() {
@@ -134,8 +134,7 @@
   }
   function paintHabit() {
     const t = today(), st = dayStreak();
-    $("habit").innerHTML = `<div class="ring${t >= GOAL ? " done" : ""}" title="${t} of ${GOAL} questions today">${ringSVG(44, 5, t / GOAL)}<b>${t}</b></div>
-      <div class="habit-text"><strong>${t >= GOAL ? "Goal met today" : `${GOAL - t} to today's goal`}</strong><span>${st ? plural(st, "day") + " in a row" : "Start a streak today"}</span></div>`;
+    $("habit").innerHTML = `<div class="habit-text"><strong>${t} answered today</strong><span>${st ? plural(st, "day") + " in a row" : "Study today to start a streak"}</span></div>`;
   }
   function buildTabs() {
     const box = $("tabs"); box.innerHTML = "";
@@ -186,7 +185,7 @@
   }
   function wireZoom() { $("card").querySelectorAll(".zoom").forEach(b => b.onclick = () => openLightbox(b.dataset.src, b.dataset.alt)) }
   function metaRow(id, right) {
-    return `<div class="meta"><span class="meta-l"><span class="origin" title="Where this question comes from">${esc(srcOf(id))}</span><span>${esc(Q[id].tag)}</span></span>${right}</div>`;
+    return `<div class="meta"><span class="meta-l"><span class="origin">Source: ${esc(srcOf(id))}</span><span>${esc(Q[id].tag)}</span></span>${right}</div>`;
   }
   const streakDots = id => { const k = need(id), s = Math.min((S.log[id] || {}).s || 0, k); return `<span class="streakline" title="Streak ${s} of ${k}">${Array.from({ length: k }, (_, j) => `<i class="${j < s ? "on" : ""}"></i>`).join("")}</span>` };
 
@@ -250,7 +249,6 @@
     // celebrate the moments that matter
     if (after === "mastered" && before !== "mastered") toast(`Mastered. ${masteredIn(pool(S.deck))} of ${pool(S.deck).length} in ${S.deck === "FOCUS" ? "this focus round" : DECKS[S.deck].name}`);
     else if (good && [5, 10, 15, 20, 30, 40, 50].includes(r.streak)) toast(`${r.streak} in a row`, "gold");
-    if (S.days[dk] === GOAL) toast(`Daily goal reached: ${GOAL} questions`, "blue");
     if (good && S.auto) startAuto();
   }
 
@@ -326,7 +324,7 @@
       .sort((x, y) => (y.s[0] - y.s[1]) - (x.s[0] - x.s[1]) || x.s[1] / x.s[0] - y.s[1] / y.s[0]).slice(0, 8);
     // the last 7 days
     const days = []; for (let k = 6; k >= 0; k--) { const d = new Date(); d.setDate(d.getDate() - k); days.push({ key: dayKey(d), label: d.toLocaleDateString(undefined, { weekday: "short" }).slice(0, 2), n: S.days[dayKey(d)] | 0, today: k === 0 }) }
-    const top = Math.max(GOAL * 1.25, ...days.map(d => d.n));
+    const top = Math.max(10, ...days.map(d => d.n));
     const row = t => `<li class="trow">
         <div class="tname"><b>${esc(t.name)}</b><span>${t.a ? `${t.mastered}/${t.total} mastered · ${t.acc}% right` : `Not started · ${plural(t.total, "question")}`}</span></div>
         <div class="stack" role="img" aria-label="${t.n.mastered} mastered, ${t.n.due} due, ${t.n.shaky} getting there, ${t.n.learning} learning, ${t.n.new} new">${segs(t.n)}</div>
@@ -347,11 +345,10 @@
       <ul class="topics">${started.map(row).join("")}${fresh.map(row).join("")}</ul>
       <h3 class="ph3">This week <span>questions answered per day</span></h3>
       <div class="week" role="img" aria-label="${days.map(d => d.label + " " + d.n).join(", ")}">
-        <div class="goal" style="bottom:${GOAL / top * 82 + 18}px"><span>goal ${GOAL}</span></div>
-        ${days.map(d => `<div class="day${d.today ? " today" : ""}${d.n >= GOAL ? " met" : ""}"><em>${d.n || ""}</em><i style="height:${d.n / top * 82}px"></i><span>${d.label}</span></div>`).join("")}
+        ${days.map(d => `<div class="day${d.today ? " today" : ""}"><em>${d.n || ""}</em><i style="height:${d.n / top * 82}px"></i><span>${d.label}</span></div>`).join("")}
       </div>
       ${worst.length ? `<h3 class="ph3">Most-missed questions</h3>
-      <ol class="worst">${worst.map(o => `<li><span>${esc(plain(Q[o.id].q))}</span><em>${o.s[0] - o.s[1]} wrong of ${o.s[0]}</em></li>`).join("")}</ol>
+      <ol class="worst">${worst.map(o => `<li><span>${esc(plain(Q[o.id].q))}</span><em>${o.s[0] - o.s[1]} wrong of ${o.s[0]} · Source: ${esc(srcOf(o.id))}</em></li>`).join("")}</ol>
       <div class="nav"><button class="btn" id="drillWorst"><span>Drill these ${worst.length}</span></button></div>` : ""}
       <details class="how2"><summary>How mastery is measured</summary>
         <p>One right answer can be a lucky guess, so a question only counts as <b>mastered</b> when you've shown you know it reliably:</p>
