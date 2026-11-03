@@ -5,7 +5,7 @@ Multiple-choice study drills for **ANTH 102: Introduction to Human Evolution**. 
 | Drill | Folder | Subject tabs |
 |---|---|---|
 | Exam 1 | `exam1/` | Science · Natural selection · Scientists · Cells & DNA · Protein synthesis · Genetics · Forces of evolution (192 questions) |
-| Exam 2 | `exam2/` | Speciation · Phylogeny · Primate traits · Taxonomy · Picture ID · Sociality · Chimps & bonobos (181 questions) |
+| Exam 2 | `exam2/` | Speciation · Phylogeny · Primate traits · Taxonomy · Picture ID · Sociality · Chimps & bonobos (186 questions) |
 
 Each drill also has a **Mixed** tab and a **Progress** tab. Tabs group questions by subject; every question shows a "Source:" label above it (Top Hat, a Brightspace activity, a worksheet, or practice).
 
