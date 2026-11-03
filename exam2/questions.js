@@ -288,7 +288,7 @@ const SUBJECTS2 = [
   { name: "Macroevolution & speciation", short: "Speciation", sub: "Species concepts, gradualism vs. punctuated equilibrium, modes and types of speciation, extinction." },
   { name: "Phylogeny", short: "Phylogeny", sub: "Systematics, ancestral vs. derived homology, analogy and convergent evolution." },
   { name: "Primate features & distribution", short: "Primate traits", sub: "Mammalian radiation, what defines a primate, teeth, vision, brains, life history, where primates live." },
-  { name: "Primate taxonomy", short: "Taxonomy", sub: "Suborder, infraorder and superfamily traits, and the Primate Classification chart." },
+  { name: "Primate taxonomy", short: "Taxonomy", sub: "Suborder, infraorder and superfamily traits, and the Primate Classification chart.", link: { href: "chart.html", label: "Practice the chart as a matching activity →" } },
   { name: "Picture ID", short: "Picture ID", sub: "Identify the taxon from skulls, teeth, hands, tails and behavior. Answer at the closest level the feature allows." },
   { name: "Primate sociality", short: "Sociality", sub: "Group living, social structures, mating systems, dimorphism, dominance, grooming, tool use and culture." },
   { name: "Chimps vs. bonobos", short: "Chimps & bonobos", sub: "The “Why Sex” film: chimpanzee and bonobo societies. Exam questions are drawn from the worksheet." }

@@ -24,7 +24,7 @@
   for (const id of ALL) { const t = topicOf(id); if (!tlist.some(x => x.name === t)) tlist.push({ name: t }) }
   for (const t of tlist) {
     const ids = ALL.filter(id => topicOf(id) === t.name); if (!ids.length) continue;
-    DECKS[slug(t.name)] = { name: t.short || t.name, full: t.name, sub: t.sub || t.name }; IDS[slug(t.name)] = ids;
+    DECKS[slug(t.name)] = { name: t.short || t.name, full: t.name, sub: t.sub || t.name, link: t.link }; IDS[slug(t.name)] = ids;
   }
   DECKS.ALL = { name: "Mixed", full: "Mixed", sub: "Every question from every subject, weakest first. Good for a final run-through before the exam." }; IDS.ALL = ALL;
   const FIRST = Object.keys(DECKS)[0];
@@ -216,7 +216,8 @@
     for (const id of ["toolbar", "barRow", "map"]) $(id).hidden = !inDeck;
     if (!inDeck) { $("deckSub").textContent = "Your strengths and weak spots, from every answer you've given on this device."; return }
     const d = S.deck, r = R(), n = r.order.length, done = doneIn(r);
-    $("deckSub").textContent = d === "FOCUS" ? `Focus round: ${S.focus.label}. ${plural(pool(d).length, "question")}, weakest first. Pick a subject tab to leave.` : DECKS[d].sub;
+    $("deckSub").innerHTML = d === "FOCUS" ? esc(`Focus round: ${S.focus.label}. ${plural(pool(d).length, "question")}, weakest first. Pick a subject tab to leave.`)
+      : esc(DECKS[d].sub) + (DECKS[d].link ? ` <a class="sublink" href="${DECKS[d].link.href}">${esc(DECKS[d].link.label)}</a>` : "");
     paintMap();
     $("roundInfo").innerHTML = n ? `<span>${r.pos < n ? `Question <b>${r.pos + 1}</b> of ${n}` : "<b>Results</b>"}</span><span><b>${done}</b> answered</span><span><b>${rightIn(r)}</b> right</span><span>Streak <b>${r.streak}</b></span>` : "";
     $("prog").style.width = n ? (done / n * 100) + "%" : "0";
