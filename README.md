@@ -2,10 +2,12 @@
 
 Multiple-choice study drills for **ANTH 102: Introduction to Human Evolution**. They're built from the course's Top Hat questions, Brightspace activities and lecture slides.
 
-| Drill | Folder | Tabs |
+| Drill | Folder | Subject tabs |
 |---|---|---|
-| Exam 1 | `exam1/` | Top Hat · Review · Anthro-pardy · Sequences · People (220 questions) |
-| Exam 2 | `exam2/` | Top Hat · Activity 5 · Chart · Why Sex · Practice (161 questions) |
+| Exam 1 | `exam1/` | Science · Natural selection · Scientists · Cells & DNA · Protein synthesis · Genetics · Forces of evolution (192 questions) |
+| Exam 2 | `exam2/` | Speciation · Phylogeny · Primate traits · Taxonomy · Picture ID · Sociality · Chimps & bonobos (161 questions) |
+
+Each drill also has a **Mixed** tab and a **Progress** tab. Tabs group questions by subject; a small label on each question shows its source (Top Hat, Activity 5, a worksheet, practice).
 
 Everything is plain static HTML, CSS and JavaScript, with no build step and no server code.
 
@@ -48,9 +50,9 @@ All Exam 2 questions live in `exam2/questions.js`. Each question is one line:
 ["Tag shown above the question", "Question text?", "Correct answer", ["Wrong 1", "Wrong 2", "Wrong 3"], "Optional explanation", "optionalFigureKey"],
 ```
 
-- **Append new questions to the end of a deck** (`TH`, `A5`, `CH`, `WS`, `PR`). Progress is stored by position, so inserting in the middle would shift people's saved history onto the wrong questions.
+- **Append new questions to the end of a source list** (`TH`, `A5`, `CH`, `WS`, `PR`); the source becomes the question's origin label. Progress is stored by position, so inserting in the middle would shift people's saved history onto the wrong questions.
 - To attach a picture, put the file in `exam2/img/`, add an entry to `FIG` at the top of the file, and use its key as the sixth item.
-- The question's **topic** (used on the Progress tab) comes from its tag, through the `TOPIC2` lists near the bottom of the file. A tag that isn't listed falls back to the tab's name, so add new tags to the right topic.
+- The question's **subject tab** (also used on the Progress tab) comes from its tag, through the `TOPIC2` lists near the bottom of the file. A tag that isn't listed falls back to the tab's name, so add new tags to the right topic.
 - To add a whole new tab, add an entry to `DECKS`, a new array, and include it in `DATA`.
 
 ## Publish it on Vercel

@@ -3,17 +3,28 @@
 //   { title, storageKey, decks, ids: {deck:[id]}, q: {id:{d,tag,q,ok,wrong,ex,img,val,topic}}, img?, textOnly? }
 // All progress is stored in this browser's localStorage under BANK.storageKey. Nothing leaves the device.
 (() => {
-  const B = window.BANK, DECKS = B.decks, IDS = B.ids, Q = B.q;
-  const FIRST = Object.keys(DECKS)[0];
-  const ALL = Object.keys(DECKS).flatMap(d => IDS[d]);
+  const B = window.BANK, SRC = B.decks, Q = B.q;
+  const ALL = Object.keys(SRC).flatMap(d => B.ids[d]).filter(id => !Q[id].dup);
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const txt = s => B.textOnly ? esc(s) : String(s);          // Exam 1 questions contain small bits of markup
   const plain = s => String(s).replace(/<[^>]*>/g, "");
   const imgOf = id => Q[id].img || (B.img && B.img[id]) || null;
-  const topicOf = id => Q[id].topic || DECKS[Q[id].d].name;
+  const topicOf = id => Q[id].topic || SRC[Q[id].d].name;
+  const srcOf = id => SRC[Q[id].d].src || SRC[Q[id].d].name;
+
+  // Tabs are subjects (topics), not sources. "Mixed" holds everything.
+  const slug = s => "t-" + s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const DECKS = {}, IDS = {};
+  const tlist = (B.topics || []).slice();
+  for (const id of ALL) { const t = topicOf(id); if (!tlist.some(x => x.name === t)) tlist.push({ name: t }) }
+  for (const t of tlist) {
+    const ids = ALL.filter(id => topicOf(id) === t.name); if (!ids.length) continue;
+    const k = slug(t.name); DECKS[k] = { name: t.short || t.name, sub: t.sub || t.name }; IDS[k] = ids;
+  }
+  DECKS.ALL = { name: "Mixed", sub: "Every question from every subject, shuffled together. Good for a final run-through before the exam." }; IDS.ALL = ALL;
+  const FIRST = Object.keys(DECKS)[0];
   const shuffle = a => { a = a.slice(); for (let k = a.length - 1; k > 0; k--) { const j = Math.random() * (k + 1) | 0; [a[k], a[j]] = [a[j], a[k]] } return a };
-  const fmt$ = n => (n < 0 ? "−$" : "$") + Math.abs(n).toLocaleString();
   const pct = (c, a) => a ? Math.round(c / a * 100) : 0;
 
   // ===== State
@@ -81,7 +92,6 @@
       view = "deck"; S.deck = d; answered = false; if (!S.rounds[d]) newRound(d); paint(); save();
     });
     make("PROG", "Progress", () => { view = "progress"; paint() });
-    document.documentElement.style.setProperty("--n", Object.keys(DECKS).length + 1);
   }
   const mastered = d => pool(d).filter(id => S.hist[id] === 1).length;
   function stats() {
@@ -94,8 +104,7 @@
     const d = S.deck, r = R(), ids = pool(d);
     $("deckSub").textContent = d === "FOCUS" ? `Focus round: ${S.focus.label} (${ids.length} question${ids.length > 1 ? "s" : ""}). Pick a tab to go back to a full set.` : DECKS[d].sub;
     $("sMaster").textContent = mastered(d) + "/" + ids.length;
-    if (d !== "FOCUS" && DECKS[d].money) { $("sScore").textContent = fmt$(r.money); $("sScoreLbl").textContent = "winnings" }
-    else { $("sScore").textContent = r.right + "/" + r.done; $("sScoreLbl").textContent = "this round" }
+    $("sScore").textContent = r.right + "/" + r.done; $("sScoreLbl").textContent = "this round";
     $("sStreak").textContent = r.streak;
     $("sMiss").textContent = ids.filter(id => missed.has(id)).length;
     $("shuffleBtn").setAttribute("aria-pressed", S.shuffle); $("shuffleBtn").textContent = S.shuffle ? "Shuffled" : "In order";
@@ -115,7 +124,7 @@
     if (r.i >= r.order.length) {
       const p = pct(r.right, r.done), m = ids.filter(id => missed.has(id)).length;
       c.className = "card done";
-      c.innerHTML = `<h2>${d !== "FOCUS" && DECKS[d].money ? fmt$(r.money) + " · " : ""}${r.right} / ${r.done} · ${p}%</h2>
+      c.innerHTML = `<h2>${r.right} / ${r.done} · ${p}%</h2>
       <p class="sub">${m ? m + " question" + (m > 1 ? "s" : "") + " here saved for review." : "Nothing left to review here."}</p>
       <div class="nav" style="justify-content:center"><button class="btn" id="again">Go again</button>${m && !S.onlyMissed ? '<button class="btn ghost" id="drill">Drill missed</button>' : ""}<button class="btn ghost" id="seeProg">See progress</button></div>`;
       $("again").onclick = restart;
@@ -128,7 +137,7 @@
     const opts = shuffle([{ t: x.ok, c: true }, ...x.wrong.map(t => ({ t, c: false }))]);
     const right = x.val ? `<span class="val">$${x.val}</span>` : `<span>${r.i + 1} of ${r.order.length}</span>`;
     c.className = "card";
-    c.innerHTML = `<div class="meta"><span>${esc(x.tag)}${d === "FOCUS" ? " · " + esc(DECKS[x.d].name) : ""}</span>${right}</div>
+    c.innerHTML = `<div class="meta"><span class="meta-l"><span class="origin" title="Where this question comes from">${esc(srcOf(id))}</span><span class="tagt">${esc(x.tag)}</span></span>${right}</div>
     <p class="q">${txt(x.q)}</p>${im ? `<figure class="fig"><img src="${im[0]}" alt="${esc(im[1])}"></figure>` : ""}
     <div class="opts">${opts.map((o, k) => `<button class="opt" id="o${k}" data-c="${o.c}"><span class="bub">${"ABCDE"[k]}</span><span>${txt(o.t)}</span></button>`).join("")}</div>
     ${s && s[0] ? `<p class="hint">Your record on this one: ${s[1]} of ${s[0]} right.</p>` : ""}
@@ -142,12 +151,10 @@
     $("card").querySelectorAll(".opt").forEach(o => { o.disabled = true; if (o.dataset.c === "true") o.classList.add("right") });
     b.classList.add("picked"); if (!good) b.classList.add("wrong");
     r.done++; if (good) { r.right++; r.streak++; missed.delete(id) } else { r.streak = 0; missed.add(id) }
-    if (x.val) r.money += good ? x.val : -x.val;
     S.hist[id] = good ? 1 : 0;
     const s = S.stats[id] || [0, 0]; S.stats[id] = [s[0] + 1, s[1] + (good ? 1 : 0)];
     r.i++; save(); stats();
-    const money = x.val ? ` ${good ? "+" : "−"}$${x.val}.` : "";
-    $("fb").innerHTML = `<div class="explain"><strong>${good ? "Correct." + money : "Answer: " + txt(x.ok) + money}</strong>${txt(x.ex || "")}</div>
+    $("fb").innerHTML = `<div class="explain"><strong>${good ? "Correct." : "Answer: " + txt(x.ok)}</strong>${txt(x.ex || "")}</div>
     <div class="nav" style="margin-top:14px"><span class="hint">${good ? "" : "Saved to your review list."}</span><button class="btn" id="next">Next</button></div>`;
     $("next").onclick = paint; $("next").focus();
   }

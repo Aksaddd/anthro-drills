@@ -251,4 +251,16 @@ for (const d in DECKS) {
     IDS[d].push(id);
   });
 }
-window.BANK = { title: "Anthro Exam 2 Drill", storageKey: "ant2-progress-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true };
+// Origin labels shown on each question
+DECKS.TH.src = "Top Hat"; DECKS.A5.src = "Activity 5"; DECKS.CH.src = "Classification chart"; DECKS.WS.src = "Why Sex film"; DECKS.PR.src = "Practice";
+// Subject tabs, in study-guide order
+const SUBJECTS2 = [
+  { name: "Macroevolution & speciation", short: "Speciation", sub: "Species concepts, gradualism vs. punctuated equilibrium, modes and types of speciation, extinction." },
+  { name: "Phylogeny", short: "Phylogeny", sub: "Systematics, ancestral vs. derived homology, analogy and convergent evolution." },
+  { name: "Primate features & distribution", short: "Primate traits", sub: "Mammalian radiation, what defines a primate, teeth, vision, brains, life history, where primates live." },
+  { name: "Primate taxonomy", short: "Taxonomy", sub: "Suborder, infraorder and superfamily traits, and the Primate Classification chart." },
+  { name: "Picture ID", short: "Picture ID", sub: "Identify the taxon from skulls, teeth, hands, tails and behavior. Answer at the closest level the feature allows." },
+  { name: "Primate sociality", short: "Sociality", sub: "Group living, social structures, mating systems, dimorphism, dominance, grooming, tool use and culture." },
+  { name: "Chimps vs. bonobos", short: "Chimps & bonobos", sub: "The “Why Sex” film: chimpanzee and bonobo societies. Exam questions are drawn from the worksheet." }
+];
+window.BANK = { title: "Anthro Exam 2 Drill", storageKey: "ant2-progress-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true, topics: SUBJECTS2 };

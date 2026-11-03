@@ -269,6 +269,21 @@ for(const d in IDS) IDS[d].forEach((id,n)=>{
   if(!t&&TMAP[d]) for(const k in TMAP[d]) if(TMAP[d][k].includes(n)) t=k;
   Q[id].topic=TOPIC1[t]||DECKS[d].name;
 });
-DECKS.AP.money=true;
+// Origin labels shown on each question
+DECKS.TH.src="Top Hat"; DECKS.AC.src="Review activity"; DECKS.AP.src="Anthro-pardy"; DECKS.SQ.src="Sequence practice"; DECKS.PP.src="Practice";
+// People repeats 20 questions and Sequences repeats 8 from the other sets. Show each question once,
+// and file the people questions under Scientists & thinkers.
+PPLINK.forEach((src,n)=>{Q["PP"+n].dup=true;Q[src].topic=TOPIC1.PEO});
+for(let n=0;n<8;n++)Q["SQ"+n].dup=true;
+// Subject tabs, in course order
+const SUBJECTS1=[
+  {name:TOPIC1.SCI,short:"Science",sub:"Hypotheses, theories and the scientific method."},
+  {name:TOPIC1.DAR,short:"Natural selection",sub:"Ideas before Darwin, Darwin's evidence, fitness and how natural selection works."},
+  {name:TOPIC1.PEO,short:"Scientists",sub:"Darwin, Wallace, Malthus, Lyell, Lamarck, Linnaeus, Mendel and Dr. Katie Pollard."},
+  {name:TOPIC1.DNA,short:"Cells & DNA",sub:"Cells, DNA structure, genes, HOX and body-plan genes."},
+  {name:TOPIC1.PRO,short:"Protein synthesis",sub:"Transcription, translation, codons, anticodons and sequence problems."},
+  {name:TOPIC1.GEN,short:"Genetics",sub:"Chromosomes, meiosis, alleles, Punnett squares and inheritance patterns."},
+  {name:TOPIC1.FOR,short:"Forces of evolution",sub:"Mutation, gene flow, drift, founder effect, bottlenecks and sexual selection."}
+];
 
-window.BANK={title:"Anthro Exam 1 Drill",storageKey:"ant1-progress-v2",decks:DECKS,ids:IDS,q:Q,img:IMG};
+window.BANK={title:"Anthro Exam 1 Drill",storageKey:"ant1-progress-v2",decks:DECKS,ids:IDS,q:Q,img:IMG,topics:SUBJECTS1};
