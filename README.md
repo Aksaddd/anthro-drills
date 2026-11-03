@@ -33,6 +33,7 @@ Each student's progress is saved **in their own browser, on the device they stud
 - **Free browsing:** ← Previous and Next → (or Skip) move through the round, and every square in the question map is a button that jumps to that question. Skipped questions can be answered later; answered ones open read-only.
 - End-of-round summary with score, newly mastered count, best streak and the weakest subject to practice next.
 - Tap any picture to zoom.
+- **Reading settings** (Options menu): choose the reading font (IBM Plex Sans, Atkinson Hyperlegible, Literata, or the device's own font) and text size (4 steps). Saved per device and shared by both drills; extra fonts download only when chosen.
 - The landing page shows a countdown to Exam 2, a **Continue** button that opens the weakest subject (`exam2/index.html#continue`), and each exam's mastery bar.
 
 ## Project layout

@@ -391,6 +391,41 @@
   function closeLightbox() { $("lightbox").hidden = true }
   $("lightbox").onclick = closeLightbox;
 
+
+  // ===== Reading settings: font and text size, saved on this device and shared by every drill.
+  // Research (Wallace et al., 2022) found no single font is fastest for everyone, so readers choose.
+  const READ_KEY = "anthro-reading";
+  const FONTS = {
+    plex: { label: "IBM Plex Sans", note: "The default", stack: '"IBM Plex Sans",system-ui,-apple-system,sans-serif' },
+    atkinson: { label: "Atkinson Hyperlegible", note: "Every letter easy to tell apart", stack: '"Atkinson Hyperlegible Next","Atkinson Hyperlegible",system-ui,sans-serif', href: "https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&display=swap" },
+    literata: { label: "Literata", note: "A serif made for screen reading", stack: 'Literata,Georgia,"Times New Roman",serif', href: "https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;600;700&display=swap" },
+    system: { label: "Your device's font", note: "Familiar, nothing to download", stack: 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif' }
+  };
+  const SIZES = [{ k: .9, label: "A−", name: "Small" }, { k: 1, label: "A", name: "Default" }, { k: 1.12, label: "A+", name: "Large" }, { k: 1.25, label: "A++", name: "Extra large" }];
+  let reading = { font: "plex", size: 1 };
+  try { const r = JSON.parse(localStorage.getItem(READ_KEY) || "null"); if (r && FONTS[r.font]) reading.font = r.font; if (r && SIZES[r.size]) reading.size = r.size } catch (e) { }
+  function applyReading() {
+    const f = FONTS[reading.font];
+    if (f.href && !document.querySelector(`link[data-font="${reading.font}"]`)) {
+      const l = document.createElement("link"); l.rel = "stylesheet"; l.href = f.href; l.dataset.font = reading.font; document.head.appendChild(l);
+    }
+    document.documentElement.style.setProperty("--read", f.stack);
+    document.documentElement.style.setProperty("--rs", SIZES[reading.size].k);
+    document.querySelectorAll("[data-fontpick]").forEach(b => b.setAttribute("aria-checked", b.dataset.fontpick === reading.font));
+    document.querySelectorAll("[data-sizepick]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.sizepick === reading.size));
+    try { localStorage.setItem(READ_KEY, JSON.stringify(reading)) } catch (e) { }
+  }
+  function buildReadingMenu() {
+    const g = document.createElement("div"); g.className = "mgroup";
+    g.innerHTML = `<span class="mlabel" id="fontLbl">Reading font</span>
+      ${Object.entries(FONTS).map(([k, f]) => `<button class="mi" role="menuitemradio" data-fontpick="${k}"><span class="dot"></span><span class="fname"><span style="font-family:${f.stack.replace(/"/g, "&quot;")}">${f.label}</span><small>${f.note}</small></span></button>`).join("")}
+      <span class="mlabel" id="sizeLbl">Text size</span>
+      <div class="seg" role="group" aria-labelledby="sizeLbl">${SIZES.map((z, i) => `<button type="button" data-sizepick="${i}" aria-label="${z.name} text" style="font-size:${13 * z.k}px">${z.label}</button>`).join("")}</div>`;
+    $("menu").insertBefore(g, $("restartBtn"));
+    g.querySelectorAll("[data-fontpick]").forEach(b => b.onclick = e => { e.stopPropagation(); reading.font = b.dataset.fontpick; applyReading() });
+    g.querySelectorAll("[data-sizepick]").forEach(b => b.onclick = e => { e.stopPropagation(); reading.size = +b.dataset.sizepick; applyReading() });
+  }
+
   // ===== Options menu
   function setMenu(open) { menuOpen = open; $("menu").hidden = !open; $("optBtn").setAttribute("aria-expanded", open) }
   $("optBtn").onclick = e => { e.stopPropagation(); setMenu(!menuOpen) };
@@ -421,6 +456,7 @@
   });
 
   // ===== Start
+  buildReadingMenu(); applyReading();
   buildTabs();
   apply(load());
   function route() {
