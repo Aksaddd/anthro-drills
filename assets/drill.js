@@ -217,6 +217,8 @@
 
   buildTabs();
   apply(load());
+  if (location.hash === "#progress") view = "progress";
+  window.addEventListener("hashchange", () => { if (location.hash === "#progress") { view = "progress"; paint() } });
   paint();
   // Ask the browser to keep this site's storage instead of clearing it under storage pressure.
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist() } catch (e) { }
