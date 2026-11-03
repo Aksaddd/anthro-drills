@@ -14,7 +14,7 @@
 :root{
   --bg:#eef1f6; --paper:#fff; --ink:#151b2b; --muted:#5b6478; --line:#d6dbe6; --sunk:#f5f7fb;
   --accent:#2a46cf; --accent-soft:#e3e8fb;
-  --forest:#14281d; --forest-2:#1f3b2b; --leaf:#b9e48f; --cream:#f7f5ec;
+  --gold:#b7791f; --gold-soft:#fbf1dc; --forest:#14281d; --forest-2:#1f3b2b; --leaf:#b9e48f; --cream:#f7f5ec;
   --lv-mastered:#16a34a; --lv-due:#4f6bed; --lv-shaky:#d4a017; --lv-learning:#e2572b; --lv-new:#d6dbe6;
   --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
   --body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
@@ -80,15 +80,53 @@ main.inner{padding-block:28px 48px;display:flex;flex-direction:column;gap:18px}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
 .legend .c-new{background:var(--lv-new)}
-.sources p{margin:6px 0 0}
-.srcgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px 24px;margin-top:12px}
-.srcgrid h3{font:700 13px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink);margin:0 0 6px}
-.srcgrid ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.srcgrid li{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:6px 0;border-bottom:1px solid var(--line)}
-.srcgrid li:last-child{border-bottom:0}
-.srcgrid li span{min-width:0}
-.srcgrid em{font:600 13px var(--mono);font-style:normal;color:var(--ink);font-variant-numeric:tabular-nums;flex:none}
-.sources .note{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--sunk);color:var(--ink);font-size:13.5px}
+.films{display:flex;flex-direction:column;gap:14px;margin-top:6px}
+.filmgrid{display:grid;grid-template-columns:1fr;gap:12px}
+.film{display:flex;flex-direction:column;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)}
+.ftop{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.ftag{font:700 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:3px 8px;border-radius:999px}
+.fused{font-size:12.5px;color:var(--muted)}
+.fmain{display:flex;gap:12px;align-items:center}
+.ficon{flex:none;width:42px;height:42px;border-radius:12px;background:var(--forest);display:grid;place-items:center}
+.ficon svg{width:18px;height:18px;fill:var(--leaf)}
+.film h3{margin:0;font:800 18px/1.2 var(--display)}
+.fseries{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.fby{margin:0;font-size:13.5px;font-weight:600;color:var(--ink)}
+.fabout{margin:0;font-size:14px;color:var(--muted)}
+.flinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:4px}
+.flinks a{font:600 13.5px var(--body);color:var(--accent);text-decoration:none;border:1px solid var(--line);padding:7px 12px;border-radius:999px}
+.flinks a:hover{border-color:var(--accent)}
+.filmnote{margin:0;font-size:13px;color:var(--muted)}
+.sources{display:flex;flex-direction:column;gap:16px;margin-top:6px}
+.srchead{display:flex;flex-direction:column;gap:6px}
+.srchead .kicker{margin:0;font:700 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.srchead h2{margin:0;font:800 clamp(22px,4vw,28px)/1.15 var(--display);letter-spacing:-.01em;text-wrap:balance}
+.srchead>p{margin:0;color:var(--muted);font-size:15px;max-width:62ch}
+.keys{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin-top:4px}
+.keys span{display:inline-flex;align-items:center;gap:6px}
+.keys i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.srcgrid{display:grid;grid-template-columns:1fr;gap:12px}
+.srccard ul{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));column-gap:24px}
+.srccard{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+.srccard header{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.srccard h3{margin:0;font:700 18px var(--display)}
+.srccard h3 a{color:inherit;text-decoration:none}
+.srccard h3 a:hover{color:var(--accent)}
+.srccard .tot{font:600 13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.srcbar{display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px;background:var(--paper)}
+.srcbar i{display:block;height:100%}
+.split{margin:0;font-size:13px;color:var(--muted)}
+.split b{color:var(--ink)}
+.srccard ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.srccard li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}
+.srccard .sw{width:12px;height:12px;border-radius:3px}
+.srccard .sn{display:flex;flex-direction:column;min-width:0;font-size:14px;line-height:1.3}
+.srccard .sn b{font-weight:600;color:var(--ink)}
+.srccard .sn small{font-size:12.5px;color:var(--muted)}
+.srccard em{font:600 14px var(--mono);font-style:normal;color:var(--ink);font-variant-numeric:tabular-nums}
+.srcnote{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:14px;background:var(--gold-soft);border:1px solid color-mix(in srgb,var(--gold) 30%,transparent)}
+.srcnote strong{font:700 14px var(--body);color:var(--gold)}
+.srcnote p{margin:0;font-size:14px;color:var(--ink)}
 .ctas{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
 .ddcta{position:relative;z-index:1;display:flex;align-items:center;gap:14px;padding:10px 14px 10px 10px;border-radius:12px;background:linear-gradient(135deg,var(--accent) 0%,#4f6bed 100%);color:#fff;text-decoration:none;transition:transform .15s}
 .ddcta:hover{transform:translateY(-1px)}
@@ -190,40 +228,95 @@ footer a{color:inherit}
     <div class="legend"><span><i class="c-mastered"></i>Mastered</span><span><i class="c-due"></i>Due for review</span><span><i class="c-shaky"></i>Getting there</span><span><i class="c-learning"></i>Learning</span><span><i class="c-new"></i>New</span></div>
   </div>
 
-  <section class="how sources" id="sources" aria-labelledby="srcTitle">
-    <b id="srcTitle">Where these questions come from</b>
-    <p>Every question was gathered from, or written to match, ANTH 102 class materials. No outside question banks were used. Each question shows its source in a blue label above it.</p>
-    <div class="srcgrid">
-      <div>
-        <h3>Exam 2 · 186 questions</h3>
-        <ul>
-          <li><span>Top Hat lecture questions</span><em>27</em></li>
-          <li><span>Brightspace Activity 4 (Life in Trees film)</span><em>25</em></li>
-          <li><span>Brightspace Activity 5 (Primate Biology &amp; Taxonomy)</span><em>10</em></li>
-          <li><span>Primate Classification worksheet</span><em>36</em></li>
-          <li><span>“Why Sex” film worksheet</span><em>10</em></li>
-          <li><span>Practice, from the lecture slides</span><em>60</em></li>
-          <li><span>Practice, from the study guide</span><em>18</em></li>
-        </ul>
-      </div>
-      <div>
-        <h3>Classification · 149 questions</h3>
-        <ul>
-          <li><span>Primate Classification worksheet: the same 36 as Exam 2, plus 113 more built from its answer key</span><em>149</em></li>
-        </ul>
-      </div>
-      <div>
-        <h3>Exam 1 · 192 questions</h3>
-        <ul>
-          <li><span>Top Hat lecture questions</span><em>44</em></li>
-          <li><span>Brightspace Review Activities 1–3</span><em>67</em></li>
-          <li><span>Anthro-pardy (in-class game)</span><em>35</em></li>
-          <li><span>Practice: DNA sequences, using the course's genetic code table</span><em>30</em></li>
-          <li><span>Practice: scientists and thinkers</span><em>16</em></li>
-        </ul>
-      </div>
+  <section class="films" id="films" aria-labelledby="filmsTitle">
+    <div class="srchead">
+      <p class="kicker">Sources</p>
+      <h2 id="filmsTitle">The films behind the Brightspace questions</h2>
+      <p>Rewatch these to review. If your class was given a viewing link on Brightspace, use that one; outside links can depend on your region.</p>
     </div>
-    <p class="note">Practice questions follow the lecture slides and the Exam 2 study guide. The 18 labeled “from the study guide” cover study-guide topics that weren't in the slides used to build this, so check them against your own notes. If an answer ever disagrees with what was taught in class, go with the class.</p>
+    <div class="filmgrid">
+      <article class="film">
+        <div class="ftop"><span class="ftag">Exam 2</span><span class="fused">Brightspace Activity 4 · 25 questions</span></div>
+        <div class="fmain">
+          <span class="ficon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span>
+          <div><h3>Life in the Trees</h3><p class="fseries">The Life of Mammals, episode 8 · BBC, 2003 · about 50 min</p></div>
+        </div>
+        <p class="fby">Presented by David Attenborough</p>
+        <p class="fabout">Lemurs, the aye-aye, tarsiers, marmosets, howlers, baboons, Japanese macaques, gibbons, gorillas and chimpanzees, and what life in the trees demands of a primate.</p>
+        <div class="flinks"><a href="https://www.tvmaze.com/episodes/933792/the-life-of-mammals-1x08-life-in-the-trees" target="_blank" rel="noopener">Episode details ↗</a></div>
+      </article>
+      <article class="film">
+        <div class="ftop"><span class="ftag">Exam 2</span><span class="fused">“Why Sex” film worksheet · 10 questions</span></div>
+        <div class="fmain">
+          <span class="ficon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span>
+          <div><h3>Why Sex?</h3><p class="fseries">Evolution, episode 5 · PBS / WGBH, 2001</p></div>
+        </div>
+        <p class="fby">Clip shown in class: chimpanzees and bonobos</p>
+        <p class="fabout">Why sexual reproduction exists, and how chimpanzee and bonobo societies differ: infanticide, paternity confusion, sperm competition and female alliances.</p>
+        <div class="flinks"><a href="https://en.wikipedia.org/wiki/Evolution_(TV_series)" target="_blank" rel="noopener">About the series ↗</a></div>
+      </article>
+      <article class="film">
+        <div class="ftop"><span class="ftag">Exam 1</span><span class="fused">Brightspace Review Activities · 67 questions</span></div>
+        <div class="fmain">
+          <span class="ficon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span>
+          <div><h3>What Darwin Never Knew</h3><p class="fseries">NOVA · PBS, 2009 · about 2 hours</p></div>
+        </div>
+        <p class="fby">Featuring Dr. Katie Pollard, Tiktaalik, stickleback fish and rock pocket mice</p>
+        <p class="fabout">Darwin's voyage and his theory, and what modern genetics added: DNA, mutation, genetic switches, HOX genes and the human–chimp comparison.</p>
+        <div class="flinks"><a href="https://www.pbs.org/video/nova-what-darwin-never-knew/" target="_blank" rel="noopener">Watch on PBS ↗</a><a href="https://www.pbs.org/wgbh/nova/evolution/darwin-never-knew.html" target="_blank" rel="noopener">NOVA program page ↗</a></div>
+      </article>
+    </div>
+    <p class="filmnote">Brightspace Activity 5 (Primate Biology &amp; Taxonomy) and the Primate Classification worksheet are based on the lecture slides, not a film.</p>
+  </section>
+
+  <section class="sources" id="sources" aria-labelledby="srcTitle">
+    <div class="srchead">
+      <p class="kicker">Where the questions come from</p>
+      <h2 id="srcTitle">Built only from ANTH 102 class materials</h2>
+      <p>Every question was either taken from something we did in class or written to match the lecture slides, handouts and study guide. No outside question banks. Each question shows its source in a blue label above it.</p>
+      <div class="keys"><span><i style="background:#2a46cf"></i>Taken directly from a class assignment</span><span><i style="background:#b7791f"></i>Written to match class material</span><span><i style="background:#c2410c"></i>Check against your notes</span></div>
+    </div>
+    <div class="srcgrid">
+      <article class="srccard">
+        <header><h3><a href="exam2/index.html">Exam 2</a></h3><span class="tot">186 questions</span></header>
+        <div class="srcbar" role="img" aria-label="Exam 2: 108 of 186 taken directly from class assignments"><i style="width:14.52%;background:#1e3a8a" title="Top Hat lecture questions: 27"></i><i style="width:13.44%;background:#2a46cf" title="Brightspace Activity 4: 25"></i><i style="width:5.38%;background:#4f6bed" title="Brightspace Activity 5: 10"></i><i style="width:19.35%;background:#7d93ff" title="Primate Classification worksheet: 36"></i><i style="width:5.38%;background:#a9b8ff" title="“Why Sex” film worksheet: 10"></i><i style="width:32.26%;background:#b7791f" title="Practice from the lecture slides: 60"></i><i style="width:9.68%;background:#c2410c" title="Practice from the study guide: 18"></i></div>
+        <p class="split"><b>108 of 186</b> (58%) taken directly from class assignments · 78 written to match class material</p>
+        <ul>
+          <li><i class="sw" style="background:#1e3a8a"></i><span class="sn"><b>Top Hat lecture questions</b><small>Asked in lecture</small></span><em>27</em></li>
+          <li><i class="sw" style="background:#2a46cf"></i><span class="sn"><b>Brightspace Activity 4</b><small>Life in Trees film</small></span><em>25</em></li>
+          <li><i class="sw" style="background:#4f6bed"></i><span class="sn"><b>Brightspace Activity 5</b><small>Primate Biology & Taxonomy</small></span><em>10</em></li>
+          <li><i class="sw" style="background:#7d93ff"></i><span class="sn"><b>Primate Classification worksheet</b><small>The handout from class</small></span><em>36</em></li>
+          <li><i class="sw" style="background:#a9b8ff"></i><span class="sn"><b>“Why Sex” film worksheet</b><small>Chimpanzees & bonobos</small></span><em>10</em></li>
+          <li><i class="sw" style="background:#b7791f"></i><span class="sn"><b>Practice from the lecture slides</b><small>Written to match the slides</small></span><em>60</em></li>
+          <li><i class="sw" style="background:#c2410c"></i><span class="sn"><b>Practice from the study guide</b><small>Topics not in the slides used: check your notes</small></span><em>18</em></li>
+        </ul>
+      </article>
+      <article class="srccard">
+        <header><h3><a href="classification/index.html">Classification</a></h3><span class="tot">149 questions</span></header>
+        <div class="srcbar" role="img" aria-label="Classification: 36 of 149 taken directly from class assignments"><i style="width:24.16%;background:#1e3a8a" title="Primate Classification worksheet: 36"></i><i style="width:75.84%;background:#b7791f" title="Built from the worksheet's answer key: 113"></i></div>
+        <p class="split"><b>36 of 149</b> (24%) taken directly from class assignments · 113 written to match class material</p>
+        <ul>
+          <li><i class="sw" style="background:#1e3a8a"></i><span class="sn"><b>Primate Classification worksheet</b><small>The same 36 questions as Exam 2</small></span><em>36</em></li>
+          <li><i class="sw" style="background:#b7791f"></i><span class="sn"><b>Built from the worksheet's answer key</b><small>Every trait, level and group on the handout</small></span><em>113</em></li>
+        </ul>
+      </article>
+      <article class="srccard">
+        <header><h3><a href="exam1/index.html">Exam 1</a></h3><span class="tot">192 questions</span></header>
+        <div class="srcbar" role="img" aria-label="Exam 1: 146 of 192 taken directly from class assignments"><i style="width:22.92%;background:#1e3a8a" title="Top Hat lecture questions: 44"></i><i style="width:34.90%;background:#2a46cf" title="Brightspace Review Activities 1–3: 67"></i><i style="width:18.23%;background:#4f6bed" title="Anthro-pardy: 35"></i><i style="width:15.62%;background:#b7791f" title="Practice: DNA sequences: 30"></i><i style="width:8.33%;background:#d99a2b" title="Practice: scientists and thinkers: 16"></i></div>
+        <p class="split"><b>146 of 192</b> (76%) taken directly from class assignments · 46 written to match class material</p>
+        <ul>
+          <li><i class="sw" style="background:#1e3a8a"></i><span class="sn"><b>Top Hat lecture questions</b><small>Asked in lecture</small></span><em>44</em></li>
+          <li><i class="sw" style="background:#2a46cf"></i><span class="sn"><b>Brightspace Review Activities 1–3</b><small>Worksheet questions</small></span><em>67</em></li>
+          <li><i class="sw" style="background:#4f6bed"></i><span class="sn"><b>Anthro-pardy</b><small>The in-class review game</small></span><em>35</em></li>
+          <li><i class="sw" style="background:#b7791f"></i><span class="sn"><b>Practice: DNA sequences</b><small>Uses the course's genetic code table</small></span><em>30</em></li>
+          <li><i class="sw" style="background:#d99a2b"></i><span class="sn"><b>Practice: scientists and thinkers</b><small>From the lectures on Darwin and his predecessors</small></span><em>16</em></li>
+        </ul>
+      </article>
+    </div>
+    <div class="srcnote">
+      <strong>A note on accuracy</strong>
+      <p>The 18 Exam 2 questions marked <b>Practice from the study guide</b> cover study-guide topics that weren't in the slides used to build this site, so check them against your own notes. If an answer ever disagrees with what was taught in class, go with the class.</p>
+    </div>
   </section>
 
   <footer>
