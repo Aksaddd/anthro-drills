@@ -244,3 +244,13 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 .callout.flagc strong{color:var(--gold);width:100%;margin:0}
 .record:empty{display:none}
 .sublink{color:var(--accent);font-weight:600;white-space:nowrap}
+
+/* ===== Study prompt for a featured subject */
+.feature{position:relative;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 16px;background:var(--gold-soft);border:1px solid color-mix(in srgb,var(--gold) 35%,transparent);border-radius:var(--radius);padding:14px 44px 14px 16px}
+.feature .ftext{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 280px;font-size:14px}
+.feature strong{font:700 15px var(--display);color:var(--ink)}
+.feature .fprog{font:600 12px var(--mono);color:var(--gold)}
+.feature .fact{display:flex;flex-wrap:wrap;gap:8px}
+.feature .btn{min-height:40px;padding:9px 16px;font-size:14px;text-decoration:none;display:inline-flex;align-items:center}
+.fclose{position:absolute;top:8px;right:8px;width:30px;height:30px;border:0;background:transparent;border-radius:8px;font-size:20px;line-height:1;color:var(--muted);cursor:pointer}
+.fclose:hover{background:rgba(0,0,0,.06);color:var(--ink)}

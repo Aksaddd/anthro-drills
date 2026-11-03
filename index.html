@@ -47,6 +47,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--body)}
 .go{display:inline-flex;align-items:center;gap:8px;background:var(--cream);color:var(--forest);font:700 16px var(--body);text-decoration:none;padding:14px 22px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.25);transition:transform .15s}
 .go:hover{transform:translateY(-1px)}
 .go:focus-visible{outline-color:var(--leaf)}
+.go2{display:inline-flex;align-items:center;color:var(--cream);font:700 15px var(--body);text-decoration:none;padding:13px 18px;border-radius:14px;border:1.5px solid rgba(247,245,236,.45)}
+.go2:hover{background:rgba(247,245,236,.1)}
+.studytip{margin:2px 0 0;font-size:13.5px;color:rgba(247,245,236,.8);max-width:560px}
 .today{font:500 13.5px var(--body);color:rgba(247,245,236,.85);font-variant-numeric:tabular-nums}
 
 /* ===== Body */
@@ -104,8 +107,10 @@ footer a{color:inherit}
     </div>
     <div class="actions">
       <a class="go" id="goBtn" href="exam2/index.html#continue">Start studying for Exam 2 →</a>
+      <a class="go2" href="classification/index.html">Study the classification chart</a>
       <span class="today" id="todayTxt"></span>
     </div>
+    <p class="studytip">On the Exam 2 study guide: the Primate Classification chart. Practice it in the Classification drill (149 questions) and the drag-and-drop chart.</p>
   </div>
 </header>
 
@@ -118,10 +123,11 @@ footer a{color:inherit}
         <p>Speciation · Phylogeny · Primate traits · Taxonomy · Picture ID · Sociality · Chimps &amp; bonobos</p></div></div>
       <div class="prow"><div class="stack"></div><span class="ptext">186 questions · not started</span><a class="plink" href="exam2/index.html#progress">Progress →</a></div>
     </article>
-    <article class="card">
+    <article class="card" data-key="anthro-class-v1" data-total="149">
       <div class="chead"><span class="num" aria-hidden="true">⌗</span>
-        <div><h3><a href="exam2/chart.html">Classification Chart</a></h3>
-        <p>Match the Primate Classification worksheet's traits to the chart: order, suborders, infraorders, superfamilies.</p></div></div>
+        <div><h3><a href="classification/index.html">Classification Chart Drill</a></h3>
+        <p>The Primate Classification worksheet, on the Exam 2 study guide: 149 questions plus a drag-and-drop chart.</p></div></div>
+      <div class="prow"><div class="stack"></div><span class="ptext">149 questions · not started</span><a class="plink" href="classification/chart.html">Drag-and-drop chart →</a></div>
     </article>
     <article class="card" data-key="ant1-progress-v2" data-total="192">
       <div class="chead"><span class="num">1</span>
@@ -155,6 +161,12 @@ footer a{color:inherit}
           <li><span>“Why Sex” film worksheet</span><em>10</em></li>
           <li><span>Practice, from the lecture slides</span><em>60</em></li>
           <li><span>Practice, from the study guide</span><em>18</em></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Classification · 149 questions</h3>
+        <ul>
+          <li><span>Primate Classification worksheet: the same 36 as Exam 2, plus 113 more built from its answer key</span><em>149</em></li>
         </ul>
       </div>
       <div>

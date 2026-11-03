@@ -5,7 +5,8 @@ Multiple-choice study drills for **ANTH 102: Introduction to Human Evolution**. 
 | Drill | Folder | Subject tabs |
 |---|---|---|
 | Exam 1 | `exam1/` | Science · Natural selection · Scientists · Cells & DNA · Protein synthesis · Genetics · Forces of evolution (192 questions) |
-| Exam 2 | `exam2/` | Speciation · Phylogeny · Primate traits · Taxonomy · Picture ID · Sociality · Chimps & bonobos (186 questions) |
+| Exam 2 | `exam2/` | Speciation · Phylogeny · Primate traits · Taxonomy · Picture ID · Sociality · Chimps & bonobos (186 questions, including the 36 original worksheet questions) |
+| Classification | `classification/` | Where traits go · Chart structure · Compare & connect (149 questions) + `chart.html` drag-and-drop chart |
 
 Each drill also has a **Mixed** tab and a **Progress** tab. Tabs group questions by subject; every question shows a "Source:" label above it (Top Hat, a Brightspace activity, a worksheet, or practice).
 
@@ -33,7 +34,8 @@ Each student's progress is saved **in their own browser, on the device they stud
 - **Free browsing:** ← Previous and Next → (or Skip) move through the round, and every square in the question map is a button that jumps to that question. Skipped questions can be answered later; answered ones open read-only.
 - End-of-round summary with score, newly mastered count, best streak and the weakest subject to practice next.
 - **Mark as mastered / Mark for review** buttons on every question. A student's own "mastered" mark counts as mastered (it still fades after 5 days, and a miss removes it); flagged questions get a dot on their square, come first in rounds, and can be drilled from the Progress tab.
-- **Classification Chart** (`exam2/chart.html`): tap a worksheet trait, then tap its box on the chart (order → superfamily). Mistakes, hints and time are tracked; best result saved per device.
+- **Classification drill** (`classification/`): 149 questions from the Primate Classification worksheet (36 written + 113 generated from its answer key), kept separate from the Exam 2 drill. The generator in `classification/questions.js` runs in a fixed order; add new ones only at the end. Exam 2 shows a dismissible prompt to study it, since the chart is on the study guide.
+- **Drag-and-drop chart** (`classification/chart.html`): drag worksheet traits onto the chart (word bank beside the chart on wide screens, docked tray at the bottom on phones and iPad portrait), or tap a trait and then a box. Built on Pointer Events so mouse, touch and pen all work. Mistakes, hints and time are tracked; best result saved per device.
 - Tap any picture to zoom.
 - **Reading settings** (Options menu): choose the reading font (IBM Plex Sans, Atkinson Hyperlegible, Literata, or the device's own font) and text size (4 steps). Saved per device and shared by both drills; extra fonts download only when chosen.
 - The landing page shows a countdown to Exam 2, a **Continue** button that opens the weakest subject (`exam2/index.html#continue`), and each exam's mastery bar.

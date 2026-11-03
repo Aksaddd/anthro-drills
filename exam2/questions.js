@@ -33,8 +33,8 @@ const FIG = {
 const DECKS = {
   TH: { name: "Top Hat", sub: "Lecture participation questions from Top Hat, Lectures 11–18." },
   A5: { name: "Activity 5", sub: "Primate Biology & Taxonomy: identify the taxon from the picture. Answer at the closest level the feature allows." },
-  CH: { name: "Chart", sub: "The Primate Classification worksheet: which level of the chart does each trait belong to?" },
   LT: { name: "Activity 4", sub: "Brightspace Activity 4: the Life in Trees film." },
+  CH: { name: "Chart", sub: "The Primate Classification worksheet: which level of the chart does each trait belong to?" },
   WS: { name: "Why Sex", sub: "Chimpanzees vs. bonobos, from the “Why Sex” film worksheet. Exam questions are drawn from it." },
   PR: { name: "Practice", sub: "Every topic on the Exam 2 study guide, including picture questions." }
 };
@@ -84,7 +84,7 @@ const A5 = [
 ["Question 10","Using the image, identify the taxon these primates belong to:","Cercopithecoid",["Platyrrhine","Strepsirrhine","Tarsiers"],"Ischial callosities (sitting pads) on the rump of crested macaques, Old World monkeys. The red swelling around them is a sexual swelling.","a5q10"]
 ];
 
-// ===== Primate Classification chart (worksheet) =====
+// ===== Primate Classification worksheet (the original 36; the full 149-question set is in ../classification) =====
 const LEVELS = {
   PRI: "Order: Primates (all primates)",
   STR: "Suborder: Strepsirrhines", HAP: "Suborder: Haplorrhines",
@@ -288,7 +288,7 @@ const SUBJECTS2 = [
   { name: "Macroevolution & speciation", short: "Speciation", sub: "Species concepts, gradualism vs. punctuated equilibrium, modes and types of speciation, extinction." },
   { name: "Phylogeny", short: "Phylogeny", sub: "Systematics, ancestral vs. derived homology, analogy and convergent evolution." },
   { name: "Primate features & distribution", short: "Primate traits", sub: "Mammalian radiation, what defines a primate, teeth, vision, brains, life history, where primates live." },
-  { name: "Primate taxonomy", short: "Taxonomy", sub: "Suborder, infraorder and superfamily traits, and the Primate Classification chart.", link: { href: "chart.html", label: "Practice the chart as a matching activity →" } },
+  { name: "Primate taxonomy", short: "Taxonomy", sub: "Suborder, infraorder and superfamily traits: strepsirrhines, tarsiers, New and Old World monkeys, and apes.", link: { href: "../classification/index.html", label: "More practice: the Classification drill →" } },
   { name: "Picture ID", short: "Picture ID", sub: "Identify the taxon from skulls, teeth, hands, tails and behavior. Answer at the closest level the feature allows." },
   { name: "Primate sociality", short: "Sociality", sub: "Group living, social structures, mating systems, dimorphism, dominance, grooming, tool use and culture." },
   { name: "Chimps vs. bonobos", short: "Chimps & bonobos", sub: "The “Why Sex” film: chimpanzee and bonobo societies. Exam questions are drawn from the worksheet." }
@@ -298,4 +298,8 @@ const SUBJECTS2 = [
 const GUIDE_ONLY = new Set(["Species concepts", "Pace of change", "Phylogeny", "Dominance", "Altruism", "Displays", "Play", "Learning"]);
 for (const id of IDS.PR) Q[id].src = GUIDE_ONLY.has(Q[id].tag) ? "Practice, from the study guide" : "Practice, from the lecture slides";
 
-window.BANK = { title: "Anthro Exam 2 Drill", storageKey: "ant2-progress-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true, topics: SUBJECTS2 };
+// Prompt shown at the top of the Exam 2 drill: the chart is on the study guide, and it has its own drill.
+const STUDY_PROMPT = { key: "anthro-class-v1", total: 149, title: "Study for Exam 2: the Primate Classification chart",
+  text: "The chart is on the Exam 2 study guide. Practice it in the Classification drill, then test yourself with the drag-and-drop chart.",
+  links: [{ href: "../classification/index.html", label: "Open the Classification drill" }, { href: "../classification/chart.html", label: "Drag-and-drop chart", ghost: true }] };
+window.BANK = { title: "Anthro Exam 2 Drill", storageKey: "ant2-progress-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true, topics: SUBJECTS2, studyPrompt: STUDY_PROMPT };

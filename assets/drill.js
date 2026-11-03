@@ -24,7 +24,7 @@
   for (const id of ALL) { const t = topicOf(id); if (!tlist.some(x => x.name === t)) tlist.push({ name: t }) }
   for (const t of tlist) {
     const ids = ALL.filter(id => topicOf(id) === t.name); if (!ids.length) continue;
-    DECKS[slug(t.name)] = { name: t.short || t.name, full: t.name, sub: t.sub || t.name, link: t.link }; IDS[slug(t.name)] = ids;
+    DECKS[slug(t.name)] = { name: t.short || t.name, full: t.name, sub: t.sub || t.name, link: t.link, featured: t.featured, prompt: t.prompt }; IDS[slug(t.name)] = ids;
   }
   DECKS.ALL = { name: "Mixed", full: "Mixed", sub: "Every question from every subject, weakest first. Good for a final run-through before the exam." }; IDS.ALL = ALL;
   const FIRST = Object.keys(DECKS)[0];
@@ -187,6 +187,24 @@
     };
     for (const d in DECKS) make(d, DECKS[d].name, () => { if (S.deck === d && view === "deck") return; stopAuto(); openDeck(d) });
     make("PROG", "Progress", () => { stopAuto(); view = "progress"; paint() }, "tab-prog");
+    // keep the 3-column grid tidy: Progress fills whatever is left of the last row
+    const n = box.children.length, rem = n % 3;
+    if (rem === 1) $("tabPROG").style.gridColumn = "1 / -1"; else if (rem === 2) $("tabPROG").style.gridColumn = "span 2";
+  }
+  // Optional prompt at the top of a drill (Exam 2: study the classification chart in its own drill).
+  const SP = B.studyPrompt, SP_KEY = B.storageKey + "-prompt-hidden";
+  function paintFeature() {
+    let el = $("feature"), hidden = false;
+    try { hidden = localStorage.getItem(SP_KEY) === "1" } catch (e) { }
+    if (!SP || hidden || view !== "deck") { if (el) el.hidden = true; return }
+    if (!el) { el = document.createElement("aside"); el.id = "feature"; el.className = "feature"; $("tabs").before(el) }
+    let done = "";
+    try { const o = JSON.parse(localStorage.getItem(SP.key) || "null"); const n = o && o.stats ? Object.keys(o.stats).length : 0; done = n ? `You've practiced ${Math.min(n, SP.total)} of ${SP.total} questions there.` : `${SP.total} questions, not started yet.` } catch (e) { }
+    el.hidden = false;
+    el.innerHTML = `<div class="ftext"><strong>${esc(SP.title)}</strong><span>${esc(SP.text)}</span>${done ? `<span class="fprog">${esc(done)}</span>` : ""}</div>
+      <div class="fact">${SP.links.map(l => `<a class="btn${l.ghost ? " ghost" : ""}" href="${l.href}"><span>${esc(l.label)}</span></a>`).join("")}</div>
+      <button class="fclose" id="featClose" aria-label="Hide this reminder">×</button>`;
+    $("featClose").onclick = () => { try { localStorage.setItem(SP_KEY, "1") } catch (e) { } el.hidden = true };
   }
   function paintTabs() {
     for (const d in DECKS) {
@@ -211,7 +229,7 @@
     }).join("");
   }
   function paintChrome() {
-    paintHabit(); paintTabs();
+    paintHabit(); paintTabs(); paintFeature();
     const inDeck = view === "deck";
     for (const id of ["toolbar", "barRow", "map"]) $(id).hidden = !inDeck;
     if (!inDeck) { $("deckSub").textContent = "Your strengths and weak spots, from every answer you've given on this device."; return }
