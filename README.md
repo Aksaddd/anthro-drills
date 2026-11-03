@@ -40,6 +40,10 @@ Each student's progress is saved **in their own browser, on the device they stud
 - **Reading settings** (Options menu): choose the reading font (IBM Plex Sans, Atkinson Hyperlegible, Literata, or the device's own font) and text size (4 steps). Saved per device and shared by both drills; extra fonts download only when chosen.
 - The landing page shows a countdown to Exam 2, a **Continue** button that opens the weakest subject (`exam2/index.html#continue`), and each exam's mastery bar.
 
+## Timer
+
+There is no timer by default anywhere on the site. Students can turn one on with **Show a timer** on the mock exam setup screen or the **Timer** switch on the drag-and-drop chart (one shared setting, `anthro-timer`, saved per device). With it on, the clock, Pause, and times in results come back.
+
 ## Mock exam
 
 `mock/index.html` builds a fresh 50- or 100-question exam (student's choice, 50 by default) each time from the Exam 2 and Classification drills (288 unique questions; shared and repeated questions appear once). Answers can be changed until submitting; results show the score, a subject breakdown and a full review. Exams in progress and past scores are saved per device.

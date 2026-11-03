@@ -78,6 +78,15 @@ body{padding-block:max(12px,env(safe-area-inset-top,0px)) 12px}
 #pauseBtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 body.paused .bank{visibility:hidden}
 @media (max-width:599px){.pausecover{position:fixed;border-radius:0}}
+.tgl{display:inline-flex;align-items:center;gap:10px;cursor:pointer;font:500 14px var(--body);color:var(--ink);user-select:none}
+.tgl input{position:absolute;opacity:0;width:1px;height:1px}
+.tgl .sw{position:relative;width:38px;height:22px;border-radius:11px;background:var(--line);transition:background .15s;flex:none}
+.tgl .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .15s}
+.tgl input:checked+.sw{background:var(--accent)}
+.tgl input:checked+.sw::after{transform:translateX(16px)}
+.tgl input:focus-visible+.sw{outline:2px solid var(--accent);outline-offset:2px}
+.tgl small{display:block;color:var(--muted);font-size:12.5px}
+.cstats .acts{align-items:center}
 .rotate{display:none}
 .foot{display:none}
 body.dragging,body.dragging *{cursor:grabbing!important}
@@ -118,6 +127,7 @@ body.dragging,body.dragging *{cursor:grabbing!important}
     <div class="cstats">
       <div class="nums" id="nums"></div>
       <div class="acts">
+        <label class="tgl" title="Off by default"><input type="checkbox" id="timerTgl"><span class="sw"></span><span>Timer</span></label>
         <button class="chip" id="pauseBtn" aria-pressed="false" hidden>Pause</button>
         <button class="chip" id="hintBtn">Hint</button>
         <button class="chip" id="revealBtn">Show answers</button>
@@ -164,7 +174,8 @@ body.dragging,body.dragging *{cursor:grabbing!important}
   const NAME = {}; RANKS.forEach(r => r.taxa.forEach(t => NAME[t[0]] = t[1]));
   const CAP = {}; KEY.forEach(([, ts]) => ts.forEach(t => CAP[t] = (CAP[t] || 0) + 1));
   const TOTAL = KEY.reduce((n, [, ts]) => n + ts.length, 0);
-  const BEST_KEY = "anthro-chart-best";
+  const BEST_KEY = "anthro-chart-best", TIMER_KEY = "anthro-timer";
+  let showTimer = false; try { showTimer = JSON.parse(localStorage.getItem(TIMER_KEY) || "false") === true } catch (e) { }
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const shuffle = a => { a = a.slice(); for (let k = a.length - 1; k > 0; k--) { const j = Math.random() * (k + 1) | 0; [a[k], a[j]] = [a[j], a[k]] } return a };
@@ -181,14 +192,14 @@ body.dragging,body.dragging *{cursor:grabbing!important}
 
   let placed, left, selected, mistakes, hints, startT, timer, revealed, elapsed = 0, paused = false, finished = false;
   const secsNow = () => Math.round((elapsed + (startT && !paused ? Date.now() - startT : 0)) / 1000);
-  function startClock() { if (finished || paused || startT) return; startT = Date.now(); clearInterval(timer); timer = setInterval(nums, 1000); $("pauseBtn").hidden = false }
+  function startClock() { if (finished || paused || startT) return; startT = Date.now(); clearInterval(timer); timer = setInterval(nums, 1000); $("pauseBtn").hidden = !showTimer }
   const placedCount = () => Object.values(placed).reduce((n, a) => n + a.length, 0);
   function say(msg, tone = "") { const s = $("status"); s.textContent = msg; s.className = "status " + tone }
   function toast(msg) { const t = document.createElement("div"); t.className = "toast"; t.innerHTML = `<i></i>${esc(msg)}`; $("toasts").appendChild(t); setTimeout(() => t.remove(), 2600) }
   function nums() {
     const secs = secsNow();
     let best = null; try { best = JSON.parse(localStorage.getItem(BEST_KEY) || "null") } catch (e) { }
-    $("nums").innerHTML = `<span><b>${placedCount()}</b> of ${TOTAL} placed</span><span><b>${mistakes}</b> mistakes</span><span>Time <b>${mmss(secs)}</b></span>${best ? `<span>Best: ${best.m} mistakes in ${mmss(best.s)}</span>` : ""}`;
+    $("nums").innerHTML = `<span><b>${placedCount()}</b> of ${TOTAL} placed</span><span><b>${mistakes}</b> mistakes</span>${showTimer ? `<span>Time <b>${mmss(secs)}</b></span>` : ""}${best ? `<span>Best: ${best.m} mistake${best.m === 1 ? "" : "s"}${showTimer && best.s ? " in " + mmss(best.s) : ""}</span>` : ""}`;
     $("leftCount").textContent = `${TOTAL - placedCount()} left`;
   }
 
@@ -310,12 +321,12 @@ body.dragging,body.dragging *{cursor:grabbing!important}
     $("bank").classList.add("finished"); measureTray();
     if (!revealed) {
       let best = null; try { best = JSON.parse(localStorage.getItem(BEST_KEY) || "null") } catch (e) { }
-      const isBest = !best || mistakes < best.m || (mistakes === best.m && secs < best.s);
-      if (isBest) { try { localStorage.setItem(BEST_KEY, JSON.stringify({ m: mistakes, s: secs })) } catch (e) { } }
+      const isBest = !best || mistakes < best.m || (showTimer && mistakes === best.m && secs < best.s);
+      if (isBest) { try { localStorage.setItem(BEST_KEY, JSON.stringify({ m: mistakes, s: showTimer ? secs : (best && best.m === mistakes ? best.s : 0) })) } catch (e) { } }
       toast(isBest ? "New best result" : "Chart complete");
     }
     $("doneBox").innerHTML = `<div class="done-card"><h2>${revealed ? "Here's the full chart" : "Chart complete"}</h2>
-      <p class="sub">${revealed ? "Answers shown. Start over to try it yourself." : `${TOTAL} traits placed with ${mistakes} mistake${mistakes === 1 ? "" : "s"}${hints ? ` and ${hints} hint${hints === 1 ? "" : "s"}` : ""} in ${mmss(secs)}.`}</p>
+      <p class="sub">${revealed ? "Answers shown. Start over to try it yourself." : `${TOTAL} traits placed with ${mistakes} mistake${mistakes === 1 ? "" : "s"}${hints ? ` and ${hints} hint${hints === 1 ? "" : "s"}` : ""}${showTimer ? " in " + mmss(secs) : ""}.`}</p>
       <div class="nav"><button class="btn" id="again"><span>Start over</span></button><a class="btn ghost" href="index.html" style="text-decoration:none"><span>Practice the Classification questions</span></a></div></div>`;
     $("again").onclick = reset;
     nums(); window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" }); $("chart").scrollTo({ top: 0 });
@@ -345,9 +356,15 @@ body.dragging,body.dragging *{cursor:grabbing!important}
     nums();
   }
   $("pauseBtn").onclick = () => setPaused(!paused);
+  $("timerTgl").checked = showTimer;
+  $("timerTgl").onchange = e => {
+    showTimer = e.target.checked; try { localStorage.setItem(TIMER_KEY, JSON.stringify(showTimer)) } catch (err) { }
+    if (!showTimer && paused) setPaused(false);
+    $("pauseBtn").hidden = !(showTimer && startT && !finished); nums();
+  };
   $("resumeBtn").onclick = () => setPaused(false);
   // pause automatically when the student switches tab or app
-  document.addEventListener("visibilitychange", () => { if (document.hidden && startT && !finished) setPaused(true) });
+  document.addEventListener("visibilitychange", () => { if (showTimer && document.hidden && startT && !finished) setPaused(true) });
   $("resetBtn").onclick = reset;
   reset();
 })();
