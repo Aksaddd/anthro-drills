@@ -34,6 +34,7 @@ const DECKS = {
   TH: { name: "Top Hat", sub: "Lecture participation questions from Top Hat, Lectures 11–18." },
   A5: { name: "Activity 5", sub: "Primate Biology & Taxonomy: identify the taxon from the picture. Answer at the closest level the feature allows." },
   CH: { name: "Chart", sub: "The Primate Classification worksheet: which level of the chart does each trait belong to?" },
+  LT: { name: "Activity 4", sub: "Brightspace Activity 4: the Life in Trees film." },
   WS: { name: "Why Sex", sub: "Chimpanzees vs. bonobos, from the “Why Sex” film worksheet. Exam questions are drawn from it." },
   PR: { name: "Practice", sub: "Every topic on the Exam 2 study guide, including picture questions." }
 };
@@ -224,7 +225,21 @@ const PR = [
 ["Behavior","Members of the same species are called","Conspecifics",["Sympatric species","Congeners only","Allopatric populations"],""]
 ];
 
-const DATA = { TH, A5, CH, WS, PR };
+// ===== Activity 4 (Brightspace): Life in Trees film. 7th item = the subject tab it belongs to.
+const LT = [
+["Activity 4 · Q1","David Attenborough (the narrator) explains that a successful life in the trees requires these characteristics:","Forward-facing (convergent) eyes and prehensile hands",["Long tails and a cat-like disposition","Colorless fur and laterally positioned eyes","A specialized diet of only leaves and long tails","Claws instead of nails and laterally facing eyes"],"Judging distance between branches needs overlapping (binocular) vision, and holding on needs grasping hands.","","Primate features & distribution"],
+["Activity 4 · Q2","The locomotor behavior of the ring-tailed lemur of Madagascar (Lemur catta) is characterized by","Being both terrestrial and arboreal",["Being aquatic and arboreal","Being exclusively arboreal","Spending most of its time underground in caves","Enjoying how to “move-it, move-it”"],"Ring-tailed lemurs spend a lot of time on the ground as well as in trees, unusual for a lemur.","","Primate taxonomy"],
+["Activity 4 · Q3","Ring-tailed lemur males and females have spurs on their wrists and under their tails, surrounded by glands that","Are important for scent-marking",["Secrete a sticky liquid that helps them climb trees","Are important for aggressively high-fiving","Secrete toxins to protect their infants from predators","Secrete a toxin that protects tree branches from molding"],"Strepsirrhines rely heavily on smell. Males also rub scent on their tails for “stink fights”.","","Primate taxonomy"],
+["Activity 4 · Q4","The sifaka's (Propithecus verreauxi) leaping from tree limb to tree limb is made possible by","Disproportionately long hind limbs relative to forelimbs",["Their large, complex brains","Disproportionately long forelimbs relative to hind limbs","Their elongated tails","Their small body size"],"Long, powerful legs drive vertical clinging and leaping.","","Primate taxonomy"],
+["Activity 4 · Q5","According to the film, indri (Indri indri) use vocalizations to","Claim territory and communicate with conspecifics",["Annoy predators and humans alike","Help their lungs develop and expand","Pay respects to family members who have passed away","Find mates, like bird courtship songs"],"Conspecifics = members of the same species.","","Primate sociality"],
+["Activity 4 · Q6","The smallest of all lemurs is nocturnal and called","A mouse lemur",["A pinky lemur","A pygmy lemur","A mini-lemur","A night-watch lemur"],"","","Primate taxonomy"],
+["Activity 4 · Q7","The aye-aye (Daubentonia madagascariensis) reaches grubs and egg yolk in trees by","Using its elongated, bony third finger as a probe",["Fashioning twigs into tools to probe into trees","Breaking into trees with the strength of its grasping hands","Using scent-marking to fend off competitors","Using its vision and sense of smell to locate them"],"One of the aye-aye's highly derived traits, along with ever-growing incisors.","","Primate taxonomy"],
+["Activity 4 · Q8","The dominant sense of the tarsier (genus Tarsius) is","Vision",["Taste","Touch","Hearing","Smell"],"Each eye is as large as its brain; tarsiers lack a tapetum lucidum, so they rely on sheer eye size at night.","","Primate taxonomy"],
+["Activity 4 · Q9","New World marmosets are diurnal and therefore should rely heavily on","Visual cues",["Aquatic resources","Dancing abilities to find mates","Vocalizations","Making tools to access resources"],"Diurnal primates rely on vision, including color vision.","","Primate features & distribution"],
+["Activity 4 · Q10","Marmosets mark territories, especially highly prized gum trees, through","Urine marking",["Strength and force","Forming large armies to protect their trees","Fashioning barbed wire","Scent-gland marking from their wrists and tails"],"Scent glands on the wrists and tail describe the ring-tailed lemur, not marmosets.","","Primate sociality"]
+];
+
+const DATA = { TH, A5, CH, WS, PR, LT };
 
 // ===== Topics for the Progress tab (match the study guide's sections)
 // A new question gets its topic from its tag. Tags not listed fall back to the tab's name.
@@ -247,12 +262,12 @@ for (const d in DECKS) {
   (DATA[d] || []).forEach((r, n) => {
     const id = d + n;
     Q[id] = { d, tag: r[0], q: r[1], ok: r[2], wrong: r[3], ex: r[4] || "", img: r[5] && FIG[r[5]] ? FIG[r[5]] : null,
-      topic: (r[0] === "Image ID" ? "Picture ID" : DECK_TOPIC[d] || TAG_TOPIC[r[0]] || DECKS[d].name) };
+      topic: r[6] || (r[0] === "Image ID" ? "Picture ID" : DECK_TOPIC[d] || TAG_TOPIC[r[0]] || DECKS[d].name) };
     IDS[d].push(id);
   });
 }
 // Origin labels shown on each question
-DECKS.TH.src = "Top Hat (lecture)"; DECKS.A5.src = "Brightspace Activity 5"; DECKS.CH.src = "Primate Classification worksheet"; DECKS.WS.src = "“Why Sex” film worksheet"; DECKS.PR.src = "Practice, from the study guide";
+DECKS.TH.src = "Top Hat (lecture)"; DECKS.A5.src = "Brightspace Activity 5"; DECKS.CH.src = "Primate Classification worksheet"; DECKS.WS.src = "“Why Sex” film worksheet"; DECKS.LT.src = "Brightspace Activity 4 (Life in Trees film)"; DECKS.PR.src = "Practice, from the study guide";
 // Subject tabs, in study-guide order
 const SUBJECTS2 = [
   { name: "Macroevolution & speciation", short: "Speciation", sub: "Species concepts, gradualism vs. punctuated equilibrium, modes and types of speciation, extinction." },
