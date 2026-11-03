@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Anthro Drills</title>
+<meta name="description" content="Free practice drills for ANTH 102: Introduction to Human Evolution.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --bg:#eef1f6; --paper:#fff; --ink:#151b2b; --muted:#5b6478; --line:#d6dbe6;
+  --accent:#2a46cf; --accent-soft:#e3e8fb; --gold:#b7791f; --gold-soft:#fbf1dc;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f131d; --paper:#171c29; --ink:#e7eaf2; --muted:#98a1b6; --line:#2a3245;
+  --accent:#8ea2ff; --accent-soft:#232c4f; --gold:#f2c264; --gold-soft:#3a2f17; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);padding:32px 16px 48px}
+.wrap{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0}
+h1{font:800 clamp(30px,7vw,42px)/1.05 var(--display);letter-spacing:-.02em;margin:6px 0 0}
+.lede{color:var(--muted);margin:8px 0 0;max-width:52ch}
+.cards{display:grid;gap:12px}
+a.card{display:flex;gap:16px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px 20px;color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
+a.card:hover{border-color:var(--accent);transform:translateY(-1px)}
+a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{flex:none;width:52px;height:52px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font:800 24px var(--display)}
+.card h2{font:700 19px/1.2 var(--display);margin:0}
+.card p{margin:3px 0 0;color:var(--muted);font-size:14px}
+.tag{display:inline-block;white-space:nowrap;margin-top:8px;font:600 12px var(--mono);color:var(--gold);background:var(--gold-soft);padding:2px 8px;border-radius:6px}
+.arrow{margin-left:auto;color:var(--muted);font-size:20px}
+.how{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px 20px;font-size:14px;color:var(--muted)}
+.how b{color:var(--ink)}
+.how ul{margin:6px 0 0;padding-left:18px}
+footer{font-size:12.5px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){a.card{transition:none}}
+</style></head><body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">ANTH 102 · Intro to Human Evolution</p>
+    <h1>Anthro Drills</h1>
+    <p class="lede">Multiple-choice practice built from our Top Hat questions, Brightspace activities and lecture slides. Pick an exam.</p>
+  </header>
+
+  <div class="cards">
+    <a class="card" href="exam2/">
+      <span class="num">2</span>
+      <span><h2>Exam 2 Drill</h2>
+        <p>Macroevolution, primate features and taxonomy, primate sociality, Why Sex.</p>
+        <span class="tag">161 questions · Exam Nov 10</span></span>
+      <span class="arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="card" href="exam1/">
+      <span class="num">1</span>
+      <span><h2>Exam 1 Drill</h2>
+        <p>Scientific method, Darwin and his predecessors, cells and DNA, genetics, forces of evolution.</p>
+        <span class="tag">220 questions</span></span>
+      <span class="arrow" aria-hidden="true">→</span>
+    </a>
+  </div>
+
+  <div class="how">
+    <b>How it works</b>
+    <ul>
+      <li>Each exam has tabs by source. Every tab tracks your own progress.</li>
+      <li>Missed questions go to a review list. Use “Only my missed” to drill them.</li>
+      <li>Progress stays in your browser on this device. Nothing is sent anywhere.</li>
+    </ul>
+  </div>
+
+  <footer>Made by a classmate as a study aid. Not official course material; check anything you're unsure of against the lecture slides.</footer>
+</div>
+</body></html>
