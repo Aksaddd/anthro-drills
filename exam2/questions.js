@@ -301,5 +301,5 @@ for (const id of IDS.PR) Q[id].src = GUIDE_ONLY.has(Q[id].tag) ? "Practice, from
 // Prompt shown at the top of the Exam 2 drill: the chart is on the study guide, and it has its own drill.
 const STUDY_PROMPT = { key: "anthro-class-v1", total: 149, title: "Study for Exam 2: the Primate Classification chart",
   text: "The chart is on the Exam 2 study guide. Practice it in the Classification drill, then test yourself with the drag-and-drop chart.",
-  links: [{ href: "../classification/index.html", label: "Open the Classification drill" }, { href: "../classification/chart.html", label: "Drag-and-drop chart", ghost: true }] };
+  links: [{ href: "../classification/chart.html", label: "Drag-and-drop chart" }, { href: "../classification/index.html", label: "Classification drill", ghost: true }] };
 window.BANK = { title: "Anthro Exam 2 Drill", storageKey: "ant2-progress-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true, topics: SUBJECTS2, studyPrompt: STUDY_PROMPT };

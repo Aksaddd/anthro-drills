@@ -191,6 +191,22 @@
     const n = box.children.length, rem = n % 3;
     if (rem === 1) $("tabPROG").style.gridColumn = "1 / -1"; else if (rem === 2) $("tabPROG").style.gridColumn = "span 2";
   }
+  // Optional promo card (Classification drill: the drag-and-drop chart)
+  const PROMO_ILLU = `<svg class="dd-illu" viewBox="0 0 132 84" aria-hidden="true">
+  <rect x="2" y="2" width="128" height="18" rx="5" class="dd-box"/>
+  <rect x="2" y="26" width="62" height="24" rx="5" class="dd-box"/><rect x="68" y="26" width="62" height="24" rx="5" class="dd-box dd-target"/>
+  <rect x="2" y="56" width="38" height="26" rx="5" class="dd-box"/><rect x="47" y="56" width="38" height="26" rx="5" class="dd-box"/><rect x="92" y="56" width="38" height="26" rx="5" class="dd-box"/>
+  <g class="dd-chip"><rect x="0" y="0" width="46" height="13" rx="6.5"/><rect x="7" y="5" width="26" height="3" rx="1.5" class="dd-line"/></g>
+  <path class="dd-hand" d="M0 0 L0 13 L3.5 10 L6 15.5 L8.2 14.5 L5.8 9.2 L10.5 9 Z"/>
+</svg>`;
+  const promoHTML = P => `<span class="eyebrow2">${esc(P.eyebrow || "Try it")}</span>${PROMO_ILLU}<strong>${esc(P.title)}</strong><p class="ddtext">${esc(P.text)}</p><a class="ddbtn" href="${P.href}">${esc(P.label)} →</a>`;
+  function paintPromo() {
+    const P = B.promo; if (!P) return;
+    let el = $("promo");
+    if (!el) { el = document.createElement("aside"); el.id = "promo"; el.className = "ddpromo"; el.setAttribute("aria-label", P.title); el.innerHTML = promoHTML(P); $("tabs").before(el) }
+    el.hidden = view !== "deck";
+  }
+
   // Optional prompt at the top of a drill (Exam 2: study the classification chart in its own drill).
   const SP = B.studyPrompt, SP_KEY = B.storageKey + "-prompt-hidden";
   function paintFeature() {
@@ -229,7 +245,7 @@
     }).join("");
   }
   function paintChrome() {
-    paintHabit(); paintTabs(); paintFeature();
+    paintHabit(); paintTabs(); paintFeature(); paintPromo();
     const inDeck = view === "deck";
     for (const id of ["toolbar", "barRow", "map"]) $(id).hidden = !inDeck;
     if (!inDeck) { $("deckSub").textContent = "Your strengths and weak spots, from every answer you've given on this device."; return }
@@ -378,6 +394,7 @@
         ${m ? `<span class="gain">${m} to review</span>` : ""}
       </div>
       ${skipped ? `<div class="suggest"><span><small>Not answered yet</small><b>${plural(skipped, "skipped question")}</b></span><button class="btn" id="goSkipped"><span>Answer them</span></button></div>` : ""}
+      ${B.promo ? `<div class="suggest"><span><small>Test yourself on the whole chart</small><b>${esc(B.promo.title)}</b></span><a class="btn" href="${B.promo.href}" style="text-decoration:none"><span>Open it</span></a></div>` : ""}
       ${next ? `<div class="suggest"><span><small>Weakest subject right now</small><b>${esc(next.name)}</b> <small>${next.mastery}% mastery · ${next.mastered}/${next.total} mastered</small></span><button class="btn${skipped ? " ghost" : ""}" id="goNext"><span>Practice</span></button></div>` : ""}
       <div class="nav"><button class="btn ghost" id="prevBtn"><span>← Previous</span></button>${m && !S.onlyMissed ? '<button class="btn ghost" id="drill"><span>Drill the missed</span></button>' : ""}<button class="btn ghost" id="again"><span>Go again</span></button></div>`;
     requestAnimationFrame(() => { const f = c.querySelector(".bigring .fill"); if (f) f.style.strokeDashoffset = C * (1 - p / 100) });

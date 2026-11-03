@@ -254,3 +254,24 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 .feature .btn{min-height:40px;padding:9px 16px;font-size:14px;text-decoration:none;display:inline-flex;align-items:center}
 .fclose{position:absolute;top:8px;right:8px;width:30px;height:30px;border:0;background:transparent;border-radius:8px;font-size:20px;line-height:1;color:var(--muted);cursor:pointer}
 .fclose:hover{background:rgba(0,0,0,.06);color:var(--ink)}
+
+/* ===== Drag-and-drop chart promo */
+.ddpromo{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;align-items:center;background:linear-gradient(135deg,var(--accent) 0%,#4f6bed 100%);color:#fff;border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);text-decoration:none}
+.ddpromo .dd-illu{grid-row:span 3;width:132px;height:84px;background:rgba(255,255,255,.12);border-radius:12px;padding:6px}
+.ddpromo .eyebrow2{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+.ddpromo strong{font:800 19px/1.2 var(--display)}
+.ddpromo .ddtext{font-size:14px;opacity:.92;margin:0}
+.ddpromo .ddbtn{grid-column:2;justify-self:start;display:inline-flex;align-items:center;gap:8px;margin-top:6px;background:#fff;color:var(--accent);font:700 15px var(--body);padding:11px 18px;border-radius:12px;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.18);transition:transform .15s}
+.ddpromo .ddbtn:hover{transform:translateY(-1px)}
+.ddpromo .ddbtn:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.dd-box{fill:rgba(255,255,255,.18);stroke:rgba(255,255,255,.55);stroke-width:1;stroke-dasharray:3 2}
+.dd-target{animation:ddTarget 3.2s ease-in-out infinite}
+.dd-chip rect:first-child{fill:#fff}
+.dd-line{fill:var(--accent)}
+.dd-chip{animation:ddMove 3.2s ease-in-out infinite}
+.dd-hand{fill:#fff;stroke:#151b2b;stroke-width:.8;animation:ddHand 3.2s ease-in-out infinite}
+@keyframes ddMove{0%,12%{transform:translate(4px,64px)}55%,100%{transform:translate(76px,32px)}}
+@keyframes ddHand{0%,12%{transform:translate(30px,70px)}55%,100%{transform:translate(102px,38px)}}
+@keyframes ddTarget{0%,45%{fill:rgba(255,255,255,.18)}55%,90%{fill:rgba(134,239,172,.55);stroke:#fff;stroke-dasharray:0}100%{fill:rgba(255,255,255,.18)}}
+@media (max-width:520px){.ddpromo{grid-template-columns:1fr}.ddpromo .dd-illu{grid-row:auto;width:110px;height:70px}.ddpromo .ddbtn{grid-column:1}}
+@media (prefers-reduced-motion:reduce){.dd-chip,.dd-hand,.dd-target{animation:none}.dd-chip{transform:translate(76px,32px)}.dd-hand{transform:translate(102px,38px)}}
