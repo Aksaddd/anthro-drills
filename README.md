@@ -23,6 +23,18 @@ Each student's progress is saved **in their own browser, on the device they stud
 - Exam 1 and Exam 2 keep separate histories (`ant1-progress-v2` and `ant2-progress-v1`).
 - History doesn't move between devices or browsers, and it's erased if the student clears their browser data. Safari can also clear it after about 7 days without a visit.
 
+## What students see
+
+- **Subject tabs** with a small mastery bar each, a **Mixed** tab, and a **Progress** tab.
+- A **subject map**: one square per question, colored by mastery level, with the current question outlined.
+- A **daily goal ring** (25 questions) and a day-streak count in the header.
+- Instant feedback: a pop on right answers, a shake on wrong ones, the explanation, the question's mastery level and streak. After a right answer the next question comes up on its own (switch off under **Options**); any tap pauses it.
+- Short messages for 5/10/15/20… in a row, newly mastered questions and reaching the daily goal.
+- **← Previous** to review earlier questions in the round (read-only).
+- End-of-round summary with score, newly mastered count, best streak and the weakest subject to practice next.
+- Tap any picture to zoom.
+- The landing page shows a countdown to Exam 2, a **Continue** button that opens the weakest subject (`exam2/index.html#continue`), and each exam's mastery bar.
+
 ## Project layout
 
 ```
