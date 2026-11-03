@@ -70,6 +70,14 @@ body{padding-block:max(12px,env(safe-area-inset-top,0px)) 12px}
 .done-card .nav{flex-direction:column;align-items:stretch}
 .done-card .btn{justify-content:center;text-align:center}
 .bank .done-card h2{display:block;font:800 22px/1.2 var(--display);color:var(--ink);letter-spacing:-.01em;text-transform:none;margin:0}
+.board{position:relative}
+.pausecover{position:absolute;inset:0;z-index:30;display:grid;place-items:center;background:color-mix(in srgb,var(--bg) 70%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:var(--radius)}
+.pausecover>div{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:22px 26px;box-shadow:var(--shadow)}
+.pausecover strong{font:800 24px var(--display)}
+.pausecover>div>span{color:var(--muted);font-size:14px}
+#pauseBtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+body.paused .bank{visibility:hidden}
+@media (max-width:599px){.pausecover{position:fixed;border-radius:0}}
 .rotate{display:none}
 .foot{display:none}
 body.dragging,body.dragging *{cursor:grabbing!important}
@@ -110,6 +118,7 @@ body.dragging,body.dragging *{cursor:grabbing!important}
     <div class="cstats">
       <div class="nums" id="nums"></div>
       <div class="acts">
+        <button class="chip" id="pauseBtn" aria-pressed="false" hidden>Pause</button>
         <button class="chip" id="hintBtn">Hint</button>
         <button class="chip" id="revealBtn">Show answers</button>
         <button class="chip" id="resetBtn">Start over</button>
@@ -117,6 +126,7 @@ body.dragging,body.dragging *{cursor:grabbing!important}
     </div>
   </header>
   <div class="board">
+    <div class="pausecover" id="pauseCover" hidden><div><strong>Paused</strong><span>The timer is stopped and the chart is hidden.</span><button class="btn" id="resumeBtn"><span>Resume</span></button></div></div>
     <aside class="bank" id="bank" aria-label="Word bank">
       <h2><span>Word bank</span><span id="leftCount"></span></h2>
       <p class="bhelp">Drag a trait onto the chart. You can also tap a trait, then tap a box.</p>
@@ -169,12 +179,14 @@ body.dragging,body.dragging *{cursor:grabbing!important}
     if (r && [.9, 1, 1.12, 1.25][r.size]) document.documentElement.style.setProperty("--rs", [.9, 1, 1.12, 1.25][r.size]);
   } catch (e) { }
 
-  let placed, left, selected, mistakes, hints, startT, timer, revealed;
+  let placed, left, selected, mistakes, hints, startT, timer, revealed, elapsed = 0, paused = false, finished = false;
+  const secsNow = () => Math.round((elapsed + (startT && !paused ? Date.now() - startT : 0)) / 1000);
+  function startClock() { if (finished || paused || startT) return; startT = Date.now(); clearInterval(timer); timer = setInterval(nums, 1000); $("pauseBtn").hidden = false }
   const placedCount = () => Object.values(placed).reduce((n, a) => n + a.length, 0);
   function say(msg, tone = "") { const s = $("status"); s.textContent = msg; s.className = "status " + tone }
   function toast(msg) { const t = document.createElement("div"); t.className = "toast"; t.innerHTML = `<i></i>${esc(msg)}`; $("toasts").appendChild(t); setTimeout(() => t.remove(), 2600) }
   function nums() {
-    const secs = startT ? Math.round((Date.now() - startT) / 1000) : 0;
+    const secs = secsNow();
     let best = null; try { best = JSON.parse(localStorage.getItem(BEST_KEY) || "null") } catch (e) { }
     $("nums").innerHTML = `<span><b>${placedCount()}</b> of ${TOTAL} placed</span><span><b>${mistakes}</b> mistakes</span><span>Time <b>${mmss(secs)}</b></span>${best ? `<span>Best: ${best.m} mistakes in ${mmss(best.s)}</span>` : ""}`;
     $("leftCount").textContent = `${TOTAL - placedCount()} left`;
@@ -188,12 +200,12 @@ body.dragging,body.dragging *{cursor:grabbing!important}
         <span class="thead"><span class="tname">${esc(name)}</span><span class="tcount">0/${CAP[k]}</span></span>
         <span class="slots">${Array.from({ length: CAP[k] }, () => `<span class="slot"></span>`).join("")}</span></button>`)).join("");
     $("chips").querySelectorAll(".wchip").forEach(wireChip);
-    $("chart").querySelectorAll(".taxon").forEach(b => b.addEventListener("click", () => { if (selected) place(selected, b) }));
+    $("chart").querySelectorAll(".taxon").forEach(b => b.addEventListener("click", () => { if (selected && !paused) place(selected, b) }));
   }
   function reset() {
     placed = {}; Object.keys(CAP).forEach(t => placed[t] = []);
     left = {}; KEY.forEach(([w, ts]) => left[w] = ts.length);
-    selected = null; mistakes = 0; hints = 0; startT = 0; revealed = false; clearInterval(timer);
+    selected = null; mistakes = 0; hints = 0; startT = 0; elapsed = 0; finished = false; revealed = false; clearInterval(timer); setPaused(false); $("pauseBtn").hidden = true;
     $("doneBox").innerHTML = ""; $("bank").classList.remove("finished");
     build(); nums(); say(""); measureTray();
   }
@@ -218,7 +230,7 @@ body.dragging,body.dragging *{cursor:grabbing!important}
   }
   function place(w, box) {
     const t = box.dataset.t;
-    if (!startT) { startT = Date.now(); timer = setInterval(nums, 1000) }
+    startClock();
     if (ANS[w].includes(t) && !placed[t].includes(w) && placed[t].length < CAP[t]) {
       placed[t].push(w); left[w]--;
       fillSlot(t, w); updateChip(w);
@@ -240,7 +252,7 @@ body.dragging,body.dragging *{cursor:grabbing!important}
   function wireChip(c) {
     c.addEventListener("click", () => { if (suppressClick) { suppressClick = false; return } select(c.dataset.w) });
     c.addEventListener("pointerdown", e => {
-      if (e.button > 0 || drag) return;
+      if (e.button > 0 || drag || paused) return;
       if (e.pointerType === "mouse") e.preventDefault();   // stop the browser from selecting text while dragging
       drag = { c, w: c.dataset.w, id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, on: false, over: null };
     });
@@ -253,7 +265,7 @@ body.dragging,body.dragging *{cursor:grabbing!important}
       drag.on = true; try { drag.c.setPointerCapture(drag.id) } catch (err) { }
       const g = document.createElement("div"); g.className = "dragghost"; g.textContent = drag.w; document.body.appendChild(g); drag.g = g;
       drag.c.classList.add("lifted"); document.body.classList.add("dragging"); $("chart").classList.add("targeting");
-      if (!startT) { startT = Date.now(); timer = setInterval(nums, 1000) }
+      startClock();
       raf = requestAnimationFrame(tick);
     }
     e.preventDefault();
@@ -293,8 +305,8 @@ body.dragging,body.dragging *{cursor:grabbing!important}
   window.addEventListener("resize", measureTray);
 
   function finish() {
-    clearInterval(timer);
-    const secs = startT ? Math.round((Date.now() - startT) / 1000) : 0;
+    if (startT) elapsed += Date.now() - startT; startT = 0; finished = true; clearInterval(timer); $("pauseBtn").hidden = true;
+    const secs = secsNow();
     $("bank").classList.add("finished"); measureTray();
     if (!revealed) {
       let best = null; try { best = JSON.parse(localStorage.getItem(BEST_KEY) || "null") } catch (e) { }
@@ -322,6 +334,20 @@ body.dragging,body.dragging *{cursor:grabbing!important}
     $("chart").querySelectorAll(".slot.filled").forEach(s => s.classList.add("revealed"));
     finish();
   };
+  function setPaused(on) {
+    if (on === paused) return;
+    if (on) { if (startT) elapsed += Date.now() - startT; startT = 0; clearInterval(timer) }
+    paused = on;
+    document.body.classList.toggle("paused", on);
+    $("pauseBtn").textContent = on ? "Resume" : "Pause"; $("pauseBtn").setAttribute("aria-pressed", on);
+    $("pauseCover").hidden = !on;
+    if (!on && (elapsed > 0)) { startT = Date.now(); timer = setInterval(nums, 1000) }
+    nums();
+  }
+  $("pauseBtn").onclick = () => setPaused(!paused);
+  $("resumeBtn").onclick = () => setPaused(false);
+  // pause automatically when the student switches tab or app
+  document.addEventListener("visibilitychange", () => { if (document.hidden && startT && !finished) setPaused(true) });
   $("resetBtn").onclick = reset;
   reset();
 })();
