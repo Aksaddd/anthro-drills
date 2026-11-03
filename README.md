@@ -40,6 +40,16 @@ Each student's progress is saved **in their own browser, on the device they stud
 - **Reading settings** (Options menu): choose the reading font (IBM Plex Sans, Atkinson Hyperlegible, Literata, or the device's own font) and text size (4 steps). Saved per device and shared by both drills; extra fonts download only when chosen.
 - The landing page shows a countdown to Exam 2, a **Continue** button that opens the weakest subject (`exam2/index.html#continue`), and each exam's mastery bar.
 
+## Mock exam
+
+`mock/index.html` builds a fresh 100-question exam each time from the Exam 2 and Classification drills (288 unique questions; shared and repeated questions appear once). Answers can be changed until submitting; results show the score against 90%, a subject breakdown and a full review. Exams in progress and past scores are saved per device.
+
+The mock exam reads `mock/bank.js`, which is generated. **After changing either question bank, run:**
+
+```bash
+node tools/build-mock.js
+```
+
 ## Project layout
 
 ```
