@@ -225,3 +225,30 @@ const PR = [
 ];
 
 const DATA = { TH, A5, CH, WS, PR };
+
+// ===== Topics for the Progress tab (match the study guide's sections)
+// A new question gets its topic from its tag. Tags not listed fall back to the tab's name.
+const TOPIC2 = {
+  "Macroevolution & speciation": ["Speciation: crayfish","Speciation: squirrels","Human influence","Species concepts","Pace of change","Modes of speciation","Types of speciation","Extinction"],
+  "Phylogeny": ["Phylogeny"],
+  "Primate features & distribution": ["Protoprimate","Distribution","Arboreal heritage","Teeth","Dental formula","Primate ontogeny","Timing","Why primates","Primate features"],
+  "Primate taxonomy": ["Suborders","Strepsirrhine traits","Strep characteristics","Strep skull","Lemurs","Prosimian","Haplorrhines","NWM","Colobines","Hominoids","Hominoid locomotion","Longest ontogeny","Strepsirrhines","Tarsiers","Anthropoids","NWM vs OWM","OWM","Apes"],
+  "Primate sociality": ["Field studies","Predation","Dispersal","Social & mating system","Infanticide","Sociality","Group size","Social organization","Mating systems","Fission-fusion","Dimorphism","Dominance","Altruism","Displays","Grooming","Play","Learning","Tool use","Culture","Field researchers","Behavior"],
+  "Chimps vs. bonobos": ["Chimps and bonobos"]
+};
+const DECK_TOPIC = { A5: "Picture ID", CH: "Primate taxonomy", WS: "Chimps vs. bonobos" };
+const TAG_TOPIC = {};
+for (const t in TOPIC2) for (const tag of TOPIC2[t]) TAG_TOPIC[tag] = t;
+
+// ===== Build the bank the app reads
+const Q = {}, IDS = {};
+for (const d in DECKS) {
+  IDS[d] = [];
+  (DATA[d] || []).forEach((r, n) => {
+    const id = d + n;
+    Q[id] = { d, tag: r[0], q: r[1], ok: r[2], wrong: r[3], ex: r[4] || "", img: r[5] && FIG[r[5]] ? FIG[r[5]] : null,
+      topic: (r[0] === "Image ID" ? "Picture ID" : DECK_TOPIC[d] || TAG_TOPIC[r[0]] || DECKS[d].name) };
+    IDS[d].push(id);
+  });
+}
+window.BANK = { title: "Anthro Exam 2 Drill", storageKey: "ant2-progress-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true };

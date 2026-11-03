@@ -7,7 +7,28 @@ Multiple-choice study drills for **ANTH 102: Introduction to Human Evolution**. 
 | Exam 1 | `exam1/` | Top Hat · Review · Anthro-pardy · Sequences · People (220 questions) |
 | Exam 2 | `exam2/` | Top Hat · Activity 5 · Chart · Why Sex · Practice (161 questions) |
 
-Everything is plain static HTML, CSS and JavaScript. There's no build step and no server code, and progress is saved in each visitor's own browser (`localStorage`).
+Everything is plain static HTML, CSS and JavaScript, with no build step and no server code.
+
+## How progress is saved
+
+Each student's progress is saved **in their own browser, on the device they study on** (`localStorage`). Nothing is sent to a server, there are no accounts, and classmates never see each other's data.
+
+- Every answer is recorded per question: how many times it was tried and how many times it was right.
+- The **Progress** tab in each drill shows overall accuracy, accuracy by topic (weakest first), strongest and weakest areas, and the most-missed questions. Each row has a **Practice** button that starts a focused round.
+- Exam 1 and Exam 2 keep separate histories (`ant1-progress-v2` and `ant2-progress-v1`).
+- History doesn't move between devices or browsers, and it's erased if the student clears their browser data. Safari can also clear it after about 7 days without a visit.
+
+## Project layout
+
+```
+index.html            landing page
+assets/drill.css      shared styles
+assets/drill.js       shared app: rounds, scoring, saved progress, Progress tab
+exam1/questions.js    Exam 1 questions and topics
+exam2/questions.js    Exam 2 questions and topics
+exam*/index.html      page shell for each drill
+exam*/img/            question figures
+```
 
 ## Run it locally
 
@@ -29,9 +50,23 @@ All Exam 2 questions live in `exam2/questions.js`. Each question is one line:
 
 - **Append new questions to the end of a deck** (`TH`, `A5`, `CH`, `WS`, `PR`). Progress is stored by position, so inserting in the middle would shift people's saved history onto the wrong questions.
 - To attach a picture, put the file in `exam2/img/`, add an entry to `FIG` at the top of the file, and use its key as the sixth item.
-- To add a whole new tab, add an entry to `DECKS`, a new array, and include it in `DATA` at the bottom.
+- The question's **topic** (used on the Progress tab) comes from its tag, through the `TOPIC2` lists near the bottom of the file. A tag that isn't listed falls back to the tab's name, so add new tags to the right topic.
+- To add a whole new tab, add an entry to `DECKS`, a new array, and include it in `DATA`.
 
-## Publish it (GitHub Pages)
+## Publish it on Vercel
+
+1. Push this folder to a GitHub repository (see the first two steps below).
+2. On <https://vercel.com/new>, import the repository.
+3. Set **Framework Preset** to **Other**, leave **Build Command** empty, and leave **Output Directory** as the project root.
+4. Deploy. Vercel gives you a link like `https://anthro-drills.vercel.app` to share. Every later push redeploys automatically.
+
+You can also deploy straight from this folder, without GitHub:
+
+```bash
+npx vercel --prod
+```
+
+## Publish it on GitHub Pages
 
 1. Create an empty repository on GitHub, for example `anthro-drills`.
 2. Push this folder:
