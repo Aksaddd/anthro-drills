@@ -56,10 +56,15 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 /* ===== Subject header: description + mastery map */
 .deckhead{display:flex;flex-direction:column;gap:8px}
 .sub{color:var(--muted);font-size:14px;margin:0;text-wrap:pretty}
-.map{display:flex;flex-wrap:wrap;gap:3px}
-.map i{width:11px;height:11px;border-radius:3px;background:var(--lv-new);transition:background .3s,transform .3s}
-.map i.cur{outline:2px solid var(--ink);outline-offset:1px}
-.map i.just{animation:pulse .6s ease}
+/* Question squares: one per question in the round; click to jump */
+.map{display:flex;flex-wrap:wrap;gap:5px}
+.sq{position:relative;width:16px;height:16px;padding:0;border:0;border-radius:4px;background:var(--lv-new);cursor:pointer;transition:background .3s,transform .15s}
+.sq:hover{transform:scale(1.2)}
+.sq.done::after{content:"";position:absolute;inset:5px;border-radius:50%;background:rgba(255,255,255,.95)}
+.sq.lv-c-new.done::after{background:var(--muted)}
+.sq.cur{outline:2px solid var(--ink);outline-offset:2px}
+.sq.just{animation:pulse .6s ease}
+.btn:disabled{opacity:.4;cursor:default}
 .legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:5px;font-variant-numeric:tabular-nums}
 .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
@@ -210,5 +215,4 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
   .card{padding:18px}
   .tab b{font-size:13px}
   .pgrid b{font-size:19px}
-  .map i{width:10px;height:10px}
 }

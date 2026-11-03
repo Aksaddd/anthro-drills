@@ -47,20 +47,22 @@
   }
   const byNeed = ids => { const g = {}; for (const id of shuffle(ids)) (g[lvl(id)] = g[lvl(id)] || []).push(id); return ORDER.flatMap(l => g[l] || []) };
 
-  // ===== Daily habit
+  // ===== Daily activity (no quota: just a count and a day streak)
   const AUTO_MS = 1800;
   const dayKey = (d = new Date()) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   const today = () => S.days[dayKey()] | 0;
   function dayStreak() {
     const d = new Date(); let n = 0;
-    if (!S.days[dayKey(d)]) d.setDate(d.getDate() - 1);          // today not started yet: count up to yesterday
+    if (!S.days[dayKey(d)]) d.setDate(d.getDate() - 1);
     while (S.days[dayKey(d)]) { n++; d.setDate(d.getDate() - 1) }
     return n;
   }
 
   // ===== State
+  // A round is an ordered list of questions plus a current position. Students can move to any position;
+  // each position is either unanswered (live question) or answered (read-only review).
   const L = B.storageKey;
-  let S = fresh(), missed = new Set(), answered = false, view = "deck", rev = null, curOpts = null, autoTimer = null, menuOpen = false;
+  let S = fresh(), missed = new Set(), answered = false, view = "deck", curOpts = null, autoTimer = null, menuOpen = false;
   function fresh() { return { v: 2, updatedAt: 0, deck: FIRST, shuffle: true, onlyMissed: false, auto: true, missed: [], hist: {}, stats: {}, log: {}, days: {}, rounds: {}, focus: null } }
   const pool = d => d === "FOCUS" ? (S.focus ? S.focus.ids : []) : IDS[d];
   function apply(s) {
@@ -81,34 +83,46 @@
       const r = (s.rounds || {})[d]; if (!r || !Array.isArray(r.order)) continue;
       const ok = new Set(pool(d)); const order = r.order.filter(id => ok.has(id));
       const log = order.length === r.order.length && Array.isArray(r.log) ? r.log.slice(0, order.length) : [];
-      n.rounds[d] = { order, i: Math.min(r.i | 0, order.length), right: r.right | 0, done: r.done | 0, streak: r.streak | 0, best: r.best | 0, m0: r.m0 | 0, log };
+      const pos = Number.isInteger(r.pos) ? r.pos : (r.i | 0);   // older saves tracked only how far you'd got
+      n.rounds[d] = { order, pos: Math.max(0, Math.min(pos, order.length)), streak: r.streak | 0, best: r.best | 0, m0: r.m0 | 0, log };
     }
     return true;
   }
   function load() { try { return JSON.parse(localStorage.getItem(L) || "null") } catch (e) { return null } }
   function save() { S.updatedAt = Date.now(); S.missed = [...missed]; try { localStorage.setItem(L, JSON.stringify(S)) } catch (e) { } }
 
-  // ===== Rounds
+  // ===== Rounds and navigation
   const R = () => S.rounds[S.deck];
   const masteredIn = ids => ids.filter(id => lvl(id) === "mastered").length;
+  const doneIn = r => r.log.filter(Boolean).length;
+  const rightIn = r => r.log.filter(e => e && e.p === e.c).length;
+  function nextUnanswered(r, from) {
+    const n = r.order.length;
+    for (let k = from + 1; k < n; k++) if (!r.log[k]) return k;
+    for (let k = 0; k <= Math.min(from, n - 1); k++) if (!r.log[k]) return k;
+    return -1;
+  }
   function newRound(d) {
     let ids = pool(d).slice(); if (S.onlyMissed) ids = ids.filter(id => missed.has(id));
-    S.rounds[d] = { order: S.shuffle ? byNeed(ids) : ids, i: 0, right: 0, done: 0, streak: 0, best: 0, m0: masteredIn(pool(d)), log: [] };
+    S.rounds[d] = { order: S.shuffle ? byNeed(ids) : ids, pos: 0, streak: 0, best: 0, m0: masteredIn(pool(d)), log: [] };
   }
-  function restart() { newRound(S.deck); answered = false; rev = null; view = "deck"; paint(); save() }
-  function openDeck(d) { view = "deck"; S.deck = d; answered = false; rev = null; if (!S.rounds[d]) newRound(d); paint(); save() }
+  function restart() { newRound(S.deck); answered = false; view = "deck"; paint(); save() }
+  function openDeck(d) { view = "deck"; S.deck = d; answered = false; if (!S.rounds[d]) newRound(d); paint(); save() }
   function startFocus(label, ids) {
-    S.focus = { label, ids }; S.deck = "FOCUS"; S.onlyMissed = false; rev = null;
-    S.rounds.FOCUS = { order: byNeed(ids), i: 0, right: 0, done: 0, streak: 0, best: 0, m0: masteredIn(ids), log: [] };
+    S.focus = { label, ids }; S.deck = "FOCUS"; S.onlyMissed = false;
+    S.rounds.FOCUS = { order: byNeed(ids), pos: 0, streak: 0, best: 0, m0: masteredIn(ids), log: [] };
     answered = false; view = "deck"; paint(); save(); window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" });
   }
-  function prevIndex() {
-    const r = R(); if (!r || !r.log) return -1;
-    const k = rev !== null ? rev - 1 : answered ? r.i - 2 : r.i - 1;
-    return k >= 0 && r.log[k] ? k : -1;
+  // Move to any position in the round (n = results screen).
+  function goTo(k) {
+    const r = R(); if (!r) return;
+    stopAuto(); answered = false;
+    r.pos = Math.max(0, Math.min(k, r.order.length)); save(); paint();
   }
-  function goPrev() { const k = prevIndex(); if (k < 0) return; stopAuto(); rev = k; answered = false; paint() }
-  function goNextFromReview() { const r = R(); rev = rev + 1 <= r.i - 1 && r.log[rev + 1] ? rev + 1 : null; paint() }
+  const goPrev = () => { const r = R(); if (r && r.pos > 0) goTo(r.pos - 1) };
+  const goNext = () => { const r = R(); if (r && r.pos < r.order.length) goTo(r.pos + 1) };
+  // After answering: the next question you haven't answered yet, or the results when none are left.
+  const goNextQuestion = () => { const r = R(); const k = nextUnanswered(r, r.pos); goTo(k < 0 ? r.order.length : k) };
 
   // ===== Summaries
   function sumUp(ids) {
@@ -117,20 +131,19 @@
     return { a, c, seen, n, mastered: n.mastered, total: ids.length, acc: pct(c, a), mastery: Math.round(w / Math.max(1, ids.length) * 100) };
   }
   const subjects = () => Object.keys(DECKS).filter(k => k !== "ALL").map(k => ({ key: k, name: DECKS[k].full, short: DECKS[k].name, ids: IDS[k], ...sumUp(IDS[k]) }));
-  // The subject that most needs work: lowest mastery, then most "learning" questions, then course order.
   const weakest = (except) => subjects().filter(t => t.key !== except).sort((x, y) => x.mastery - y.mastery || y.n.learning - x.n.learning)[0];
   const segs = n => ["mastered", "due", "shaky", "learning"].map(l => n[l] ? `<i class="lv-c-${l}" style="width:${n[l] / Math.max(1, n.mastered + n.due + n.shaky + n.learning + n.new) * 100}%"></i>` : "").join("");
 
-  // ===== Feedback: toasts
+  // ===== Toasts
   function toast(msg, tone = "") {
     const t = document.createElement("div"); t.className = "toast " + tone; t.innerHTML = `<i></i>${esc(msg)}`;
     $("toasts").appendChild(t); setTimeout(() => t.remove(), 2700);
   }
 
-  // ===== Chrome: habit ring, tabs, subject map, toolbar
-  function ringSVG(size, stroke, frac, cls = "") {
+  // ===== Chrome: header, tabs, question squares, toolbar
+  function ringSVG(size, stroke, frac) {
     const r = (size - stroke) / 2, C = 2 * Math.PI * r;
-    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle class="track" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke-width="${stroke}"/><circle class="fill ${cls}" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - Math.min(1, frac))}"/></svg>`;
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle class="track" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke-width="${stroke}"/><circle class="fill" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - Math.min(1, frac))}"/></svg>`;
   }
   function paintHabit() {
     const t = today(), st = dayStreak();
@@ -143,7 +156,7 @@
       b.innerHTML = `<b>${esc(label)}</b><span class="mini" id="tm${key}"></span><span class="tcount" id="tc${key}"></span>`; b.onclick = onclick; box.appendChild(b);
     };
     for (const d in DECKS) make(d, DECKS[d].name, () => { if (S.deck === d && view === "deck") return; stopAuto(); openDeck(d) });
-    make("PROG", "Progress", () => { stopAuto(); view = "progress"; rev = null; paint() }, "tab-prog");
+    make("PROG", "Progress", () => { stopAuto(); view = "progress"; paint() }, "tab-prog");
   }
   function paintTabs() {
     for (const d in DECKS) {
@@ -157,28 +170,32 @@
     $("tmPROG").innerHTML = segs(all.n);
     $("tcPROG").textContent = all.a ? `${all.mastery}% mastery` : "not started";
   }
-  function paintMap(curId) {
-    const ids = pool(S.deck), n = sumUp(ids).n;
-    $("map").innerHTML = ids.map(id => `<i class="lv-c-${lvl(id)}${id === curId ? " cur" : ""}" data-id="${id}"></i>`).join("");
-    $("map").setAttribute("aria-label", `Subject map: ${n.mastered} mastered, ${n.due} due, ${n.shaky} getting there, ${n.learning} learning, ${n.new} new`);
+  // One square per question in this round, in order. Color = mastery level, dot = answered this round,
+  // outline = the question on screen. Every square is a button that jumps to that question.
+  function paintMap() {
+    const r = R();
+    $("map").innerHTML = r.order.map((id, k) => {
+      const l = lvl(id), done = !!r.log[k];
+      return `<button type="button" class="sq lv-c-${l}${done ? " done" : ""}${k === r.pos ? " cur" : ""}" data-k="${k}" aria-label="Question ${k + 1}: ${LEVEL_TEXT[l]}${done ? ", answered" : ""}"${k === r.pos ? ' aria-current="step"' : ""}></button>`;
+    }).join("");
   }
-  function paintChrome(curId) {
+  function paintChrome() {
     paintHabit(); paintTabs();
     const inDeck = view === "deck";
     for (const id of ["toolbar", "barRow", "map"]) $(id).hidden = !inDeck;
     if (!inDeck) { $("deckSub").textContent = "Your strengths and weak spots, from every answer you've given on this device."; return }
-    const d = S.deck, r = R(), ids = pool(d);
-    $("deckSub").textContent = d === "FOCUS" ? `Focus round: ${S.focus.label}. ${plural(ids.length, "question")}, weakest first. Pick a subject tab to leave.` : DECKS[d].sub;
-    paintMap(curId);
-    const pos = Math.min(r.i + (answered || r.i >= r.order.length ? 0 : 1), r.order.length);
-    $("roundInfo").innerHTML = r.order.length ? `<span>Question <b>${pos}</b> of ${r.order.length}</span><span><b>${r.right}</b> right</span><span>Streak <b>${r.streak}</b></span>` : "";
-    $("prog").style.width = r.order.length ? (r.i / r.order.length * 100) + "%" : "0";
+    const d = S.deck, r = R(), n = r.order.length, done = doneIn(r);
+    $("deckSub").textContent = d === "FOCUS" ? `Focus round: ${S.focus.label}. ${plural(pool(d).length, "question")}, weakest first. Pick a subject tab to leave.` : DECKS[d].sub;
+    paintMap();
+    $("roundInfo").innerHTML = n ? `<span>${r.pos < n ? `Question <b>${r.pos + 1}</b> of ${n}` : "<b>Results</b>"}</span><span><b>${done}</b> answered</span><span><b>${rightIn(r)}</b> right</span><span>Streak <b>${r.streak}</b></span>` : "";
+    $("prog").style.width = n ? (done / n * 100) + "%" : "0";
     $("shuffleBtn").setAttribute("aria-checked", S.shuffle);
     $("missedBtn").setAttribute("aria-checked", S.onlyMissed);
     $("autoBtn").setAttribute("aria-checked", S.auto);
   }
+  $("map").addEventListener("click", e => { const b = e.target.closest(".sq"); if (b) goTo(+b.dataset.k) });
 
-  // ===== Question card
+  // ===== Card pieces
   function figure(id) {
     const im = imgOf(id); if (!im) return "";
     return `<figure class="fig"><button type="button" class="zoom" data-src="${im[0]}" data-alt="${esc(im[1])}" aria-label="Enlarge image: ${esc(im[1])}"><img src="${im[0]}" alt="${esc(im[1])}"></button><figcaption>Tap to zoom</figcaption></figure>`;
@@ -188,44 +205,52 @@
     return `<div class="meta"><span class="meta-l"><span class="origin">Source: ${esc(srcOf(id))}</span><span>${esc(Q[id].tag)}</span></span>${right}</div>`;
   }
   const streakDots = id => { const k = need(id), s = Math.min((S.log[id] || {}).s || 0, k); return `<span class="streakline" title="Streak ${s} of ${k}">${Array.from({ length: k }, (_, j) => `<i class="${j < s ? "on" : ""}"></i>`).join("")}</span>` };
+  // Bottom navigation: Previous on the left, the forward action on the right.
+  function navBar(fwdLabel, fwdId, ghostFwd) {
+    const r = R();
+    return `<div class="nav"><button class="btn ghost" id="prevBtn"${r.pos > 0 ? "" : " disabled"}><span>← Previous</span></button><button class="btn${ghostFwd ? " ghost" : ""}" id="${fwdId}"><span>${fwdLabel}</span></button></div>`;
+  }
+  const lastLabel = r => doneIn(r) === r.order.length ? "See results →" : "Finish →";
 
+  // ===== Main paint
   function paint() {
     stopAuto();
     if (view === "progress") return paintProgress();
     if (S.deck === "FOCUS" && !S.focus) S.deck = FIRST;
     if (!S.rounds[S.deck]) newRound(S.deck);
-    const r = R(); if (!r.log) r.log = [];
-    if (rev !== null) return paintReview(rev);
+    const r = R(); if (!r.log) r.log = []; if (!Number.isInteger(r.pos)) r.pos = 0;
     const c = $("card");
     if (!r.order.length) {
       paintChrome(); c.className = "card";
       c.innerHTML = `<h2 class="ph">Nothing here</h2><p class="sub">${S.onlyMissed ? "You haven't missed any questions in this subject. Turn off “Only questions I've missed” in Options to see everything." : "No questions here yet."}</p>`;
       return;
     }
-    if (r.i >= r.order.length) return paintResult();
+    if (r.pos >= r.order.length) return paintResult();
+    if (r.log[r.pos]) return paintReview(r.pos);
     answered = false;
-    const id = r.order[r.i], x = Q[id], s = S.stats[id];
-    paintChrome(id);
+    const k = r.pos, id = r.order[k], x = Q[id], s = S.stats[id];
+    paintChrome();
     const opts = shuffle([{ t: x.ok, c: true }, ...x.wrong.map(t => ({ t, c: false }))]); curOpts = opts;
+    const isLast = k === r.order.length - 1;
     c.className = "card enter";
-    c.innerHTML = `${metaRow(id, x.val ? `<span class="val">$${x.val}</span>` : `<span>${r.i + 1} / ${r.order.length}</span>`)}
+    c.innerHTML = `${metaRow(id, x.val ? `<span class="val">$${x.val}</span>` : `<span>${k + 1} / ${r.order.length}</span>`)}
       <p class="q">${txt(x.q)}</p>${figure(id)}
-      <div class="opts">${opts.map((o, k) => `<button class="opt" id="o${k}" data-c="${o.c}"><span class="bub">${"ABCDE"[k]}</span><span>${txt(o.t)}</span></button>`).join("")}</div>
+      <div class="opts">${opts.map((o, j) => `<button class="opt" id="o${j}" data-c="${o.c}"><span class="bub">${"ABCDE"[j]}</span><span>${txt(o.t)}</span></button>`).join("")}</div>
       ${s && s[0] ? `<p class="record"><span class="lv lv-${lvl(id)}">${LEVEL_TEXT[lvl(id)]}</span>${streakDots(id)}<span>${s[1]} of ${s[0]} right so far</span></p>` : ""}
-      <div id="fb">${prevIndex() >= 0 ? `<div class="nav"><button class="btn ghost" id="prevBtn"><span>← Previous</span></button></div>` : ""}</div>`;
-    c.querySelectorAll(".opt").forEach((b, k) => b.onclick = () => pick(b, id, k));
-    if ($("prevBtn")) $("prevBtn").onclick = goPrev;
+      <div id="fb">${navBar(isLast ? lastLabel(r) : "Skip →", "skipBtn", true)}</div>`;
+    c.querySelectorAll(".opt").forEach((b, j) => b.onclick = () => pick(b, id, j));
+    $("prevBtn").onclick = goPrev; $("skipBtn").onclick = goNext;
     wireZoom();
   }
 
   function pick(b, id, pickedIdx) {
     if (answered) return; answered = true;
     const x = Q[id], r = R(), good = b.dataset.c === "true", now = Date.now();
-    r.log[r.i] = { o: curOpts.map(o => o.t), p: pickedIdx, c: curOpts.findIndex(o => o.c) };
+    r.log[r.pos] = { o: curOpts.map(o => o.t), p: pickedIdx, c: curOpts.findIndex(o => o.c) };
     $("card").querySelectorAll(".opt").forEach(o => { o.disabled = true; if (o.dataset.c === "true") o.classList.add("right") });
     b.classList.add("picked", good ? "pop" : "shake"); if (!good) b.classList.add("wrong");
     const before = lvl(id);
-    r.done++; if (good) { r.right++; r.streak++; r.best = Math.max(r.best | 0, r.streak); missed.delete(id) } else { r.streak = 0; missed.add(id) }
+    if (good) { r.streak++; r.best = Math.max(r.best | 0, r.streak); missed.delete(id) } else { r.streak = 0; missed.add(id) }
     S.hist[id] = good ? 1 : 0;
     const s = S.stats[id] || [0, 0]; S.stats[id] = [s[0] + 1, s[1] + (good ? 1 : 0)];
     const g = S.log[id] || { s: 0, t0: 0, last: 0 };
@@ -238,15 +263,14 @@
     else if (after === "mastered") note = before === "mastered" ? "Still mastered." : `Mastered: right ${g.s} times in a row, spread over time.`;
     else if (g.s >= k) note = "Streak complete. Get it right again an hour or more from now to lock it in.";
     else note = `${k - g.s} more right in a row to master it.`;
-    r.i++; save();
-    paintChrome(id);
-    const sq = $("map").querySelector(`[data-id="${id}"]`); if (sq) sq.classList.add("just");
+    save(); paintChrome();
+    const sq = $("map").querySelector(`[data-k="${r.pos}"]`); if (sq) sq.classList.add("just");
+    const more = nextUnanswered(r, r.pos) >= 0;
     $("fb").innerHTML = `<div class="explain ${good ? "good" : "bad"}"><strong>${good ? "Correct." : "Answer: " + txt(x.ok)}</strong>${txt(x.ex || "")}</div>
       <p class="lvnote"><span class="lv lv-${after}">${LEVEL_TEXT[after]}</span>${streakDots(id)}<span>${note}</span></p>
-      <div class="nav">${prevIndex() >= 0 ? '<button class="btn ghost" id="prevBtn"><span>← Previous</span></button>' : "<span></span>"}<button class="btn" id="next"><span>${r.i >= r.order.length ? "See results" : "Next"}</span></button></div>`;
-    $("next").onclick = paint; $("next").focus({ preventScroll: true });
-    if ($("prevBtn")) $("prevBtn").onclick = goPrev;
-    // celebrate the moments that matter
+      ${navBar(more ? "Next question →" : "See results →", "next")}`;
+    $("next").onclick = goNextQuestion; $("next").focus({ preventScroll: true });
+    $("prevBtn").onclick = goPrev;
     if (after === "mastered" && before !== "mastered") toast(`Mastered. ${masteredIn(pool(S.deck))} of ${pool(S.deck).length} in ${S.deck === "FOCUS" ? "this focus round" : DECKS[S.deck].name}`);
     else if (good && [5, 10, 15, 20, 30, 40, 50].includes(r.streak)) toast(`${r.streak} in a row`, "gold");
     if (good && S.auto) startAuto();
@@ -256,7 +280,7 @@
   function startAuto() {
     const nb = $("next"); if (!nb) return;
     nb.style.setProperty("--auto", AUTO_MS + "ms"); nb.classList.add("auto");
-    autoTimer = setTimeout(() => { autoTimer = null; if ($("next")) paint() }, AUTO_MS);
+    autoTimer = setTimeout(() => { autoTimer = null; if ($("next")) goNextQuestion() }, AUTO_MS);
   }
   function stopAuto() { if (autoTimer) { clearTimeout(autoTimer); autoTimer = null } const nb = $("next"); if (nb) nb.classList.remove("auto") }
   const pauseAuto = e => { if (!autoTimer) return; if (e.target && e.target.closest && e.target.closest("#next")) return; stopAuto() };
@@ -264,47 +288,46 @@
   document.addEventListener("wheel", pauseAuto, { passive: true });
   document.addEventListener("touchmove", pauseAuto, { passive: true });
 
-  // An earlier question in this round, read-only.
+  // An answered question: read-only, with what you picked, the answer and the explanation.
   function paintReview(k) {
     const c = $("card"), r = R(), e = r.log[k], id = r.order[k], x = Q[id];
-    paintChrome(id);
-    const fwd = k + 1 <= r.i - 1 && r.log[k + 1];
-    const label = fwd ? "Next →" : r.i >= r.order.length ? "Back to results →" : `Back to question ${r.i + 1} →`;
+    answered = false; paintChrome();
+    const isLast = k === r.order.length - 1;
     c.className = "card review enter";
-    c.innerHTML = `${metaRow(id, `<span class="revtag">Reviewing ${k + 1} / ${r.order.length}</span>`)}
+    c.innerHTML = `${metaRow(id, `<span class="revtag">Answered · ${k + 1} / ${r.order.length}</span>`)}
       <p class="q">${txt(x.q)}</p>${figure(id)}
       <div class="opts">${e.o.map((t, j) => `<button class="opt${j === e.c ? " right" : ""}${j === e.p ? " picked" : ""}${j === e.p && j !== e.c ? " wrong" : ""}" disabled><span class="bub">${"ABCDE"[j]}</span><span>${txt(t)}</span></button>`).join("")}</div>
       <div class="explain ${e.p === e.c ? "good" : "bad"}"><strong>${e.p === e.c ? "You got this one right." : "You picked " + "ABCDE"[e.p] + ". Answer: " + txt(x.ok)}</strong>${txt(x.ex || "")}</div>
-      <p class="hint">Review only. Answers can't be changed, so your mastery stays honest.</p>
-      <div class="nav">${prevIndex() >= 0 ? '<button class="btn ghost" id="prevBtn"><span>← Previous</span></button>' : "<span></span>"}<button class="btn" id="fwdBtn"><span>${label}</span></button></div>`;
-    if ($("prevBtn")) $("prevBtn").onclick = goPrev;
-    $("fwdBtn").onclick = goNextFromReview; $("fwdBtn").focus({ preventScroll: true });
+      <p class="hint">Already answered in this round, so it can't be changed. That keeps your mastery honest.</p>
+      ${navBar(isLast ? lastLabel(r) : "Next →", "fwdBtn")}`;
+    $("prevBtn").onclick = goPrev; $("fwdBtn").onclick = goNext; $("fwdBtn").focus({ preventScroll: true });
     wireZoom();
   }
 
-  // End of round: score ring, what changed, what to do next.
+  // Results: score ring, what changed, skipped questions, what to do next.
   function paintResult() {
-    paintChrome();
-    const c = $("card"), r = R(), d = S.deck, ids = pool(d), p = pct(r.right, r.done);
+    answered = false; paintChrome();
+    const c = $("card"), r = R(), d = S.deck, ids = pool(d), done = doneIn(r), right = rightIn(r), p = pct(right, done);
+    const skipped = r.order.length - done, firstSkipped = nextUnanswered(r, -1);
     const m = ids.filter(id => missed.has(id)).length, gained = Math.max(0, masteredIn(ids) - (r.m0 | 0));
     const next = weakest(d === "FOCUS" ? null : d);
-    const C = 2 * Math.PI * 55;   // matches ringSVG(120, 10): radius (120 - 10) / 2
+    const C = 2 * Math.PI * 55;   // ringSVG(120, 10): radius (120 - 10) / 2
     c.className = "card result enter";
     c.innerHTML = `<div class="bigring">${ringSVG(120, 10, 0)}<b>${p}%</b></div>
-      <h2>${r.right} of ${r.done} right</h2>
+      <h2>${right} of ${done} right</h2>
       <div class="gains">
-        <span class="gain${gained ? " up" : ""}">${gained ? `+${plural(gained, "question")} mastered` : r.right ? "Streaks building: they lock in as mastered after an hour" : "No new mastered questions yet"}</span>
+        <span class="gain${gained ? " up" : ""}">${gained ? `+${plural(gained, "question")} mastered` : right ? "Streaks building: they lock in as mastered after an hour" : "No new mastered questions yet"}</span>
         ${r.best ? `<span class="gain">Best streak ${r.best}</span>` : ""}
         ${m ? `<span class="gain">${m} to review</span>` : ""}
       </div>
-      ${next ? `<div class="suggest"><span><small>Weakest subject right now</small><b>${esc(next.name)}</b> <small>${next.mastery}% mastery · ${next.mastered}/${next.total} mastered</small></span><button class="btn" id="goNext"><span>Practice</span></button></div>` : ""}
-      <div class="nav">${prevIndex() >= 0 ? '<button class="btn ghost" id="prevBtn"><span>← Previous</span></button>' : ""}${m && !S.onlyMissed ? '<button class="btn ghost" id="drill"><span>Drill the missed</span></button>' : ""}<button class="btn ghost" id="again"><span>Go again</span></button></div>`;
+      ${skipped ? `<div class="suggest"><span><small>Not answered yet</small><b>${plural(skipped, "skipped question")}</b></span><button class="btn" id="goSkipped"><span>Answer them</span></button></div>` : ""}
+      ${next ? `<div class="suggest"><span><small>Weakest subject right now</small><b>${esc(next.name)}</b> <small>${next.mastery}% mastery · ${next.mastered}/${next.total} mastered</small></span><button class="btn${skipped ? " ghost" : ""}" id="goNext"><span>Practice</span></button></div>` : ""}
+      <div class="nav"><button class="btn ghost" id="prevBtn"><span>← Previous</span></button>${m && !S.onlyMissed ? '<button class="btn ghost" id="drill"><span>Drill the missed</span></button>' : ""}<button class="btn ghost" id="again"><span>Go again</span></button></div>`;
     requestAnimationFrame(() => { const f = c.querySelector(".bigring .fill"); if (f) f.style.strokeDashoffset = C * (1 - p / 100) });
-    $("again").onclick = restart;
+    $("again").onclick = restart; $("prevBtn").onclick = goPrev;
+    if ($("goSkipped")) $("goSkipped").onclick = () => goTo(firstSkipped);
     if ($("drill")) $("drill").onclick = () => { S.onlyMissed = true; restart() };
-    if ($("prevBtn")) $("prevBtn").onclick = goPrev;
-    if ($("goNext")) $("goNext").onclick = () => { if (S.rounds[next.key] && S.rounds[next.key].i >= S.rounds[next.key].order.length) delete S.rounds[next.key]; openDeck(next.key) };
-    $("prog").style.width = "100%";
+    if ($("goNext")) $("goNext").onclick = () => { const nr = S.rounds[next.key]; if (nr && doneIn({ log: nr.log || [] }) >= nr.order.length) delete S.rounds[next.key]; openDeck(next.key) };
   }
 
   // ===== Progress view
@@ -322,7 +345,6 @@
     const weak = started.filter(t => t.acc < 70).sort((x, y) => x.acc - y.acc).slice(0, 2);
     const worst = ALL.map(id => ({ id, s: S.stats[id] })).filter(o => o.s && o.s[0] > o.s[1])
       .sort((x, y) => (y.s[0] - y.s[1]) - (x.s[0] - x.s[1]) || x.s[1] / x.s[0] - y.s[1] / y.s[0]).slice(0, 8);
-    // the last 7 days
     const days = []; for (let k = 6; k >= 0; k--) { const d = new Date(); d.setDate(d.getDate() - k); days.push({ key: dayKey(d), label: d.toLocaleDateString(undefined, { weekday: "short" }).slice(0, 2), n: S.days[dayKey(d)] | 0, today: k === 0 }) }
     const top = Math.max(10, ...days.map(d => d.n));
     const row = t => `<li class="trow">
@@ -385,25 +407,26 @@
     S = fresh(); missed = new Set(); restart();
   };
 
-  // ===== Keyboard
+  // ===== Keyboard: 1–5 answer · ← previous · → next · Enter = the main button
   document.addEventListener("keydown", e => {
     if (!$("lightbox").hidden) { if (e.key === "Escape") closeLightbox(); return }
     if (e.key === "Escape" && menuOpen) { setMenu(false); $("optBtn").focus(); return }
     if (view !== "deck" || menuOpen) return;
-    if (e.key === "ArrowLeft") { if (prevIndex() >= 0) { e.preventDefault(); goPrev() } return }
-    if (rev !== null) { if ((e.key === "ArrowRight" || e.key === "Enter") && $("fwdBtn")) { e.preventDefault(); $("fwdBtn").click() } return }
-    if (answered && (e.key === "Enter" || e.key === "ArrowRight") && $("next")) { e.preventDefault(); $("next").click(); return }
+    const r = R(); if (!r) return;
+    if (e.key === "ArrowLeft") { e.preventDefault(); goPrev(); return }
+    if (e.key === "ArrowRight") { e.preventDefault(); if (answered) goNextQuestion(); else goNext(); return }
+    if (e.key === "Enter") { const b = $("next") || $("fwdBtn"); if (b) { e.preventDefault(); b.click() } return }
     if (autoTimer) stopAuto();
-    if (!answered && /^[1-5]$/.test(e.key)) { const o = $("o" + (e.key - 1)); if (o) o.click() }
+    if (!answered && !r.log[r.pos] && /^[1-5]$/.test(e.key)) { const o = $("o" + (e.key - 1)); if (o) o.click() }
   });
 
   // ===== Start
   buildTabs();
   apply(load());
   function route() {
-    if (location.hash === "#progress") { view = "progress"; rev = null }
-    else if (location.hash === "#continue") {   // from the landing page: jump into the subject that most needs work
-      const w = weakest(); if (w) { const r = S.rounds[w.key]; if (r && r.i >= r.order.length) delete S.rounds[w.key]; view = "deck"; S.deck = w.key; rev = null }
+    if (location.hash === "#progress") view = "progress";
+    else if (location.hash === "#continue") {   // from the landing page: open the subject that most needs work
+      const w = weakest(); if (w) { const r = S.rounds[w.key]; if (r && doneIn({ log: r.log || [] }) >= r.order.length) delete S.rounds[w.key]; view = "deck"; S.deck = w.key }
     }
   }
   route();

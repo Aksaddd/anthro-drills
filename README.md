@@ -26,11 +26,11 @@ Each student's progress is saved **in their own browser, on the device they stud
 ## What students see
 
 - **Subject tabs** with a small mastery bar each, a **Mixed** tab, and a **Progress** tab.
-- A **subject map**: one square per question, colored by mastery level, with the current question outlined.
+- A **question map**: one square per question in the round, colored by mastery level, with a dot once answered and an outline on the current question.
 - How many questions you answered today and your day streak, in the header (no quota).
 - Instant feedback: a pop on right answers, a shake on wrong ones, the explanation, the question's mastery level and streak. After a right answer the next question comes up on its own (switch off under **Options**); any tap pauses it.
 - Short messages for 5/10/15/20… in a row and for newly mastered questions.
-- **← Previous** to review earlier questions in the round (read-only).
+- **Free browsing:** ← Previous and Next → (or Skip) move through the round, and every square in the question map is a button that jumps to that question. Skipped questions can be answered later; answered ones open read-only.
 - End-of-round summary with score, newly mastered count, best streak and the weakest subject to practice next.
 - Tap any picture to zoom.
 - The landing page shows a countdown to Exam 2, a **Continue** button that opens the weakest subject (`exam2/index.html#continue`), and each exam's mastery bar.
