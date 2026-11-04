@@ -16,29 +16,27 @@ Everything is plain static HTML, CSS and JavaScript, with no build step and no s
 
 Each student's progress is saved **in their own browser, on the device they study on** (`localStorage`). Nothing is sent to a server, there are no accounts, and classmates never see each other's data.
 
-- Every answer is recorded per question: attempts, correct answers, current streak, and when the streak started.
-- **Mastery** is stricter than "got it right once". A question is *mastered* only when it's answered right **3 times in a row** (4 for two-choice questions, so a lucky guess streak stays under about 6%), and that streak **spans at least an hour**, so it reflects memory, not the screen just seen. A miss resets the streak. A mastered question not seen for **5 days** becomes *due for review*.
-- Each question has a level: New → Learning (last answer wrong) → Getting there (streak building) → Mastered (or Due for review). Rounds serve the weakest levels first.
-- A topic's **mastery score** gives full credit for mastered, ¾ for due and ½ for getting there. The rules live at the top of `assets/drill.js` (`SPACING`, `FADE`, `need`).
+- Every answer is recorded per question: attempts, correct answers and the most recent result.
+- Each question shows its status: not answered yet, got it right, got it wrong (its last answer), or **marked for review** by the student, which takes priority. Rounds bring up marked and missed questions first.
 - The **Progress** tab in each drill shows overall accuracy, accuracy by topic (weakest first), strongest and weakest areas, and the most-missed questions. Each row has a **Practice** button that starts a focused round.
 - Exam 1 and Exam 2 keep separate histories (`ant1-progress-v2` and `ant2-progress-v1`).
 - History doesn't move between devices or browsers, and it's erased if the student clears their browser data. Safari can also clear it after about 7 days without a visit.
 
 ## What students see
 
-- **Subject tabs** with a small mastery bar each, a **Mixed** tab, and a **Progress** tab.
-- A **question map**: one square per question in the round, colored by mastery level, with a dot once answered and an outline on the current question.
+- **Subject tabs** with a small progress bar each, a **Mixed** tab, and a **Progress** tab.
+- A **question map**: one square per question in the round, colored by status (right, wrong, marked for review, not answered), full color once answered this round, and an outline on the current question.
 - How many questions you answered today and your day streak, in the header (no quota).
-- Instant feedback: a pop on right answers, a shake on wrong ones, the explanation, the question's mastery level and streak. After a right answer the next question comes up on its own (switch off under **Options**); any tap pauses it.
-- Short messages for 5/10/15/20… in a row and for newly mastered questions.
+- Instant feedback: a pop on right answers, a shake on wrong ones, the explanation, and a reminder to mark missed questions for review. After a right answer the next question comes up on its own (switch off under **Options**); any tap pauses it.
+- Short messages for 5/10/15/20… in a row.
 - **Free browsing:** ← Previous and Next → (or Skip) move through the round, and every square in the question map is a button that jumps to that question. Skipped questions can be answered later; answered ones open read-only.
-- End-of-round summary with score, newly mastered count, best streak and the weakest subject to practice next.
-- **Mark as mastered / Mark for review** buttons on every question. A student's own "mastered" mark counts as mastered (it still fades after 5 days, and a miss removes it); flagged questions get a dot on their square, come first in rounds, and can be drilled from the Progress tab.
+- End-of-round summary with score, best streak, missed and marked counts, and the weakest subject to practice next.
+- **⚑ Mark for review** on every question. Marked questions are amber on the question map, come first in rounds, and collect in the Review list.
 - **Classification drill** (`classification/`): 149 questions from the Primate Classification worksheet (36 written + 113 generated from its answer key), kept separate from the Exam 2 drill. The generator in `classification/questions.js` runs in a fixed order; add new ones only at the end. Exam 2 shows a dismissible prompt to study it, since the chart is on the study guide.
 - **Drag-and-drop chart** (`classification/chart.html`): drag worksheet traits onto the chart (word bank beside the chart on wide screens, docked tray at the bottom on phones and iPad portrait), or tap a trait and then a box. Built on Pointer Events so mouse, touch and pen all work. Mistakes, hints and time are tracked; best result saved per device.
 - Tap any picture to zoom.
 - **Reading settings** (Options menu): choose the reading font (IBM Plex Sans, Atkinson Hyperlegible, Literata, or the device's own font) and text size (4 steps). Saved per device and shared by both drills; extra fonts download only when chosen.
-- The landing page shows a countdown to Exam 2, a **Continue** button that opens the weakest subject (`exam2/index.html#continue`), and each exam's mastery bar.
+- The landing page shows a countdown to Exam 2, a **Continue** button that opens the weakest subject (`exam2/index.html#continue`), and each drill's progress bar.
 
 ## Timer
 
@@ -46,7 +44,7 @@ There is no timer by default anywhere on the site. Students can turn one on with
 
 ## Review list
 
-`review/index.html` collects every question marked for review in any drill (and questions flagged in a mock exam, saved on submit). Students can show answers, remove questions, or **Quiz me**: answers count toward mastery in the question's own drill. It reads `review/bank.js`, generated by the same build script as the mock exam.
+`review/index.html` collects every question marked for review in any drill (and questions flagged in a mock exam, saved on submit). Students can show answers, remove questions, or **Quiz me**: answers are saved to the question's own drill progress. It reads `review/bank.js`, generated by the same build script as the mock exam.
 
 ## Mock exam
 

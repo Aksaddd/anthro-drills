@@ -234,7 +234,7 @@
     // Questions flagged in this exam go to the Review list (the drill they came from marks them "for review")
     const KEYS = { exam2: "ant2-progress-v1", classification: "anthro-class-v1" };
     E.items.forEach((it, k) => { if (!E.flag[k]) return; const [d, id] = it.id.split(":"); const key = KEYS[d]; if (!key) return;
-      const s = read(key, null) || { v: 2 }; s.mark = s.mark || {}; if (!s.mark[id] || s.mark[id].m !== "mastered") s.mark[id] = { m: "review", t: Date.now() }; s.updatedAt = Date.now(); write(key, s) });
+      const s = read(key, null) || { v: 2 }; s.mark = s.mark || {}; s.mark[id] = { m: "review", t: Date.now() }; s.updatedAt = Date.now(); write(key, s) });
     const hist = read(HIST, []); hist.push({ at: Date.now(), right, total: E.items.length, pct: Math.round(right / E.items.length * 100), secs: E.secs }); write(HIST, hist.slice(-50));
     filter = "wrong"; render(); window.scrollTo({ top: 0 });
   }

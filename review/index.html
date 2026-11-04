@@ -125,7 +125,7 @@
     wireZoom();
   }
 
-  // ----- Quiz mode: one question at a time, answers count toward mastery in the question's drill
+  // ----- Quiz mode: one question at a time, answers are saved to the question's drill progress
   function startQuiz(list) { quiz = { list: shuffle(list), i: 0, right: 0, done: false }; renderQuiz(); window.scrollTo({ top: 0 }) }
   function renderQuiz() {
     const { list, i } = quiz;

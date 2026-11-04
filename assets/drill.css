@@ -275,3 +275,10 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 @keyframes ddTarget{0%,45%{fill:rgba(255,255,255,.18)}55%,90%{fill:rgba(134,239,172,.55);stroke:#fff;stroke-dasharray:0}100%{fill:rgba(255,255,255,.18)}}
 @media (max-width:520px){.ddpromo{grid-template-columns:1fr}.ddpromo .dd-illu{grid-row:auto;width:110px;height:70px}.ddpromo .ddbtn{grid-column:1}}
 @media (prefers-reduced-motion:reduce){.dd-chip,.dd-hand,.dd-target{animation:none}.dd-chip{transform:translate(76px,32px)}.dd-hand{transform:translate(102px,38px)}}
+
+/* ===== Question status colors (replaces the old mastery levels) */
+:root{--st-right:#16a34a;--st-wrong:#e2572b;--st-review:#d4a017;--st-new:#d6dbe6}
+.lv-c-right{background:var(--st-right)!important} .lv-c-wrong{background:var(--st-wrong)!important}
+.lv-c-review{background:var(--st-review)!important} .lv-c-new{background:var(--st-new)!important}
+.stack i.lv-c-right,.mini i.lv-c-right{background:var(--st-right)} .stack i.lv-c-wrong,.mini i.lv-c-wrong{background:var(--st-wrong)} .stack i.lv-c-review,.mini i.lv-c-review{background:var(--st-review)}
+.sq.lv-c-new:not(.done){opacity:1;background:#e7ebf2!important}

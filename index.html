@@ -15,7 +15,7 @@
   --bg:#eef1f6; --paper:#fff; --ink:#151b2b; --muted:#5b6478; --line:#d6dbe6; --sunk:#f5f7fb;
   --accent:#2a46cf; --accent-soft:#e3e8fb;
   --gold:#b7791f; --gold-soft:#fbf1dc; --forest:#14281d; --forest-2:#1f3b2b; --leaf:#b9e48f; --cream:#f7f5ec;
-  --lv-mastered:#16a34a; --lv-due:#4f6bed; --lv-shaky:#d4a017; --lv-learning:#e2572b; --lv-new:#d6dbe6;
+  --st-right:#16a34a; --st-wrong:#e2572b; --st-review:#d4a017; --lv-new:#d6dbe6;
   --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
   --body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -71,7 +71,7 @@ main.inner{padding-block:28px 48px;display:flex;flex-direction:column;gap:18px}
 .ptext{font:500 12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
 .plink{position:relative;z-index:1;font:600 13px var(--body);color:var(--accent);text-decoration:none;padding:4px 2px}
 .plink:hover{text-decoration:underline}
-.c-mastered{background:var(--lv-mastered)} .c-due{background:var(--lv-due)} .c-shaky{background:var(--lv-shaky)} .c-learning{background:var(--lv-learning)}
+.c-right{background:var(--st-right)} .c-wrong{background:var(--st-wrong)} .c-review{background:var(--st-review)}
 .how{font-size:14px;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px 20px}
 .how b{color:var(--ink)}
 .how ul{margin:6px 0 0;padding-left:18px}
@@ -126,7 +126,7 @@ footer a{color:inherit}
 <header class="hero" aria-labelledby="courseTitle">
   <div class="inner">
     <p class="eyebrow">ANTH 102 · Fall 2026 · Study drills</p>
-    <h1 id="courseTitle">Biology &amp; Evolution of Human Species<span>Practice by subject, track what you've truly mastered, and spend your time on what you don't know yet.</span></h1>
+    <h1 id="courseTitle">Biology &amp; Evolution of Human Species<span>Practice by subject, mark what you still need to review, and spend your time on what you don't know yet.</span></h1>
     <div class="countdown" id="countdown">
       <div class="days"><b id="countNum">–</b><span id="countUnit">days</span></div>
       <div class="exam"><strong id="examTitle">Exam 2 · Tue, Nov 10 · 10:45 am</strong><span id="examSub">Not cumulative: macroevolution, primates, and primate sociality.</span></div>
@@ -199,10 +199,10 @@ footer a{color:inherit}
     <b>How it works</b>
     <ul>
       <li>Pick a subject and answer. Your weakest questions come first, and you can jump to any question with the squares at the top.</li>
-      <li>A question is <b>mastered</b> after 3 right answers in a row, spread over at least an hour. One lucky guess doesn't count.</li>
+      <li>Tap <b>⚑ Mark for review</b> on any question you want to come back to. They all collect in your <a href="review/index.html">Review list</a>.</li>
       <li>Every question shows its source: Top Hat, a Brightspace activity, a worksheet, or practice. Your progress is saved in this browser on this device, and nothing is sent anywhere.</li>
     </ul>
-    <div class="legend"><span><i class="c-mastered"></i>Mastered</span><span><i class="c-due"></i>Due for review</span><span><i class="c-shaky"></i>Getting there</span><span><i class="c-learning"></i>Learning</span><span><i class="c-new"></i>New</span></div>
+    <div class="legend"><span><i class="c-right"></i>Got it right</span><span><i class="c-wrong"></i>Got it wrong</span><span><i class="c-review"></i>Marked for review</span><span><i class="c-new"></i>Not answered yet</span></div>
   </div>
 
   <section class="how sources" id="sources" aria-labelledby="srcTitle">
@@ -247,25 +247,22 @@ footer a{color:inherit}
   const $ = id => document.getElementById(id);
   const read = k => { try { return JSON.parse(localStorage.getItem(k) || "null") } catch (e) { return null } };
   const dayKey = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-  const HOUR = 3600e3, FADE = 5 * 864e5;
-  // Same levels as the drills (two-choice questions are approximated with the 3-in-a-row rule).
+  // Same statuses as the drills: right / wrong (last answer) or marked for review (takes priority).
   function levels(s, total) {
-    const n = { mastered: 0, due: 0, shaky: 0, learning: 0 }, now = Date.now(); let a = 0, c = 0, seen = 0;
-    const st = (s && s.stats) || {}, log = (s && s.log) || {};
+    const n = { right: 0, wrong: 0, review: 0 }; let a = 0, c = 0, seen = 0;
+    const st = (s && s.stats) || {}, hist = (s && s.hist) || {}, mark = (s && s.mark) || {};
+    for (const k in mark) if (mark[k] && mark[k].m === "review") n.review++;
     for (const k in st) {
       if (!st[k][0]) continue; seen++; a += st[k][0]; c += st[k][1];
-      const g = log[k];
-      if (!g || !g.s) n.learning++;
-      else if (g.s >= 3 && g.last - g.t0 >= HOUR) n[now - g.last > FADE ? "due" : "mastered"]++;
-      else n.shaky++;
+      if (!(mark[k] && mark[k].m === "review")) n[hist[k] === 1 ? "right" : "wrong"]++;
     }
     return { n, seen: Math.min(seen, total), acc: a ? Math.round(c / a * 100) : 0, total };
   }
   document.querySelectorAll(".card[data-key]").forEach(card => {
     const s = read(card.dataset.key), L = levels(s, +card.dataset.total);
-    if (!L.seen) return;
-    card.querySelector(".stack").innerHTML = ["mastered", "due", "shaky", "learning"].map(l => L.n[l] ? `<i class="c-${l}" style="width:${L.n[l] / L.total * 100}%"></i>` : "").join("");
-    card.querySelector(".ptext").textContent = `${L.n.mastered} of ${L.total} mastered · ${L.acc}% right`;
+    if (!L.seen && !L.n.review) return;
+    card.querySelector(".stack").innerHTML = ["right", "wrong", "review"].map(l => L.n[l] ? `<i class="c-${l}" style="width:${L.n[l] / L.total * 100}%"></i>` : "").join("");
+    card.querySelector(".ptext").textContent = `${L.seen} of ${L.total} answered · ${L.acc}% right`;
   });
 
   // Mock exam: last score
