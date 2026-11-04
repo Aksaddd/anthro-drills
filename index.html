@@ -150,6 +150,12 @@ footer a{color:inherit}
         <p>50 or 100 random questions from the Exam 2 and Classification drills. Every exam is a brand-new set.</p></div></div>
       <div class="prow"><span class="ptext" id="mockLast">No exams taken yet</span><a class="plink" href="mock/index.html">Start an exam →</a></div>
     </article>
+    <article class="card reviewcard">
+      <div class="chead"><span class="num" aria-hidden="true">⚑</span>
+        <div><h3><a href="review/index.html">Review List</a></h3>
+        <p>Every question you've marked for review, from every drill and mock exam, in one place. Quiz yourself on them.</p></div></div>
+      <div class="prow"><span class="ptext" id="reviewCount">Nothing marked yet</span><a class="plink" href="review/index.html">Open →</a></div>
+    </article>
   </div>
   <h2 class="h2">Drills</h2>
   <div class="cards">
@@ -264,6 +270,12 @@ footer a{color:inherit}
 
   // Mock exam: last score
   try { const h = JSON.parse(localStorage.getItem("anthro-mock-history-v1") || "[]"); if (h.length) { const l = h[h.length - 1]; document.getElementById("mockLast").textContent = `Last exam: ${l.pct}% (${l.right}/${l.total}) · ${h.length} taken` } } catch (e) { }
+  // Review list: how many questions are marked for review across all drills
+  try {
+    let n = 0; const seen = new Set();
+    for (const k of ["ant2-progress-v1", "anthro-class-v1", "ant1-progress-v2"]) { const s = JSON.parse(localStorage.getItem(k) || "null"); if (s && s.mark) for (const id in s.mark) if (s.mark[id].m === "review" && !seen.has(k + id)) { seen.add(k + id); n++ } }
+    if (n) document.getElementById("reviewCount").textContent = n === 1 ? "1 question marked for review" : n + " questions marked for review";
+  } catch (e) { }
   // Countdown to Exam 2 (Tue, Nov 10, 2026, 10:45 am)
   const exam = new Date(2026, 10, 10, 10, 45), now = new Date();
   const days = Math.round((new Date(exam.getFullYear(), exam.getMonth(), exam.getDate()) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 864e5);

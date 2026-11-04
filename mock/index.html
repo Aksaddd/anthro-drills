@@ -150,7 +150,7 @@
       <ul class="rules">
         <li>Questions come from every Exam 2 subject and the Classification chart, mixed together at random.</li>
         <li>Pick an answer and change it as often as you like. Nothing is marked until you submit.</li>
-        <li>Flag questions to come back to, and jump anywhere with the numbered grid.</li>
+        <li>Flag questions to come back to, and jump anywhere with the numbered grid. Flagged questions are saved to your Review list when you submit.</li>
         <li>Your exam is saved if you leave and come back.</li>
       </ul>
       <div class="nav" style="justify-content:flex-start;gap:10px">
@@ -231,6 +231,10 @@
     stopClock(); confirmOpen = false;
     const right = E.items.reduce((n, it, k) => n + (E.ans[k] !== null && it.opts[E.ans[k]] === byId[it.id].ok ? 1 : 0), 0);
     E.done = true; E.score = right; E.secs = elapsed(); save();
+    // Questions flagged in this exam go to the Review list (the drill they came from marks them "for review")
+    const KEYS = { exam2: "ant2-progress-v1", classification: "anthro-class-v1" };
+    E.items.forEach((it, k) => { if (!E.flag[k]) return; const [d, id] = it.id.split(":"); const key = KEYS[d]; if (!key) return;
+      const s = read(key, null) || { v: 2 }; s.mark = s.mark || {}; if (!s.mark[id] || s.mark[id].m !== "mastered") s.mark[id] = { m: "review", t: Date.now() }; s.updatedAt = Date.now(); write(key, s) });
     const hist = read(HIST, []); hist.push({ at: Date.now(), right, total: E.items.length, pct: Math.round(right / E.items.length * 100), secs: E.secs }); write(HIST, hist.slice(-50));
     filter = "wrong"; render(); window.scrollTo({ top: 0 });
   }
@@ -254,7 +258,7 @@
       </section>
       <section class="panel"><b>Review your answers</b>
         <div class="grid100" id="rgrid">${rows.map(r => `<button class="gq ${r.ok ? "right" : "wrongq"}" data-k="${r.k}" aria-label="Question ${r.k + 1}: ${r.ok ? "right" : "wrong"}">${r.k + 1}</button>`).join("")}</div>
-        <div class="filters"><button class="chip" data-f="wrong" aria-pressed="${filter === "wrong"}">Missed (${rows.filter(r => !r.ok).length})</button><button class="chip" data-f="flag" aria-pressed="${filter === "flag"}">Flagged (${E.flag.filter(Boolean).length})</button><button class="chip" data-f="all" aria-pressed="${filter === "all"}">All ${n}</button></div>
+        <div class="filters"><button class="chip" data-f="wrong" aria-pressed="${filter === "wrong"}">Missed (${rows.filter(r => !r.ok).length})</button><button class="chip" data-f="flag" aria-pressed="${filter === "flag"}">Flagged (${E.flag.filter(Boolean).length})</button>${E.flag.some(Boolean) ? `<a class="chip" href="../review/index.html" style="text-decoration:none">Flagged ones are in your Review list →</a>` : ""}<button class="chip" data-f="all" aria-pressed="${filter === "all"}">All ${n}</button></div>
         <div class="rev">${list.length ? list.map(r => `<article class="rcard ${r.ok ? "good" : "bad"}" id="r${r.k}">
             <div class="meta"><span class="meta-l"><span class="origin">Source: ${esc(r.q.src)}</span><span>${esc(r.q.subject)}</span></span><span>Q${r.k + 1}</span></div>
             <p class="q">${esc(r.q.q)}</p>

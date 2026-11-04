@@ -438,7 +438,7 @@
         ${weak.length ? `<p class="callout bad"><strong>Needs work</strong>${weak.map(t => esc(t.name) + " (" + t.acc + "% right)").join(" · ")}</p>` : ""}
         ${strong.length ? `<p class="callout good"><strong>Strongest</strong>${strong.map(t => esc(t.name) + " (" + t.mastery + "% mastery)").join(" · ")}</p>` : ""}
       </div>` : ""}
-      ${flaggedIds.length ? `<div class="callout flagc"><strong>Marked for review</strong>${plural(flaggedIds.length, "question")} you flagged. <button class="chip" id="drillFlag">Drill marked</button></div>` : ""}
+      ${flaggedIds.length ? `<div class="callout flagc"><strong>Marked for review</strong>${plural(flaggedIds.length, "question")} you flagged. <button class="chip" id="drillFlag">Drill marked</button><a class="chip" href="../review/index.html" style="text-decoration:none">Open the Review list</a></div>` : ""}
       <h3 class="ph3">By subject <span>weakest first</span></h3>
       <ul class="topics">${started.map(row).join("")}${fresh.map(row).join("")}</ul>
       <h3 class="ph3">This week <span>questions answered per day</span></h3>
