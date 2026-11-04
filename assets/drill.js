@@ -62,7 +62,7 @@
   function apply(s) {
     if (!s || s.v !== 2) return false;
     const n = fresh();
-    n.updatedAt = s.updatedAt || 0; n.shuffle = s.shuffle !== false; n.onlyMissed = false;   // retired: the Missed tab replaces the old "only missed" filter n.auto = s.auto !== false;
+    n.updatedAt = s.updatedAt || 0; n.shuffle = s.shuffle !== false; n.onlyMissed = false; n.auto = s.auto !== false;   // onlyMissed is retired: the Missed tab replaces it
     n.missed = (s.missed || []).filter(id => Q[id]);
     for (const k in (s.hist || {})) if (Q[k]) n.hist[k] = s.hist[k] ? 1 : 0;
     for (const k in (s.stats || {})) if (Q[k] && Array.isArray(s.stats[k])) n.stats[k] = [s.stats[k][0] | 0, s.stats[k][1] | 0];
