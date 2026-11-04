@@ -274,6 +274,7 @@ footer a{color:inherit}
     if (!L.seen && !L.n.review) return;
     card.querySelector(".stack").innerHTML = ["right", "wrong", "review"].map(l => L.n[l] ? `<i class="c-${l}" style="width:${L.n[l] / L.total * 100}%"></i>` : "").join("");
     card.querySelector(".ptext").textContent = `${L.seen} of ${L.total} answered · ${L.acc}% right`;
+    const go = card.querySelector(".prow .plink"); if (go && L.seen) go.textContent = "Resume →";   // they've started this drill before
   });
 
   // Mock exam: last score
