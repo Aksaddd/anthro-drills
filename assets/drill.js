@@ -58,7 +58,7 @@
   const L = B.storageKey;
   let S = fresh(), missed = new Set(), answered = false, view = "deck", curOpts = null, autoTimer = null, menuOpen = false;
   function fresh() { return { v: 2, updatedAt: 0, deck: FIRST, shuffle: true, onlyMissed: false, auto: true, missed: [], hist: {}, stats: {}, log: {}, mark: {}, days: {}, rounds: {}, focus: null } }
-  const pool = d => d === "FOCUS" ? (S.focus ? S.focus.ids : []) : IDS[d];
+  const pool = d => d === "FOCUS" ? (S.focus ? S.focus.ids : []) : d === "MISSED" ? ALL.filter(id => missed.has(id)) : IDS[d];
   function apply(s) {
     if (!s || s.v !== 2) return false;
     const n = fresh();
@@ -72,11 +72,12 @@
     for (const k in (s.days || {})) if (/^\d{4}-\d\d-\d\d$/.test(k)) n.days[k] = s.days[k] | 0;
     for (const k in (s.mark || {})) { const m = s.mark[k]; if (Q[k] && m && m.m === "review") n.mark[k] = { m: m.m, t: +m.t || Date.now() } }
     if (s.focus && Array.isArray(s.focus.ids)) { const ids = s.focus.ids.filter(id => Q[id] && !Q[id].dup); if (ids.length) n.focus = { label: String(s.focus.label || "Focus"), ids } }
-    n.deck = DECKS[s.deck] || (s.deck === "FOCUS" && n.focus) ? s.deck : FIRST;
+    n.deck = DECKS[s.deck] || (s.deck === "FOCUS" && n.focus) || s.deck === "MISSED" ? s.deck : FIRST;
     S = n; missed = new Set(n.missed);
-    for (const d of [...Object.keys(DECKS), "FOCUS"]) {
+    for (const d of [...Object.keys(DECKS), "FOCUS", "MISSED"]) {
       const r = (s.rounds || {})[d]; if (!r || !Array.isArray(r.order)) continue;
-      const ok = new Set(pool(d)); const order = r.order.filter(id => ok.has(id));
+      // a Missed round keeps questions answered right since it started
+      const ok = new Set(d === "MISSED" ? ALL : pool(d)); const order = r.order.filter(id => ok.has(id));
       const log = order.length === r.order.length && Array.isArray(r.log) ? r.log.slice(0, order.length) : [];
       const pos = Number.isInteger(r.pos) ? r.pos : (r.i | 0);   // older saves tracked only how far you'd got
       n.rounds[d] = { order, pos: Math.max(0, Math.min(pos, order.length)), streak: r.streak | 0, best: r.best | 0, m0: r.m0 | 0, log };
@@ -99,6 +100,12 @@
   function newRound(d) {
     let ids = pool(d).slice(); if (S.onlyMissed) ids = ids.filter(id => missed.has(id) || flagged(id));
     S.rounds[d] = { order: S.shuffle ? byNeed(ids) : ids, pos: 0, streak: 0, best: 0, log: [] };
+  }
+  function openMissed() {
+    view = "deck"; S.deck = "MISSED"; answered = false;
+    const r = S.rounds.MISSED;
+    if (!r || !r.order.length || doneIn({ log: r.log || [] }) >= r.order.length) newRound("MISSED");
+    paint(); save();
   }
   function restart() { newRound(S.deck); answered = false; view = "deck"; paint(); save() }
   // Randomize: the same set of questions in a fresh, fully random order (ignores the weakest-first ordering).
@@ -174,6 +181,7 @@
       b.innerHTML = `<b>${esc(label)}</b><span class="mini" id="tm${key}"></span><span class="tcount" id="tc${key}"></span>`; b.onclick = onclick; box.appendChild(b);
     };
     for (const d in DECKS) make(d, DECKS[d].name, () => { if (S.deck === d && view === "deck") return; stopAuto(); openDeck(d) });
+    make("MISSED", "Missed", () => { if (S.deck === "MISSED" && view === "deck") return; stopAuto(); openMissed() }, "tab-missed");
     make("PROG", "Progress", () => { stopAuto(); view = "progress"; paint() }, "tab-prog");
     // keep the 3-column grid tidy: Progress fills whatever is left of the last row
     const n = box.children.length, rem = n % 3;
@@ -217,6 +225,10 @@
       $("tm" + d).innerHTML = segs(s.n);
       $("tc" + d).textContent = `${s.seen}/${s.total} answered`;
     }
+    const nm = ALL.filter(id => missed.has(id)).length;
+    $("tabMISSED").setAttribute("aria-selected", view === "deck" && S.deck === "MISSED");
+    $("tmMISSED").innerHTML = nm ? `<i class="lv-c-wrong" style="width:${Math.min(100, nm / ALL.length * 100 * 4)}%"></i>` : "";
+    $("tcMISSED").textContent = nm ? `${nm} to practice` : "none right now";
     const all = sumUp(ALL);
     $("tabPROG").setAttribute("aria-selected", view === "progress");
     $("tmPROG").innerHTML = segs(all.n);
@@ -237,7 +249,8 @@
     for (const id of ["toolbar", "barRow", "map"]) $(id).hidden = !inDeck;
     if (!inDeck) { $("deckSub").textContent = "Your strengths and weak spots, from every answer you've given on this device."; return }
     const d = S.deck, r = R(), n = r.order.length, done = doneIn(r);
-    $("deckSub").innerHTML = d === "FOCUS" ? esc(`Focus round: ${S.focus.label}. ${plural(pool(d).length, "question")}, weakest first. Pick a subject tab to leave.`)
+    $("deckSub").innerHTML = d === "MISSED" ? esc(`Every question you got wrong on your last try: ${plural(ALL.filter(id => missed.has(id)).length, "question")} right now. Answer one right and it leaves this bank.`)
+      : d === "FOCUS" ? esc(`Focus round: ${S.focus.label}. ${plural(pool(d).length, "question")}, weakest first. Pick a subject tab to leave.`)
       : esc(DECKS[d].sub) + (DECKS[d].link ? ` <a class="sublink" href="${DECKS[d].link.href}">${esc(DECKS[d].link.label)}</a>` : "");
     paintMap();
     $("roundInfo").innerHTML = n ? `<span>${r.pos < n ? `Question <b>${r.pos + 1}</b> of ${n}` : "<b>Results</b>"}</span><span><b>${done}</b> answered</span><span><b>${rightIn(r)}</b> right</span><span>Streak <b>${r.streak}</b></span>` : "";
@@ -272,8 +285,10 @@
     if (!S.rounds[S.deck]) newRound(S.deck);
     const r = R(); if (!r.log) r.log = []; if (!Number.isInteger(r.pos)) r.pos = 0;
     const c = $("card");
+    const d0 = S.deck;
     if (!r.order.length) {
       paintChrome(); c.className = "card";
+      if (d0 === "MISSED") { c.innerHTML = `<h2 class="ph">No missed questions</h2><p class="sub">Questions you get wrong in any subject land here automatically, so you can practice exactly those. Get one right and it leaves the bank.</p><div class="nav"><button class="btn" id="goMix"><span>Practice the Mixed set</span></button></div>`; $("goMix").onclick = () => openDeck("ALL"); return }
       c.innerHTML = `<h2 class="ph">Nothing here</h2><p class="sub">${S.onlyMissed ? "You haven't missed any questions in this subject. Turn off “Only questions I've missed” in Options to see everything." : "No questions here yet."}</p>`;
       return;
     }
@@ -356,7 +371,7 @@
     const c = $("card"), r = R(), d = S.deck, ids = pool(d), done = doneIn(r), right = rightIn(r), p = pct(right, done);
     const skipped = r.order.length - done, firstSkipped = nextUnanswered(r, -1);
     const m = ids.filter(id => missed.has(id)).length, fl = ids.filter(flagged).length;
-    const next = weakest(d === "FOCUS" ? null : d);
+    const next = weakest(d === "FOCUS" || d === "MISSED" ? null : d);
     const C = 2 * Math.PI * 55;   // ringSVG(120, 10): radius (120 - 10) / 2
     c.className = "card result enter";
     c.innerHTML = `<div class="bigring">${ringSVG(120, 10, 0)}<b>${p}%</b></div>
@@ -392,7 +407,7 @@
     const weak = started.filter(t => t.acc < 70).sort((x, y) => x.acc - y.acc).slice(0, 2);
     const worst = ALL.map(id => ({ id, s: S.stats[id] })).filter(o => o.s && o.s[0] > o.s[1])
       .sort((x, y) => (y.s[0] - y.s[1]) - (x.s[0] - x.s[1]) || x.s[1] / x.s[0] - y.s[1] / y.s[0]).slice(0, 8);
-    const flaggedIds = ALL.filter(flagged);
+    const flaggedIds = ALL.filter(flagged), missedN = ALL.filter(id => missed.has(id)).length;
     const days = []; for (let k = 6; k >= 0; k--) { const d = new Date(); d.setDate(d.getDate() - k); days.push({ key: dayKey(d), label: d.toLocaleDateString(undefined, { weekday: "short" }).slice(0, 2), n: S.days[dayKey(d)] | 0, today: k === 0 }) }
     const top = Math.max(10, ...days.map(d => d.n));
     const row = t => `<li class="trow">
@@ -411,6 +426,7 @@
         ${weak.length ? `<p class="callout bad"><strong>Needs work</strong>${weak.map(t => esc(t.name) + " (" + t.acc + "% right)").join(" · ")}</p>` : ""}
         ${strong.length ? `<p class="callout good"><strong>Strongest</strong>${strong.map(t => esc(t.name) + " (" + t.acc + "% right)").join(" · ")}</p>` : ""}
       </div>` : ""}
+      ${missedN ? `<div class="callout missc"><strong>Missed bank</strong>${plural(missedN, "question")} you got wrong on your last try. <button class="chip" id="goMissed">Practice missed</button></div>` : ""}
       ${flaggedIds.length ? `<div class="callout flagc"><strong>Marked for review</strong>${plural(flaggedIds.length, "question")} you flagged. <button class="chip" id="drillFlag">Drill marked</button><a class="chip" href="../review/index.html" style="text-decoration:none">Open the Review list</a></div>` : ""}
       <h3 class="ph3">By subject <span>weakest first</span></h3>
       <ul class="topics">${started.map(row).join("")}${fresh.map(row).join("")}</ul>
@@ -424,6 +440,7 @@
       <p class="hint">Saved in this browser on this device only. Clearing your browser data erases it.</p>`;
     c.querySelectorAll("[data-topic]").forEach(b => b.onclick = () => { const t = ts.find(x => x.key === b.dataset.topic); startFocus(t.name, t.ids) });
     if ($("drillWorst")) $("drillWorst").onclick = () => startFocus("Most-missed questions", worst.map(o => o.id));
+    if ($("goMissed")) $("goMissed").onclick = () => { openMissed(); window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" }) };
     if ($("drillFlag")) $("drillFlag").onclick = () => startFocus("Marked for review", flaggedIds);
   }
 
@@ -503,6 +520,7 @@
   apply(load());
   function route() {
     if (location.hash === "#progress") view = "progress";
+    else if (location.hash === "#missed") { view = "deck"; S.deck = "MISSED"; const r = S.rounds.MISSED; if (!r || !r.order.length || doneIn({ log: r.log || [] }) >= r.order.length) delete S.rounds.MISSED }
     else if (location.hash === "#continue") {   // from the landing page: open the subject that most needs work
       const w = weakest(); if (w) { const r = S.rounds[w.key]; if (r && doneIn({ log: r.log || [] }) >= r.order.length) delete S.rounds[w.key]; view = "deck"; S.deck = w.key }
     }

@@ -284,3 +284,10 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 .sq.lv-c-new:not(.done){opacity:1;background:#e7ebf2!important}
 .tbtns{display:flex;align-items:center;gap:6px;flex:none}
 #randBtn span{font-weight:700;margin-right:2px}
+
+/* ===== Missed bank tab */
+.tab-missed .tcount{color:var(--st-wrong,#e2572b);font-weight:700}
+.tab-missed[aria-selected="true"]{background:var(--st-wrong,#e2572b)}
+.tab-missed[aria-selected="true"] .tcount{color:#fff}
+.callout.missc{background:var(--bad-soft);display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.callout.missc strong{color:var(--bad);width:100%;margin:0}
