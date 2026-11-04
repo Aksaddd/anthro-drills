@@ -37,10 +37,15 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--body)}
 .eyebrow{margin:0;font:600 12.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--leaf)}
 .hero h1{margin:0;font:800 clamp(30px,6.4vw,50px)/1.03 var(--display);letter-spacing:-.02em;max-width:15ch;text-wrap:balance}
 .hero h1 span{display:block;font:600 clamp(15px,2.6vw,18px)/1.3 var(--body);letter-spacing:0;color:rgba(247,245,236,.82);margin-top:10px;max-width:none}
-.countdown{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:12px;padding:14px 16px;border-radius:16px;background:rgba(247,245,236,.1);border:1px solid rgba(247,245,236,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);max-width:560px}
-.days{display:flex;align-items:baseline;gap:8px}
-.days b{font:800 44px/1 var(--display);color:var(--leaf);font-variant-numeric:tabular-nums}
-.days span{font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:rgba(247,245,236,.85)}
+.countdown{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:12px;padding:14px 16px;border-radius:16px;background:rgba(247,245,236,.1);border:1px solid rgba(247,245,236,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);max-width:680px}
+.clock{display:flex;align-items:flex-start;gap:6px}
+.unit{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:54px}
+.unit b{display:block;width:100%;text-align:center;font:800 34px/1 var(--display);color:var(--leaf);font-variant-numeric:tabular-nums;background:rgba(14,32,22,.45);border:1px solid rgba(185,228,143,.25);border-radius:10px;padding:8px 6px 7px}
+.unit span{font:600 10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:rgba(247,245,236,.8)}
+.sep{font:800 28px/1 var(--display);color:rgba(185,228,143,.6);padding-top:9px}
+.unit b.tick{animation:tick .35s ease}
+@keyframes tick{0%{transform:translateY(-3px);opacity:.55}100%{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.unit b.tick{animation:none}}
 .exam{flex:1;min-width:180px;font-size:14.5px;line-height:1.4}
 .exam strong{display:block;font:700 16px var(--body)}
 .actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:6px}
@@ -119,7 +124,7 @@ footer a{color:inherit}
 @media (max-width:560px){
   .hero::after{background:linear-gradient(180deg,rgba(14,32,22,.66),rgba(14,32,22,.9))}
   .hero .inner{padding-block:max(32px,env(safe-area-inset-top,0px)) 28px}
-  .days b{font-size:36px}
+  .unit{min-width:44px}.unit b{font-size:26px;padding:7px 4px 6px}.sep{font-size:22px;padding-top:8px}
 }
 @media (prefers-reduced-motion:reduce){.card,.go{transition:none}.card:hover,.go:hover{transform:none}}
 </style></head><body>
@@ -128,7 +133,12 @@ footer a{color:inherit}
     <p class="eyebrow">ANTH 102 · Fall 2026 · Study drills</p>
     <h1 id="courseTitle">Biology &amp; Evolution of Human Species<span>Practice by subject, mark what you still need to review, and spend your time on what you don't know yet.</span></h1>
     <div class="countdown" id="countdown">
-      <div class="days"><b id="countNum">–</b><span id="countUnit">days</span></div>
+      <div class="clock" id="clock" role="timer" aria-live="off" aria-label="Time until Exam 2">
+        <div class="unit"><b id="cD">–</b><span>days</span></div><span class="sep" aria-hidden="true">:</span>
+        <div class="unit"><b id="cH">–</b><span>hrs</span></div><span class="sep" aria-hidden="true">:</span>
+        <div class="unit"><b id="cM">–</b><span>min</span></div><span class="sep" aria-hidden="true">:</span>
+        <div class="unit"><b id="cS">–</b><span>sec</span></div>
+      </div>
       <div class="exam"><strong id="examTitle">Exam 2 · Tue, Nov 10 · 10:45 am</strong><span id="examSub">Not cumulative: macroevolution, primates, and primate sociality.</span></div>
     </div>
     <div class="actions">
@@ -276,11 +286,17 @@ footer a{color:inherit}
   } catch (e) { }
   // Countdown to Exam 2 (Tue, Nov 10, 2026, 10:45 am)
   const exam = new Date(2026, 10, 10, 10, 45), now = new Date();
-  const days = Math.round((new Date(exam.getFullYear(), exam.getMonth(), exam.getDate()) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 864e5);
-  if (days > 1) { $("countNum").textContent = days; $("countUnit").textContent = "days to go" }
-  else if (days === 1) { $("countNum").textContent = "1"; $("countUnit").textContent = "day to go" }
-  else if (days === 0 && now < exam) { $("countNum").textContent = "Today"; $("countUnit").textContent = "good luck" }
-  else { $("countdown").hidden = true; $("goBtn").textContent = "Keep practicing →" }
+  // A live clock: days : hours : minutes : seconds, updated every second.
+  const pad = n => String(n).padStart(2, "0");
+  function tickClock() {
+    const ms = exam - Date.now();
+    if (ms <= 0) { clearInterval(clockTimer); $("countdown").hidden = true; $("goBtn").textContent = "Keep practicing →"; return }
+    const s = Math.floor(ms / 1000), v = { cD: Math.floor(s / 86400), cH: pad(Math.floor(s / 3600) % 24), cM: pad(Math.floor(s / 60) % 60), cS: pad(s % 60) };
+    for (const id in v) { const el = $(id), t = String(v[id]); if (el.textContent !== t) { el.textContent = t; el.classList.remove("tick"); void el.offsetWidth; el.classList.add("tick") } }
+    $("clock").setAttribute("aria-label", `${v.cD} days, ${+v.cH} hours, ${+v.cM} minutes until Exam 2`);
+  }
+  let clockTimer = setInterval(tickClock, 1000);
+  tickClock();
 
   // Continue button + today's activity, from Exam 2's saved progress
   const s2 = read("ant2-progress-v1");
