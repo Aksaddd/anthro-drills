@@ -101,6 +101,12 @@
     S.rounds[d] = { order: S.shuffle ? byNeed(ids) : ids, pos: 0, streak: 0, best: 0, log: [] };
   }
   function restart() { newRound(S.deck); answered = false; view = "deck"; paint(); save() }
+  // Randomize: the same set of questions in a fresh, fully random order (ignores the weakest-first ordering).
+  function randomize() {
+    const r = R(), ids = r ? r.order.slice() : pool(S.deck).slice();
+    S.rounds[S.deck] = { order: shuffle(ids), pos: 0, streak: 0, best: 0, log: [] };
+    answered = false; view = "deck"; paint(); save(); toast("Questions shuffled"); window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" });
+  }
   function openDeck(d) { view = "deck"; S.deck = d; answered = false; if (!S.rounds[d]) newRound(d); paint(); save() }
   function startFocus(label, ids) {
     S.focus = { label, ids }; S.deck = "FOCUS"; S.onlyMissed = false;
@@ -469,6 +475,7 @@
   $("missedBtn").onclick = () => { S.onlyMissed = !S.onlyMissed; setMenu(false); restart() };
   $("autoBtn").onclick = () => { S.auto = !S.auto; save(); $("autoBtn").setAttribute("aria-checked", S.auto); if (!S.auto) stopAuto() };
   $("restartBtn").onclick = () => { setMenu(false); restart() };
+  $("randBtn").onclick = () => { stopAuto(); setMenu(false); randomize() };
   let armed = null;
   $("resetBtn").onclick = () => {
     const b = $("resetBtn");
