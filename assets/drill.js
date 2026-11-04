@@ -62,7 +62,7 @@
   function apply(s) {
     if (!s || s.v !== 2) return false;
     const n = fresh();
-    n.updatedAt = s.updatedAt || 0; n.shuffle = s.shuffle !== false; n.onlyMissed = !!s.onlyMissed; n.auto = s.auto !== false;
+    n.updatedAt = s.updatedAt || 0; n.shuffle = s.shuffle !== false; n.onlyMissed = false;   // retired: the Missed tab replaces the old "only missed" filter n.auto = s.auto !== false;
     n.missed = (s.missed || []).filter(id => Q[id]);
     for (const k in (s.hist || {})) if (Q[k]) n.hist[k] = s.hist[k] ? 1 : 0;
     for (const k in (s.stats || {})) if (Q[k] && Array.isArray(s.stats[k])) n.stats[k] = [s.stats[k][0] | 0, s.stats[k][1] | 0];
@@ -75,7 +75,8 @@
     n.deck = DECKS[s.deck] || (s.deck === "FOCUS" && n.focus) || s.deck === "MISSED" ? s.deck : FIRST;
     S = n; missed = new Set(n.missed);
     for (const d of [...Object.keys(DECKS), "FOCUS", "MISSED"]) {
-      const r = (s.rounds || {})[d]; if (!r || !Array.isArray(r.order)) continue;
+      const r = (s.rounds || {})[d]; if (!r || !Array.isArray(r.order) || !r.order.length) continue;
+      if (s.onlyMissed && d !== "MISSED" && d !== "FOCUS") continue;   // built under the retired "only missed" filter: rebuild with every question
       // a Missed round keeps questions answered right since it started
       const ok = new Set(d === "MISSED" ? ALL : pool(d)); const order = r.order.filter(id => ok.has(id));
       const log = order.length === r.order.length && Array.isArray(r.log) ? r.log.slice(0, order.length) : [];
@@ -98,7 +99,7 @@
     return -1;
   }
   function newRound(d) {
-    let ids = pool(d).slice(); if (S.onlyMissed) ids = ids.filter(id => missed.has(id) || flagged(id));
+    const ids = pool(d).slice();
     S.rounds[d] = { order: S.shuffle ? byNeed(ids) : ids, pos: 0, streak: 0, best: 0, log: [] };
   }
   function openMissed() {
@@ -256,7 +257,6 @@
     $("roundInfo").innerHTML = n ? `<span>${r.pos < n ? `Question <b>${r.pos + 1}</b> of ${n}` : "<b>Results</b>"}</span><span><b>${done}</b> answered</span><span><b>${rightIn(r)}</b> right</span><span>Streak <b>${r.streak}</b></span>` : "";
     $("prog").style.width = n ? (done / n * 100) + "%" : "0";
     $("shuffleBtn").setAttribute("aria-checked", S.shuffle);
-    $("missedBtn").setAttribute("aria-checked", S.onlyMissed);
     $("autoBtn").setAttribute("aria-checked", S.auto);
   }
   $("map").addEventListener("click", e => { const b = e.target.closest(".sq"); if (b) goTo(+b.dataset.k) });
@@ -289,7 +289,7 @@
     if (!r.order.length) {
       paintChrome(); c.className = "card";
       if (d0 === "MISSED") { c.innerHTML = `<h2 class="ph">No missed questions</h2><p class="sub">Questions you get wrong in any subject land here automatically, so you can practice exactly those. Get one right and it leaves the bank.</p><div class="nav"><button class="btn" id="goMix"><span>Practice the Mixed set</span></button></div>`; $("goMix").onclick = () => openDeck("ALL"); return }
-      c.innerHTML = `<h2 class="ph">Nothing here</h2><p class="sub">${S.onlyMissed ? "You haven't missed any questions in this subject. Turn off “Only questions I've missed” in Options to see everything." : "No questions here yet."}</p>`;
+      c.innerHTML = `<h2 class="ph">Nothing here yet</h2><p class="sub">This set has no questions right now.</p><div class="nav"><button class="btn" id="goMix"><span>Practice the Mixed set</span></button></div>`; $("goMix").onclick = () => openDeck("ALL");
       return;
     }
     if (r.pos >= r.order.length) return paintResult();
@@ -384,11 +384,11 @@
       ${skipped ? `<div class="suggest"><span><small>Not answered yet</small><b>${plural(skipped, "skipped question")}</b></span><button class="btn" id="goSkipped"><span>Answer them</span></button></div>` : ""}
       ${B.promo ? `<div class="suggest"><span><small>Test yourself on the whole chart</small><b>${esc(B.promo.title)}</b></span><a class="btn" href="${B.promo.href}" style="text-decoration:none"><span>Open it</span></a></div>` : ""}
       ${next ? `<div class="suggest"><span><small>${next.a ? "Weakest subject right now" : "Up next"}</small><b>${esc(next.name)}</b> <small>${next.a ? `${next.acc}% right · ${next.seen}/${next.total} answered` : "Not started yet"}</small></span><button class="btn${skipped ? " ghost" : ""}" id="goNext"><span>Practice</span></button></div>` : ""}
-      <div class="nav"><button class="btn ghost" id="prevBtn"><span>← Previous</span></button>${m && !S.onlyMissed ? '<button class="btn ghost" id="drill"><span>Drill the missed</span></button>' : ""}<button class="btn ghost" id="again"><span>Go again</span></button></div>`;
+      <div class="nav"><button class="btn ghost" id="prevBtn"><span>← Previous</span></button>${m && S.deck !== "MISSED" ? '<button class="btn ghost" id="drill"><span>Practice what I missed</span></button>' : ""}<button class="btn ghost" id="again"><span>Go again</span></button></div>`;
     requestAnimationFrame(() => { const f = c.querySelector(".bigring .fill"); if (f) f.style.strokeDashoffset = C * (1 - p / 100) });
     $("again").onclick = restart; $("prevBtn").onclick = goPrev;
     if ($("goSkipped")) $("goSkipped").onclick = () => goTo(firstSkipped);
-    if ($("drill")) $("drill").onclick = () => { S.onlyMissed = true; restart() };
+    if ($("drill")) $("drill").onclick = () => { S.rounds.MISSED = null; delete S.rounds.MISSED; openMissed() };
     if ($("goNext")) $("goNext").onclick = () => { const nr = S.rounds[next.key]; if (nr && doneIn({ log: nr.log || [] }) >= nr.order.length) delete S.rounds[next.key]; openDeck(next.key) };
   }
 
@@ -489,7 +489,6 @@
   $("optBtn").onclick = e => { e.stopPropagation(); setMenu(!menuOpen) };
   document.addEventListener("click", e => { if (menuOpen && !e.target.closest(".menuwrap")) setMenu(false) });
   $("shuffleBtn").onclick = () => { S.shuffle = !S.shuffle; setMenu(false); restart() };
-  $("missedBtn").onclick = () => { S.onlyMissed = !S.onlyMissed; setMenu(false); restart() };
   $("autoBtn").onclick = () => { S.auto = !S.auto; save(); $("autoBtn").setAttribute("aria-checked", S.auto); if (!S.auto) stopAuto() };
   $("restartBtn").onclick = () => { setMenu(false); restart() };
   $("randBtn").onclick = () => { stopAuto(); setMenu(false); randomize() };
