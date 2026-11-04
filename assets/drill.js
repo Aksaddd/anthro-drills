@@ -175,8 +175,22 @@
     const t = today(), st = dayStreak();
     $("habit").innerHTML = `<div class="habit-text"><strong>${t} answered today</strong><span>${st ? plural(st, "day") + " in a row" : "Study today to start a streak"}</span></div>`;
   }
+  // Subjects grid can be collapsed to one slim bar (remembered on this device for every drill).
+  const TABS_KEY = "anthro-tabs-collapsed";
+  let tabsCollapsed = false; try { tabsCollapsed = localStorage.getItem(TABS_KEY) === "1" } catch (e) { }
+  function setTabsCollapsed(on) {
+    tabsCollapsed = on; try { localStorage.setItem(TABS_KEY, on ? "1" : "0") } catch (e) { }
+    $("tabs").hidden = on; $("tabsBar").classList.toggle("collapsed", on);
+    $("tabsToggle").setAttribute("aria-expanded", !on); $("tabsToggle").textContent = on ? "Show subjects ▾" : "Hide subjects ▴";
+  }
   function buildTabs() {
     const box = $("tabs"); box.innerHTML = "";
+    if (!$("tabsBar")) {
+      const bar = document.createElement("div"); bar.id = "tabsBar"; bar.className = "tabsbar";
+      bar.innerHTML = `<span class="tbnow" id="tbNow"></span><button type="button" class="chip" id="tabsToggle" aria-controls="tabs"></button>`;
+      box.before(bar);
+      $("tabsToggle").onclick = () => setTabsCollapsed(!tabsCollapsed);
+    }
     const make = (key, label, onclick, extra = "") => {
       const b = document.createElement("button"); b.className = "tab " + extra; b.setAttribute("role", "tab"); b.id = "tab" + key;
       b.innerHTML = `<b>${esc(label)}</b><span class="mini" id="tm${key}"></span><span class="tcount" id="tc${key}"></span>`; b.onclick = onclick; box.appendChild(b);
@@ -234,6 +248,9 @@
     $("tabPROG").setAttribute("aria-selected", view === "progress");
     $("tmPROG").innerHTML = segs(all.n);
     $("tcPROG").textContent = all.a ? `${all.acc}% right` : "not started";
+    // the slim bar names where you are, so collapsing never hides that
+    const cur = view === "progress" ? ["Progress", $("tcPROG").textContent] : S.deck === "FOCUS" ? ["Focus round", S.focus ? S.focus.label : ""] : S.deck === "MISSED" ? ["Missed", $("tcMISSED").textContent] : [DECKS[S.deck] ? DECKS[S.deck].name : "", $("tc" + S.deck) ? $("tc" + S.deck).textContent : ""];
+    $("tbNow").innerHTML = `<b>${esc(cur[0])}</b>${cur[1] ? ` <span>${esc(cur[1])}</span>` : ""}`;
   }
   // One square per question in this round, in order. Color = status (right, wrong, marked for review, not answered),
   // outline = the question on screen. Every square is a button that jumps to that question.
@@ -516,6 +533,7 @@
   // ===== Start
   buildReadingMenu(); applyReading();
   buildTabs();
+  setTabsCollapsed(tabsCollapsed);
   apply(load());
   function route() {
     if (location.hash === "#progress") view = "progress";

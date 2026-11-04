@@ -291,3 +291,13 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 .tab-missed[aria-selected="true"] .tcount{color:#fff}
 .callout.missc{background:var(--bad-soft);display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .callout.missc strong{color:var(--bad);width:100%;margin:0}
+
+/* ===== Collapsible subjects grid */
+.tabsbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:-6px}
+.tabsbar .tbnow{display:none;min-width:0;font-size:14px;color:var(--muted)}
+.tabsbar .tbnow b{font:700 15px var(--display);color:var(--ink);margin-right:4px}
+.tabsbar .tbnow span{font:500 12.5px var(--mono)}
+.tabsbar.collapsed{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:10px 10px 10px 16px;margin-bottom:0}
+.tabsbar.collapsed .tbnow{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tabsbar:not(.collapsed){justify-content:flex-end}
+#tabsToggle{flex:none;padding:6px 12px}
