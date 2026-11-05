@@ -50,7 +50,7 @@
   const isProf = src => !/^Practice/i.test(String(src));   // every source except the practice sets came straight from the professor
   // Practice questions were written from the professor's material: say which
   const basedOn = src => { src = String(src); if (!/^Practice/i.test(src)) return ""; return /study guide/i.test(src) ? "the professor's study guide" : /lecture slides/i.test(src) ? "the lecture slides" : /worksheet/i.test(src) ? "the professor's worksheet" : "class material" };
-  const basedBadge = src => basedOn(src) ? `<span class="based" title="Written for this site from ${basedOn(src)}">☆ Based on ${basedOn(src)}</span>` : "";
+  const basedBadge = src => basedOn(src) ? `<span class="based" title="Written for this site from ${basedOn(src)}">✎ Based on ${basedOn(src)}</span>` : "";
   const RB = window.REVIEW_BANK, DRILLS = Object.keys(RB);
   // ?exam=1 or ?exam=2: show only that exam's drills (Exam 2 = the Exam 2 and Classification drills, incl. mock-exam flags)
   const EXAM = new URLSearchParams(location.search).get("exam");
