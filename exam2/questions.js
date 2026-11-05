@@ -475,4 +475,6 @@ for (const id of IDS.PR) Q[id].src = GUIDE_ONLY.has(Q[id].tag) ? "Practice, from
 const STUDY_PROMPT = { key: "anthro-class-v1", total: 149, title: "Study for Exam 2: the Primate Classification chart",
   text: "The chart is on the Exam 2 study guide. Practice it in the Classification drill, then test yourself with the drag-and-drop chart.",
   links: [{ href: "../classification/index.html", label: "Multiple choice" }, { href: "../classification/chart.html", label: "Drag-and-drop chart" }] };
-window.BANK = { mastery: true, title: "Anthro Exam 2 Drill", storageKey: "ant2-progress-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true, topics: SUBJECTS2, studyPrompt: STUDY_PROMPT };
+// Group by Source: sources ticked by default (the student's own choice replaces this once they change it)
+const SOURCE_PRESET = ["Top Hat (lecture)", "Brightspace Activity 5", "Brightspace Activity 4 (Life in Trees film)", "“Why Sex” film worksheet", "Practice, from the study guide", "Practice, from the lecture slides"];
+window.BANK = { mastery: true, sourcePreset: SOURCE_PRESET, title: "Anthro Exam 2 Drill", storageKey: "ant2-progress-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true, topics: SUBJECTS2, studyPrompt: STUDY_PROMPT };

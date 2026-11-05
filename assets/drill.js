@@ -36,7 +36,8 @@
   SOURCES.sort((x, y) => /^Practice/.test(x.name) - /^Practice/.test(y.name));   // class materials first, practice sets last (stable otherwise)
   const BY_SOURCE_OK = SOURCES.length > 1, GB_KEY = "anthro-groupby", SEL_KEY = B.storageKey + "-sources";
   let groupBy = "subject"; try { if (BY_SOURCE_OK && localStorage.getItem(GB_KEY) === "source") groupBy = "source" } catch (e) { }
-  let srcSel = new Set(); try { for (const n of JSON.parse(localStorage.getItem(SEL_KEY) || "[]")) if (SOURCES.some(g => g.name === n)) srcSel.add(n) } catch (e) { }
+  // Ticked sources: the student's own choice once they've made one, otherwise the drill's preset (BANK.sourcePreset).
+  let srcSel = new Set(); try { const saved = localStorage.getItem(SEL_KEY); for (const n of saved !== null ? JSON.parse(saved) : (B.sourcePreset || [])) if (SOURCES.some(g => g.name === n)) srcSel.add(n) } catch (e) { }
 
   // ===== Question status (no streak-based levels): a question is not answered yet, right or wrong
   // (its most recent answer), or marked for review by the student, which takes priority.
