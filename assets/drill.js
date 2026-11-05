@@ -612,7 +612,7 @@
     mi.innerHTML = `<span class="box"></span>Include the ${esc(OPTIONAL[d])} (${n})`; mi.onclick = () => setOptional(d, !on);
     $("menu").appendChild(mi);
     const row = document.createElement("label"); row.className = "optdeck"; row.id = "opt" + d;
-    row.innerHTML = `<input type="checkbox"${on ? " checked" : ""}><span><b>Include the ${esc(OPTIONAL[d])}</b> · ${n} questions${on ? "" : " (off)"}</span>${d === "AP" ? `<a class="sublink" href="../jeopardy/index.html">Play the game →</a>` : ""}`;
+    row.innerHTML = `<input type="checkbox"${on ? " checked" : ""}><span><b>Include the ${esc(OPTIONAL[d])}</b> · ${n} questions${on ? "" : " (off)"}</span>${d === "AP" ? `<a class="sublink" href="../anthropardy/index.html?board=exam2">Play Anthro-pardy →</a>` : ""}`;
     row.querySelector("input").onchange = e => setOptional(d, e.target.checked);
     $("tabs").after(row);
   }

@@ -85,7 +85,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const shuffle = a => { a = a.slice(); for (let k = a.length - 1; k > 0; k--) { const j = Math.random() * (k + 1) | 0; [a[k], a[j]] = [a[j], a[k]] } return a };
-  let ex = EX.includes(localStorage.getItem(KEY)) ? localStorage.getItem(KEY) : "exam2", query = "", quiz = null;
+  const fromHash = location.hash.slice(1);   // the home page links straight to an exam: roots/index.html#exam1
+  let ex = EX.includes(fromHash) ? fromHash : EX.includes(localStorage.getItem(KEY)) ? localStorage.getItem(KEY) : "exam2", query = "", quiz = null;
+  if (EX.includes(fromHash)) try { localStorage.setItem(KEY, ex) } catch (e) { }
 
   // Reading settings from the drills apply here too
   try {
