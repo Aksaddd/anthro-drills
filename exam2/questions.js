@@ -490,6 +490,8 @@ for (const d in DECKS) {
       topic: r[6] || (r[0] === "Image ID" ? "Picture ID" : DECK_TOPIC[d] || TAG_TOPIC[r[0]] || DECKS[d].name) };
     IDS[d].push(id);
   });
+  // Anthro-pardy: "Anthro-pardy · Category $300" → tag "Category", val 300 (same shape as Exam 1's game)
+  if (d === "AP") for (const id of IDS.AP) { const m = Q[id].tag.match(/^Anthro-pardy · (.+) \$(\d+)$/); if (m) { Q[id].tag = m[1]; Q[id].val = +m[2] } }
 }
 // Origin labels shown on each question
 DECKS.AP.src = "Anthro-pardy Exam 2 review (in-class game)"; DECKS.TH.src = "Top Hat (lecture)"; DECKS.A5.src = "Brightspace Activity 5"; DECKS.CH.src = "Primate Classification worksheet"; DECKS.WS.src = "“Why Sex” film worksheet"; DECKS.LT.src = "Brightspace Activity 4 (Life in Trees film)"; DECKS.SY.src = "Practice: putting it together (connects lectures)"; DECKS.PR.src = "Practice, from the study guide";
@@ -515,4 +517,5 @@ const STUDY_PROMPT = { key: "anthro-class-v1", total: 149, title: "Study for Exa
   links: [{ href: "../classification/index.html", label: "Multiple choice" }, { href: "../classification/chart.html", label: "Drag-and-drop chart" }] };
 // Group by Source: sources ticked by default (the student's own choice replaces this once they change it)
 const SOURCE_PRESET = ["Top Hat (lecture)", "Anthro-pardy Exam 2 review (in-class game)", "Brightspace Activity 5", "Brightspace Activity 4 (Life in Trees film)", "“Why Sex” film worksheet", "Practice, from the study guide", "Practice, from the lecture slides"];
-window.BANK = { mastery: true, sourcePreset: SOURCE_PRESET, title: "Anthro Exam 2 Multiple-Choice Drill", storageKey: "ant2-progress-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true, topics: SUBJECTS2, studyPrompt: STUDY_PROMPT };
+// Decks students can switch on or off in the drill (on by default)
+window.BANK = { mastery: true, optional: { AP: "Anthro-pardy review game questions" }, sourcePreset: SOURCE_PRESET, title: "Anthro Exam 2 Multiple-Choice Drill", storageKey: "ant2-progress-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true, topics: SUBJECTS2, studyPrompt: STUDY_PROMPT };

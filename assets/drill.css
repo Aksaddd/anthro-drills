@@ -324,3 +324,9 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 /* ===== "From the professor" badge: questions and sources taken straight from course materials */
 .prof{text-transform:none;letter-spacing:0;display:inline-flex;align-items:center;gap:3px;font:700 11.5px/1.2 var(--body);color:#8a5300;background:#ffefc7;border:1px solid #f3cf7a;padding:3px 9px;border-radius:999px;white-space:nowrap}
 .prof.sm{font-size:10.5px;padding:2px 7px;vertical-align:2px;margin-left:4px}
+
+/* ===== Optional deck switch (e.g. the Anthro-pardy questions in the Exam 2 drill) */
+.optdeck{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:4px 12px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px;font-size:14px;color:var(--muted);cursor:pointer}
+.optdeck input{width:20px;height:20px;accent-color:var(--accent);margin:0}
+.optdeck b{color:var(--ink)}
+.optdeck .sublink{grid-column:2;text-decoration:none;font-size:13.5px}

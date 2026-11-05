@@ -210,7 +210,7 @@ footer a{color:var(--link)}
     <div class="guide" aria-label="Which modules go with which exam">
       <div><b>Exam 1</b><span><a href="exam1/index.html">Exam 1 Multiple-Choice Drill</a></span></div>
       <div><b>Exam 2</b><span><a href="exam2/index.html">Exam 2 Multiple-Choice Drill</a> · <a href="classification/index.html">Classification Chart</a> · <a href="mock/index.html">Mock Exam</a></span></div>
-      <div><b>Both</b><span><a href="roots/index.html">Word Roots</a> · <a href="review/index.html">Review List</a></span></div>
+      <div><b>Both</b><span><a href="roots/index.html">Word Roots</a> · <a href="jeopardy/index.html">Quiz Board</a> · <a href="review/index.html">Review List</a></span></div>
     </div>
   </div>
 </header>
@@ -256,7 +256,7 @@ footer a{color:var(--link)}
 </svg><span><strong>Drag-and-drop chart</strong><small>Build the whole chart from the worksheet's word bank</small></span><span class="ddgo">Open</span></a>
       </div>
     </article>
-    <article class="card" data-key="ant2-progress-v1" data-total="376">
+    <article class="card" data-key="ant2-progress-v1" data-total="376" data-optional="ant2-progress-v1-include-AP:30">
       <div class="chead"><span class="num">2</span>
         <div><h3><a href="exam2/index.html">Exam 2 Multiple&#8209;Choice Drill</a></h3>
         <p>Speciation · Phylogeny · Primate traits · Taxonomy · Picture ID · Sociality · Chimps &amp; bonobos · Putting it together</p></div></div>
@@ -276,6 +276,12 @@ footer a{color:var(--link)}
         <div><h3><a href="review/index.html">Review List</a></h3>
         <p>Every question you've marked for review, from every drill and mock exam, in one place. Quiz yourself on them.</p></div></div>
       <div class="prow"><span class="ptext" id="reviewCount">Nothing marked yet</span><a class="plink" href="review/index.html">Open</a></div>
+    </article>
+    <article class="card boardcard">
+      <div class="chead"><span class="num" aria-hidden="true">$</span>
+        <div><h3><a href="jeopardy/index.html">Quiz Board</a></h3>
+        <p>The Anthro-pardy review questions from class as a game board. Pick a category and a value, answer the multiple-choice question, and earn the money. Exam 2 and Exam 1 boards.</p></div></div>
+      <div class="prow"><span class="ptext" id="boardTxt">No games played yet</span><a class="plink" href="jeopardy/index.html">Play</a></div>
     </article>
   </div>
 
@@ -345,13 +351,20 @@ footer a{color:var(--link)}
     return { n, seen: Math.min(seen, total), acc: a ? Math.round(c / a * 100) : 0, total };
   }
   document.querySelectorAll(".card[data-key]").forEach(card => {
-    const s = read(card.dataset.key), L = levels(s, +card.dataset.total);
+    let total = +card.dataset.total;
+    if (card.dataset.optional) {   // the student switched an optional deck (Anthro-pardy) out of this drill
+      const [k, n] = card.dataset.optional.split(":");
+      try { if (localStorage.getItem(k) === "0") { total -= +n; card.querySelector(".ptext").textContent = `${total} questions · not started` } } catch (e) { }
+    }
+    const s = read(card.dataset.key), L = levels(s, total);
     if (!L.seen && !L.n.review) return;
     card.querySelector(".stack").innerHTML = ["right", "wrong", "review"].map(l => L.n[l] ? `<i class="c-${l}" style="width:${L.n[l] / L.total * 100}%"></i>` : "").join("");
     card.querySelector(".ptext").textContent = `${L.seen} of ${L.total} answered · ${L.acc}% right`;
     const go = card.querySelector(".prow .plink"); if (go && L.seen) go.textContent = "Resume";   // they've started this drill before
   });
 
+  // Quiz board: best finished game per exam
+  try { const g = JSON.parse(localStorage.getItem("anthro-board-v1") || "{}") || {}; const b = ["exam2", "exam1"].filter(k => g[k] && g[k].best != null).map(k => (k === "exam2" ? "Exam 2" : "Exam 1") + " best: $" + g[k].best.toLocaleString("en-US")); if (b.length) document.getElementById("boardTxt").textContent = b.join(" · ") } catch (e) { }
   // Mock exam: last score
   try { const h = JSON.parse(localStorage.getItem("anthro-mock-history-v1") || "[]"); if (h.length) { const l = h[h.length - 1]; document.getElementById("mockLast").textContent = `Last exam: ${l.pct}% (${l.right}/${l.total}) · ${h.length} taken` } } catch (e) { }
   // Word Roots: how many mastered

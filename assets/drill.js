@@ -4,7 +4,11 @@
 // Everything is stored in this browser's localStorage under BANK.storageKey. Nothing leaves the device.
 (() => {
   const B = window.BANK, SRC = B.decks, Q = B.q;
-  const ALL = Object.keys(SRC).flatMap(d => B.ids[d]).filter(id => !Q[id].dup);
+  // Optional decks (BANK.optional: { deck: label }) can be switched off by the student; they're on by default.
+  const OPTIONAL = B.optional || {}, OPT_KEY = d => B.storageKey + "-include-" + d;
+  const optOn = d => { try { return localStorage.getItem(OPT_KEY(d)) !== "0" } catch (e) { return true } };
+  const ALL = Object.keys(SRC).filter(d => !(d in OPTIONAL) || optOn(d)).flatMap(d => B.ids[d]).filter(id => !Q[id].dup);
+  const IN_DRILL = new Set(ALL);
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const txt = s => B.textOnly ? esc(s) : String(s);          // Exam 1 questions contain small bits of markup
@@ -88,7 +92,7 @@
     for (const k in n.hist) if (!n.log[k]) n.log[k] = { s: n.hist[k], t0: 0, last: 0 };
     for (const k in (s.days || {})) if (/^\d{4}-\d\d-\d\d$/.test(k)) n.days[k] = s.days[k] | 0;
     for (const k in (s.mark || {})) { const m = s.mark[k]; if (Q[k] && m && (m.m === "review" || m.m === "mastered")) n.mark[k] = { m: m.m, t: +m.t || Date.now() } }
-    if (s.focus && Array.isArray(s.focus.ids)) { const ids = s.focus.ids.filter(id => Q[id] && !Q[id].dup); if (ids.length) n.focus = { label: String(s.focus.label || "Focus"), ids } }
+    if (s.focus && Array.isArray(s.focus.ids)) { const ids = s.focus.ids.filter(id => Q[id] && !Q[id].dup && IN_DRILL.has(id)); if (ids.length) n.focus = { label: String(s.focus.label || "Focus"), ids } }
     n.deck = DECKS[s.deck] || (s.deck === "FOCUS" && n.focus) || s.deck === "MISSED" ? s.deck : FIRST;
     S = n; missed = new Set(n.missed);
     for (const d of [...Object.keys(DECKS), "FOCUS", "MISSED"]) {
@@ -600,6 +604,18 @@
   function setMenu(open) { menuOpen = open; $("menu").hidden = !open; $("optBtn").setAttribute("aria-expanded", open) }
   $("optBtn").onclick = e => { e.stopPropagation(); setMenu(!menuOpen) };
   document.addEventListener("click", e => { if (menuOpen && !e.target.closest(".menuwrap")) setMenu(false) });
+  // Optional decks: a visible switch under the subjects, and the same switch in Options. Changing it reloads the drill.
+  function setOptional(d, on) { try { localStorage.setItem(OPT_KEY(d), on ? "1" : "0") } catch (e) { } location.reload() }
+  for (const d in OPTIONAL) {
+    const n = B.ids[d].filter(id => !Q[id].dup).length, on = optOn(d);
+    const mi = document.createElement("button"); mi.className = "mi"; mi.setAttribute("role", "menuitemcheckbox"); mi.setAttribute("aria-checked", on);
+    mi.innerHTML = `<span class="box"></span>Include the ${esc(OPTIONAL[d])} (${n})`; mi.onclick = () => setOptional(d, !on);
+    $("menu").appendChild(mi);
+    const row = document.createElement("label"); row.className = "optdeck"; row.id = "opt" + d;
+    row.innerHTML = `<input type="checkbox"${on ? " checked" : ""}><span><b>Include the ${esc(OPTIONAL[d])}</b> · ${n} questions${on ? "" : " (off)"}</span>${d === "AP" ? `<a class="sublink" href="../jeopardy/index.html">Play the game →</a>` : ""}`;
+    row.querySelector("input").onchange = e => setOptional(d, e.target.checked);
+    $("tabs").after(row);
+  }
   $("shuffleBtn").onclick = () => { S.shuffle = !S.shuffle; setMenu(false); restart() };
   $("autoBtn").onclick = () => { S.auto = !S.auto; save(); $("autoBtn").setAttribute("aria-checked", S.auto); if (!S.auto) stopAuto() };
   $("restartBtn").onclick = () => { setMenu(false); restart() };
