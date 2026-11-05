@@ -58,6 +58,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 <script>
 (() => {
   const R = window.ROOTS, EX = Object.keys(R), KEY = "anthro-roots-tab";
+  try { localStorage.setItem("anthro-roots-seen", "1") } catch (e) { }
   const DRILL = { exam1: "../exam1/index.html#continue", exam2: "../exam2/index.html#continue" };
   const nextStep = () => `<a class="btn" href="${DRILL[ex]}">Warmed up? Start the ${esc(R[ex].name)} drill →</a>`;
   const $ = id => document.getElementById(id);

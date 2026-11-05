@@ -143,7 +143,7 @@ footer a{color:inherit}
       <div class="exam"><strong id="examTitle">Exam 2 · Tue, Nov 10 · 10:45 am</strong><span id="examSub">Not cumulative: macroevolution, primates, and primate sociality.</span></div>
     </div>
     <div class="actions">
-      <a class="go" id="goBtn" href="exam2/index.html#continue">Start studying for Exam 2 →</a>
+      <a class="go" id="goBtn" href="roots/index.html">Let’s begin →</a>
       <span class="today" id="todayTxt"></span>
     </div>
     <div class="guide" aria-label="Which modules go with which exam">
@@ -304,7 +304,7 @@ footer a{color:inherit}
   const pad = n => String(n).padStart(2, "0");
   function tickClock() {
     const ms = exam - Date.now();
-    if (ms <= 0) { clearInterval(clockTimer); $("countdown").hidden = true; $("goBtn").textContent = "Keep practicing →"; return }
+    if (ms <= 0) { clearInterval(clockTimer); $("countdown").hidden = true; $("goBtn").textContent = "Keep practicing →"; $("goBtn").href = "exam2/index.html#continue"; return }
     const s = Math.floor(ms / 1000), v = { cD: Math.floor(s / 86400), cH: pad(Math.floor(s / 3600) % 24), cM: pad(Math.floor(s / 60) % 60), cS: pad(s % 60) };
     for (const id in v) { const el = $(id), t = String(v[id]); if (el.textContent !== t) { el.textContent = t; el.classList.remove("tick"); void el.offsetWidth; el.classList.add("tick") } }
     $("clock").setAttribute("aria-label", `${v.cD} days, ${+v.cH} hours, ${+v.cM} minutes until Exam 2`);
@@ -313,8 +313,14 @@ footer a{color:inherit}
   tickClock();
 
   // Continue button + today's activity, from Exam 2's saved progress
+  // New visitors begin with the Word Roots warm-up. Returning visitors continue in the drill they used last.
   const s2 = read("ant2-progress-v1");
-  if (s2 && s2.stats && Object.keys(s2.stats).length && !$("countdown").hidden) $("goBtn").textContent = "Continue studying for Exam 2 →";
+  const used = [["exam2", s2], ["exam1", read("ant1-progress-v2")], ["classification", read("anthro-class-v1")]]
+    .filter(([, s]) => s && s.stats && Object.keys(s.stats).length).sort((a, b) => (b[1].updatedAt || 0) - (a[1].updatedAt || 0));
+  if (!$("countdown").hidden && (used.length || localStorage.getItem("anthro-roots-seen"))) {
+    $("goBtn").textContent = "Continue →";
+    $("goBtn").href = (used.length ? used[0][0] : "exam2") + "/index.html#continue";
+  }
   const t = s2 && s2.days ? (s2.days[dayKey(new Date())] | 0) : 0;
   let streak = 0; if (s2 && s2.days) { const d = new Date(); if (!s2.days[dayKey(d)]) d.setDate(d.getDate() - 1); while (s2.days[dayKey(d)]) { streak++; d.setDate(d.getDate() - 1) } }
   $("todayTxt").textContent = t || streak ? `${t} answered today` + (streak ? ` · ${streak}-day streak` : "") : "";
