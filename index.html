@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ANTH 102 Study Drills</title>
 <meta name="description" content="Practice drills for ANTH 102: Biology & Evolution of Human Species (Fall 2026).">
-<meta name="theme-color" content="#14281d">
+<meta name="theme-color" content="#0c1410">
 <link rel="preload" as="image" href="assets/hero-primates.jpg">
 <style>
 /* Layout: full-bleed hero (primate illustration under a forest-green wash; course name, countdown, Continue),
@@ -213,10 +213,18 @@ footer a{color:var(--link)}
 .ephead p{margin:4px 0 0;color:var(--muted);font-size:16px}
 .ep1 .num{background:#d6e4ff} .ep2 .num{background:#d3eedd;color:#1c7a43}
 @media (max-width:560px){.exampanel{margin:0 -8px;border-radius:26px}.exampanel>.cards{padding:0 10px}.exampanel .ephead{padding:22px 18px;gap:12px}.epgo{padding:9px 16px;font-size:16px}}
+html,body{background:#0c1410}
+main.inner{background:var(--bg);box-shadow:0 0 0 100vmax var(--bg);clip-path:inset(0 -100vmax)}
+footer.site{background:#0c1410;color:rgba(245,245,247,.62);font-size:12.5px;padding:28px 0 calc(32px + env(safe-area-inset-bottom,0px))}
+footer.site .inner{display:flex;flex-direction:column;gap:4px}
+footer.site p{margin:0}
+footer.site a{color:var(--link-dark)}
+.hero{background:#0c1410}
+.hero .fadetop{position:absolute;inset:0 0 auto 0;height:110px;z-index:-1;background:linear-gradient(180deg,#0c1410 0%,rgba(12,20,16,.85) 35%,rgba(12,20,16,0) 100%);pointer-events:none}
 @media (max-width:560px){.card{padding:20px}.how{padding:20px}.unit b{font-size:26px}}
 @media (prefers-reduced-motion:reduce){.card:hover{transform:none}}
 </style></head><body>
-<header class="hero" aria-labelledby="courseTitle">
+<header class="hero" aria-labelledby="courseTitle"><div class="fadetop" aria-hidden="true"></div>
   <div class="inner">
     <p class="eyebrow">ANTH 102 · Fall 2026 · Study drills</p>
     <h1 id="courseTitle">Biology &amp; Evolution of Human Species<span>Practice by subject, mark what you still need to review, and spend your time on what you don't know yet.</span></h1>
@@ -373,11 +381,11 @@ footer a{color:var(--link)}
     </div>
   </section>
 
-  <footer>
+</main>
+<footer class="site"><div class="inner">
     <span>Made by a classmate as a study aid. Not official course material; check anything you're unsure of against the lecture slides.</span>
     <span>Background illustration: “Most Iconic Monkeys &amp; Apes” by wikiHow, licensed <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="noopener">CC BY-NC-SA 3.0</a>; labels removed.</span>
-  </footer>
-</main>
+</div></footer>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
