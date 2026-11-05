@@ -35,7 +35,8 @@
   for (const id of ALL) { const n = srcOf(id); let g = SOURCES.find(x => x.name === n); if (!g) SOURCES.push(g = { name: n, ids: [] }); g.ids.push(id) }
   SOURCES.sort((x, y) => /^Practice/.test(x.name) - /^Practice/.test(y.name));   // class materials first, practice sets last (stable otherwise)
   const BY_SOURCE_OK = SOURCES.length > 1, GB_KEY = "anthro-groupby", SEL_KEY = B.storageKey + "-sources";
-  let groupBy = "subject"; try { if (BY_SOURCE_OK && localStorage.getItem(GB_KEY) === "source") groupBy = "source" } catch (e) { }
+  // Group by: the student's last choice; with none, drills that have a source preset open on Source.
+  let groupBy = "subject"; try { const g = localStorage.getItem(GB_KEY); if (BY_SOURCE_OK && (g === "source" || (g === null && B.sourcePreset))) groupBy = "source" } catch (e) { }
   // Ticked sources: the student's own choice once they've made one, otherwise the drill's preset (BANK.sourcePreset).
   let srcSel = new Set(); try { const saved = localStorage.getItem(SEL_KEY); for (const n of saved !== null ? JSON.parse(saved) : (B.sourcePreset || [])) if (SOURCES.some(g => g.name === n)) srcSel.add(n) } catch (e) { }
 
@@ -230,7 +231,7 @@
       bar.querySelectorAll("[data-gb]").forEach(b => b.onclick = () => {
         groupBy = b.dataset.gb; try { localStorage.setItem(GB_KEY, groupBy) } catch (e) { }
         setTabsCollapsed(false);
-        paintChrome();
+        paint();
       });
       const pk = document.createElement("section"); pk.id = "srcPick"; pk.className = "srcpick"; pk.hidden = true; pk.setAttribute("aria-label", "Questions by source");
       box.before(pk);
@@ -285,7 +286,7 @@
   }
   function paintGoBtn() {
     const n = selectedIds().length, k = srcSel.size;
-    $("spGo").disabled = !n;
+    $("spGo").disabled = !n; if ($("startSel")) $("startSel").disabled = !n;
     $("spGo").innerHTML = `<span>${k ? `Practice ${plural(n, "question")}${k > 1 ? ` from ${k} sources` : ""}` : "Tick one or more sources"}</span>`;
   }
   function paintSources() {
@@ -368,9 +369,23 @@
   const lastLabel = r => doneIn(r) === r.order.length ? "See results →" : "Finish →";
 
   // ===== Main paint
+  // Before a student's first round: with Source view on, show the picker and a start card instead of a question.
+  const notStarted = () => groupBy === "source" && S.deck !== "FOCUS" && S.deck !== "MISSED" && !Object.keys(S.stats).length;
+  function paintStart() {
+    if (!S.rounds[S.deck]) newRound(S.deck);
+    paintChrome(); answered = false;
+    for (const id of ["toolbar", "barRow", "map"]) $(id).hidden = true;
+    $("deckSub").textContent = "Pick the sources you want, then start practicing.";
+    const c = $("card"); c.className = "card enter";
+    c.innerHTML = `<h2 class="ph">Choose what to practice</h2><p class="sub">The sources ticked above are a good place to start: the Top Hat questions, the Brightspace activities, the film worksheet and the practice sets. Tick or untick any of them, then tap <b>Practice</b>. You can switch to <b>Group by: Subject</b> at any time.</p><div class="nav"><button class="btn ghost" id="toSubj"><span>Group by subject instead</span></button><button class="btn" id="startSel"><span>Practice the ticked sources</span></button></div>`;
+    $("startSel").onclick = () => $("spGo").click();
+    $("toSubj").onclick = () => document.querySelector('[data-gb="subject"]').click();
+    $("startSel").disabled = !selectedIds().length;
+  }
   function paint() {
     stopAuto();
     if (view === "progress") return paintProgress();
+    if (view === "deck" && notStarted()) return paintStart();
     if (S.deck === "FOCUS" && !S.focus) S.deck = FIRST;
     if (!S.rounds[S.deck]) newRound(S.deck);
     const r = R(); if (!r.log) r.log = []; if (!Number.isInteger(r.pos)) r.pos = 0;
