@@ -134,6 +134,7 @@ const TAG_SUBJECT = t => /^Listed under|^Not |^Matching pairs|^Where on the char
 const Q = {}, IDS = { CH: [] };
 CH.forEach((r, n) => { const id = "CH" + n;
   Q[id] = { d: "CH", tag: r[0], q: r[1], ok: r[2], wrong: r[3], ex: r[4] || "", img: null, topic: TAG_SUBJECT(r[0]) };
+  if (n >= 36) Q[id].src = "Practice, built from the worksheet's answer key";   // CH0–CH35 are the worksheet itself
   IDS.CH.push(id) });
 const PROMO = { eyebrow: "Drag and drop", title: "Build the chart yourself", text: "Drag each worksheet trait onto the classification chart: order, suborders, infraorders and superfamilies. The best way to check you know it before Exam 2.", href: "chart.html", label: "Open the drag-and-drop chart" };
 window.BANK = { mastery: true, promo: PROMO, title: "Classification Chart Drill", storageKey: "anthro-class-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true, topics: SUBJECTS };

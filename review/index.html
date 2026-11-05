@@ -47,6 +47,7 @@
 <script src="bank.js"></script>
 <script>
 (() => {
+  const isProf = src => !/^Practice/i.test(String(src));   // every source except the practice sets came straight from the professor
   const RB = window.REVIEW_BANK, DRILLS = Object.keys(RB);
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -113,7 +114,7 @@
         <button class="btn" id="quizBtn"><span>Quiz me on ${list.length === 1 ? "this question" : `these ${list.length}`}</span></button>
       </div>
       <div class="items">${list.map((x, i) => `<article class="item" data-i="${i}">
-          <div class="meta"><span class="meta-l"><span class="drilltag">${esc(RB[x.d].name)}</span><span class="origin">Source: ${esc(x.q.src)}</span><span>${esc(x.q.subject)}</span></span></div>
+          <div class="meta"><span class="meta-l"><span class="drilltag">${esc(RB[x.d].name)}</span>${isProf(x.q.src) ? `<span class="prof" title="This question comes straight from the professor's course materials">★ From the professor</span>` : ""}<span class="origin">Source: ${esc(x.q.src)}</span><span>${esc(x.q.subject)}</span></span></div>
           <p class="q">${txt(x.d, x.q.q)}</p>${figure(x.q)}
           ${open.has(x.d + x.id) ? `<div class="answers">${[x.q.ok, ...x.q.wrong].map(t => `<div class="${t === x.q.ok ? "r" : ""}">${txt(x.d, t)}${t === x.q.ok ? " ✓" : ""}</div>`).join("")}</div>${x.q.ex ? `<div class="explain good">${txt(x.d, x.q.ex)}</div>` : ""}` : ""}
           <div class="iacts"><button class="chip" data-show="${i}">${open.has(x.d + x.id) ? "Hide answer" : "Show answer"}</button><button class="mk mk-review" aria-pressed="true" data-rm="${i}">⚑ Remove from review</button><a class="sublink" href="${RB[x.d].href}">Open ${esc(RB[x.d].name)} drill →</a></div>
@@ -138,7 +139,7 @@
     const x = list[i], opts = shuffle([x.q.ok, ...x.q.wrong]);
     $("app").innerHTML = `<div class="qtop"><span>Question <b>${i + 1}</b> of ${list.length} · <b>${quiz.right}</b> right</span><button class="chip" id="exitQuiz">Back to the list</button></div>
       <main class="card enter">
-        <div class="meta"><span class="meta-l"><span class="drilltag">${esc(RB[x.d].name)}</span><span class="origin">Source: ${esc(x.q.src)}</span><span>${esc(x.q.subject)}</span></span></div>
+        <div class="meta"><span class="meta-l"><span class="drilltag">${esc(RB[x.d].name)}</span>${isProf(x.q.src) ? `<span class="prof" title="This question comes straight from the professor's course materials">★ From the professor</span>` : ""}<span class="origin">Source: ${esc(x.q.src)}</span><span>${esc(x.q.subject)}</span></span></div>
         <p class="q">${txt(x.d, x.q.q)}</p>${figure(x.q)}
         <div class="opts">${opts.map((t, j) => `<button class="opt" data-j="${j}"><span class="bub">${"ABCDE"[j]}</span><span>${txt(x.d, t)}</span></button>`).join("")}</div>
         <div id="fb"></div>

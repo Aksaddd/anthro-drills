@@ -11,6 +11,7 @@
   const plain = s => String(s).replace(/<[^>]*>/g, "");
   const imgOf = id => Q[id].img || (B.img && B.img[id]) || null;
   const topicOf = id => Q[id].topic || SRC[Q[id].d].name;
+  const isProf = src => !/^Practice/i.test(String(src));   // every source except the practice sets came straight from the professor
   const srcOf = id => Q[id].src || SRC[Q[id].d].src || SRC[Q[id].d].name;
   const shuffle = a => { a = a.slice(); for (let k = a.length - 1; k > 0; k--) { const j = Math.random() * (k + 1) | 0; [a[k], a[j]] = [a[j], a[k]] } return a };
   const pct = (c, a) => a ? Math.round(c / a * 100) : 0;
@@ -297,12 +298,13 @@
     $("tabPROG").style.gridColumn = on ? "span 2" : PROG_SPAN;
     pk.hidden = !on || tabsCollapsed;
     if (!on) return;
-    pk.innerHTML = `<div class="sp-head"><b>Pick sources to practice together</b><span><button type="button" class="chip" id="spAll">Select all</button><button type="button" class="chip" id="spNone">Clear</button></span></div>
-      <div class="sp-list">${SOURCES.map((g, i) => { const s = sumUp(g.ids), left = srcLeft(g).length; return `<label class="sp-row"><input type="checkbox" data-i="${i}"${srcSel.has(g.name) ? " checked" : ""}><span class="sp-name">${esc(g.name)}</span><span class="sp-n">${MASTERY && s.n.mastered ? `${left} left · ${s.n.mastered} mastered` : `${s.seen}/${s.total} answered`}</span><span class="mini">${segs(s.n)}</span></label>` }).join("")}</div>
+    pk.innerHTML = `<div class="sp-head"><b>Pick sources to practice together</b><span>${SOURCES.some(g => isProf(g.name)) && SOURCES.some(g => !isProf(g.name)) ? `<button type="button" class="chip" id="spProf">★ Professor's only</button>` : ""}<button type="button" class="chip" id="spAll">Select all</button><button type="button" class="chip" id="spNone">Clear</button></span></div>
+      <div class="sp-list">${SOURCES.map((g, i) => { const s = sumUp(g.ids), left = srcLeft(g).length; return `<label class="sp-row"><input type="checkbox" data-i="${i}"${srcSel.has(g.name) ? " checked" : ""}><span class="sp-name">${esc(g.name)}${isProf(g.name) ? ` <span class="prof sm">★ Professor</span>` : ""}</span><span class="sp-n">${MASTERY && s.n.mastered ? `${left} left · ${s.n.mastered} mastered` : `${s.seen}/${s.total} answered`}</span><span class="mini">${segs(s.n)}</span></label>` }).join("")}</div>
       <button type="button" class="btn" id="spGo"></button>`;
     const keep = () => { try { localStorage.setItem(SEL_KEY, JSON.stringify([...srcSel])) } catch (e) { } paintGoBtn() };
     pk.querySelectorAll("input[data-i]").forEach(c => c.onchange = () => { const n = SOURCES[+c.dataset.i].name; c.checked ? srcSel.add(n) : srcSel.delete(n); keep() });
     $("spAll").onclick = () => { SOURCES.forEach(g => srcSel.add(g.name)); pk.querySelectorAll("input[data-i]").forEach(c => c.checked = true); keep() };
+    if ($("spProf")) $("spProf").onclick = () => { srcSel.clear(); SOURCES.forEach(g => isProf(g.name) && srcSel.add(g.name)); pk.querySelectorAll("input[data-i]").forEach(c => c.checked = srcSel.has(SOURCES[+c.dataset.i].name)); keep() };
     $("spNone").onclick = () => { srcSel.clear(); pk.querySelectorAll("input[data-i]").forEach(c => c.checked = false); keep() };
     $("spGo").onclick = () => { const ids = selectedIds(); if (ids.length) { stopAuto(); startFocus("Sources: " + srcLabel(), ids) } };
     paintGoBtn();
@@ -359,7 +361,7 @@
   }
   function wireZoom() { $("card").querySelectorAll(".zoom").forEach(b => b.onclick = () => openLightbox(b.dataset.src, b.dataset.alt)) }
   function metaRow(id, right) {
-    return `<div class="meta"><span class="meta-l"><span class="origin">Source: ${esc(srcOf(id))}</span><span>${esc(Q[id].tag)}</span></span>${right}</div>`;
+    return `<div class="meta"><span class="meta-l">${isProf(srcOf(id)) ? `<span class="prof" title="This question comes straight from the professor's course materials">★ From the professor</span>` : ""}<span class="origin">Source: ${esc(srcOf(id))}</span><span>${esc(Q[id].tag)}</span></span>${right}</div>`;
   }
   // Bottom navigation: Previous on the left, the forward action on the right.
   function navBar(fwdLabel, fwdId, ghostFwd) {

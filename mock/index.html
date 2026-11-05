@@ -101,6 +101,7 @@
 <script src="bank.js"></script>
 <script>
 (() => {
+  const isProf = src => !/^Practice/i.test(String(src));   // every source except the practice sets came straight from the professor
   const BANK = window.MOCK_BANK, SIZES = [50, 100], PASS = 90, SIZE_KEY = "anthro-mock-size"; const SYN_SHARE = 0.4;
   let N = 50; try { const v = +localStorage.getItem(SIZE_KEY); if (SIZES.includes(v)) N = v } catch (e) { }
   const KEY = "anthro-mock-v1", HIST = "anthro-mock-history-v1";
@@ -199,7 +200,7 @@
   function paintQ() {
     const it = E.items[E.pos], q = byId[it.id], a = E.ans[E.pos], last = E.pos === E.items.length - 1;
     $("qcard").className = "card enter";
-    $("qcard").innerHTML = `<div class="meta"><span class="meta-l"><span class="origin">Source: ${esc(q.src)}</span><span>${esc(q.subject)}</span></span><span>${E.pos + 1} / ${E.items.length}</span></div>
+    $("qcard").innerHTML = `<div class="meta"><span class="meta-l">${isProf(q.src) ? `<span class="prof" title="This question comes straight from the professor's course materials">★ From the professor</span>` : ""}<span class="origin">Source: ${esc(q.src)}</span><span>${esc(q.subject)}</span></span><span>${E.pos + 1} / ${E.items.length}</span></div>
       <p class="q">${esc(q.q)}</p>
       ${q.img ? `<figure class="fig"><button type="button" class="zoom" data-src="${q.img[0]}" aria-label="Enlarge image"><img src="${q.img[0]}" alt="${esc(q.img[1])}"></button><figcaption>Tap to zoom</figcaption></figure>` : ""}
       <div class="opts">${it.opts.map((t, j) => `<button class="opt${a === j ? " sel" : ""}" data-j="${j}" aria-pressed="${a === j}"><span class="bub">${"ABCDE"[j]}</span><span>${esc(t)}</span></button>`).join("")}</div>
@@ -263,7 +264,7 @@
         <div class="grid100" id="rgrid">${rows.map(r => `<button class="gq ${r.ok ? "right" : "wrongq"}" data-k="${r.k}" aria-label="Question ${r.k + 1}: ${r.ok ? "right" : "wrong"}">${r.k + 1}</button>`).join("")}</div>
         <div class="filters"><button class="chip" data-f="wrong" aria-pressed="${filter === "wrong"}">Missed (${rows.filter(r => !r.ok).length})</button><button class="chip" data-f="flag" aria-pressed="${filter === "flag"}">Flagged (${E.flag.filter(Boolean).length})</button>${E.flag.some(Boolean) ? `<a class="chip" href="../review/index.html" style="text-decoration:none">Flagged ones are in your Review list →</a>` : ""}<button class="chip" data-f="all" aria-pressed="${filter === "all"}">All ${n}</button></div>
         <div class="rev">${list.length ? list.map(r => `<article class="rcard ${r.ok ? "good" : "bad"}" id="r${r.k}">
-            <div class="meta"><span class="meta-l"><span class="origin">Source: ${esc(r.q.src)}</span><span>${esc(r.q.subject)}</span></span><span>Q${r.k + 1}</span></div>
+            <div class="meta"><span class="meta-l">${isProf(r.q.src) ? `<span class="prof" title="This question comes straight from the professor's course materials">★ From the professor</span>` : ""}<span class="origin">Source: ${esc(r.q.src)}</span><span>${esc(r.q.subject)}</span></span><span>Q${r.k + 1}</span></div>
             <p class="q">${esc(r.q.q)}</p>
             ${r.q.img ? `<figure class="fig"><img src="${r.q.img[0]}" alt="${esc(r.q.img[1])}"></figure>` : ""}
             <div class="mini-opts">${r.it.opts.map((t, j) => `<div class="${t === r.q.ok ? "r" : j === r.a ? "w" : ""}">${"ABCDE"[j]}. ${esc(t)}${t === r.q.ok ? " ✓" : j === r.a ? " (your answer)" : ""}</div>`).join("")}${r.a === null ? `<div class="w">Not answered</div>` : ""}</div>
