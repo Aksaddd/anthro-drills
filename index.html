@@ -187,7 +187,23 @@ main.inner{padding-block:44px 64px;gap:22px}
 .srctable th,.srctable td{border-bottom-color:#e8e8ed}
 footer a{color:var(--link)}
 .pstar{color:#c77700;font-size:.95em}
-.exampanel{border-radius:30px;padding:22px 18px 18px;display:flex;flex-direction:column;gap:16px}
+.exampanel{border-radius:30px;padding:0;transition:box-shadow .3s}
+.exampanel[open]{padding-bottom:18px}
+.exampanel>.cards{padding:0 18px}
+.exampanel .ephead{list-style:none;cursor:pointer;display:flex;align-items:center;gap:16px;padding:26px 26px;border-radius:30px}
+.exampanel .ephead::-webkit-details-marker{display:none}
+.exampanel .ephead:hover{background:rgba(255,255,255,.35)}
+.exampanel .ephead:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.eptext{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.eptools{font-size:14px;color:var(--muted);margin-top:6px}
+.exampanel[open] .eptools{display:none}
+.epgo{flex:none;display:inline-flex;align-items:center;gap:6px;font:400 17px var(--body);color:#fff;background:var(--accent);border-radius:980px;padding:10px 20px}
+.epgo::after{content:"";width:8px;height:8px;border:solid currentColor;border-width:0 2px 2px 0;transform:translateY(-2px) rotate(45deg);transition:transform .25s}
+.exampanel[open] .epgo{background:rgba(0,0,0,.08);color:var(--ink)}
+.exampanel[open] .epgo::after{transform:translateY(2px) rotate(-135deg)}
+.ep-close,.exampanel[open] .ep-open{display:none}
+.exampanel[open] .ep-close{display:inline}
+.exampanel+.exampanel{margin-top:4px}
 .ep1{background:linear-gradient(180deg,#e7efff,#f1f5ff 60%)}
 .ep2{background:linear-gradient(180deg,#e3f4e8,#f0f8f2 60%)}
 .epb{background:#ebebef;padding-top:18px}
@@ -196,7 +212,7 @@ footer a{color:var(--link)}
 .epb .ephead h2{font-size:24px}
 .ephead p{margin:4px 0 0;color:var(--muted);font-size:16px}
 .ep1 .num{background:#d6e4ff} .ep2 .num{background:#d3eedd;color:#1c7a43}
-@media (max-width:560px){.exampanel{margin:0 -8px;padding:18px 12px 12px;border-radius:26px}}
+@media (max-width:560px){.exampanel{margin:0 -8px;border-radius:26px}.exampanel>.cards{padding:0 10px}.exampanel .ephead{padding:22px 18px;gap:12px}.epgo{padding:9px 16px;font-size:16px}}
 @media (max-width:560px){.card{padding:20px}.how{padding:20px}.unit b{font-size:26px}}
 @media (prefers-reduced-motion:reduce){.card:hover{transform:none}}
 </style></head><body>
@@ -218,16 +234,15 @@ footer a{color:var(--link)}
       <span class="today" id="todayTxt"></span>
     </div>
     <div class="guide" aria-label="Which modules go with which exam">
-      <div><b>Exam 1</b><span><a href="roots/index.html#exam1">Word Roots</a> · <a href="exam1/index.html">Multiple-Choice Drill</a> · <a href="anthropardy/index.html?board=exam1">Anthro-pardy</a></span></div>
-      <div><b>Exam 2</b><span><a href="roots/index.html#exam2">Word Roots</a> · <a href="classification/index.html">Classification Chart</a> · <a href="exam2/index.html">Multiple-Choice Drill</a> · <a href="mock/index.html">Mock Exam</a> · <a href="anthropardy/index.html?board=exam2">Anthro-pardy</a></span></div>
-      <div><b>Both</b><span><a href="review/index.html">Review List</a></span></div>
+      <div><b>Exam 1</b><span><a href="roots/index.html#exam1">Word Roots</a> · <a href="exam1/index.html">Multiple-Choice Drill</a> · <a href="anthropardy/index.html?board=exam1">Anthro-pardy</a> · <a href="review/index.html?exam=1">Review List</a></span></div>
+      <div><b>Exam 2</b><span><a href="roots/index.html#exam2">Word Roots</a> · <a href="classification/index.html">Classification Chart</a> · <a href="exam2/index.html">Multiple-Choice Drill</a> · <a href="mock/index.html">Mock Exam</a> · <a href="anthropardy/index.html?board=exam2">Anthro-pardy</a> · <a href="review/index.html?exam=2">Review List</a></span></div>
     </div>
   </div>
 </header>
 
 <main class="inner">
-  <section class="exampanel ep1" aria-labelledby="ep1">
-    <div class="ephead"><h2 id="ep1">Exam 1</h2><p>Science, natural selection, cells &amp; DNA, protein synthesis, genetics and the forces of evolution.</p></div>
+  <details class="exampanel ep1" data-ep="1">
+    <summary class="ephead"><span class="eptext"><h2 id="ep1">Exam 1</h2><p>Science, natural selection, cells &amp; DNA, protein synthesis, genetics and the forces of evolution.</p><span class="eptools">Word Roots · Multiple-Choice Drill · Anthro-pardy · Review List</span></span><span class="epgo" aria-hidden="true"><span class="ep-open">Open</span><span class="ep-close">Close</span></span></summary>
     <div class="cards">
     <article class="card rootcard">
       <div class="chead"><span class="num" aria-hidden="true">Aa</span>
@@ -247,11 +262,17 @@ footer a{color:var(--link)}
         <p>The in-class review game as a colorful board: 7 categories, 35 clues. Pick a category and a value, answer the multiple-choice question, earn the money.</p></div></div>
       <div class="prow"><span class="ptext" id="boardTxt1">No games played yet</span><a class="plink" href="anthropardy/index.html?board=exam1">Play</a></div>
     </article>
+    <article class="card reviewcard">
+      <div class="chead"><span class="num" aria-hidden="true">⚑</span>
+        <div><h3><a href="review/index.html?exam=1">Exam 1 Review List</a></h3>
+        <p>Every Exam 1 question you've marked for review, in one place. Quiz yourself on them.</p></div></div>
+      <div class="prow"><span class="ptext" id="reviewCount1">Nothing marked yet</span><a class="plink" href="review/index.html?exam=1">Open</a></div>
+    </article>
     </div>
-  </section>
+  </details>
 
-  <section class="exampanel ep2" aria-labelledby="ep2">
-    <div class="ephead"><h2 id="ep2">Exam 2</h2><p>Macroevolution, primates and primate sociality. Tue, Nov 10, 10:45 am.</p></div>
+  <details class="exampanel ep2" data-ep="2">
+    <summary class="ephead"><span class="eptext"><h2 id="ep2">Exam 2</h2><p>Macroevolution, primates and primate sociality. Tue, Nov 10, 10:45 am.</p><span class="eptools">Word Roots · Classification Chart · Multiple-Choice Drill · Mock Exam · Anthro-pardy · Review List</span></span><span class="epgo" aria-hidden="true"><span class="ep-open">Open</span><span class="ep-close">Close</span></span></summary>
     <div class="cards">
     <article class="card rootcard">
       <div class="chead"><span class="num" aria-hidden="true">Aa</span>
@@ -299,20 +320,14 @@ footer a{color:var(--link)}
         <p>The in-class review game as a colorful board: 6 categories, 30 clues. Pick a category and a value, answer the multiple-choice question, earn the money.</p></div></div>
       <div class="prow"><span class="ptext" id="boardTxt2">No games played yet</span><a class="plink" href="anthropardy/index.html?board=exam2">Play</a></div>
     </article>
-    </div>
-  </section>
-
-  <section class="exampanel epb" aria-labelledby="epb">
-    <div class="ephead"><h2 id="epb">Both exams</h2></div>
-    <div class="cards">
     <article class="card reviewcard">
       <div class="chead"><span class="num" aria-hidden="true">⚑</span>
-        <div><h3><a href="review/index.html">Review List</a></h3>
-        <p>Every question you've marked for review, from every drill and mock exam, in one place. Quiz yourself on them.</p></div></div>
-      <div class="prow"><span class="ptext" id="reviewCount">Nothing marked yet</span><a class="plink" href="review/index.html">Open</a></div>
+        <div><h3><a href="review/index.html?exam=2">Exam 2 Review List</a></h3>
+        <p>Every Exam 2 question you've marked for review, from the drills and your mock exams. Quiz yourself on them.</p></div></div>
+      <div class="prow"><span class="ptext" id="reviewCount2">Nothing marked yet</span><a class="plink" href="review/index.html?exam=2">Open</a></div>
     </article>
     </div>
-  </section>
+  </details>
 
   <div class="how">
     <b>How it works</b>
@@ -401,12 +416,21 @@ footer a{color:var(--link)}
     const rs = JSON.parse(localStorage.getItem("anthro-roots-v1") || "{}") || {}, n = k => Object.keys((rs[k] || {}).m || {}).length;
     for (const k of ["exam1", "exam2"]) if (n(k)) document.getElementById("rootsTxt" + k.slice(-1)).textContent = `${n(k)} mastered`;
   } catch (e) { }
-  // Review list: how many questions are marked for review across all drills
+  // Review List counts, per exam (Exam 2 = Exam 2 + Classification drills; a shared worksheet question counts once)
   try {
-    let n = 0; const seen = new Set();
-    for (const k of ["ant2-progress-v1", "anthro-class-v1", "ant1-progress-v2"]) { const s = JSON.parse(localStorage.getItem(k) || "null"); if (s && s.mark) for (const id in s.mark) if (s.mark[id].m === "review" && !seen.has(k + id)) { seen.add(k + id); n++ } }
-    if (n) document.getElementById("reviewCount").textContent = n === 1 ? "1 question marked for review" : n + " questions marked for review";
+    const counts = { 1: ["ant1-progress-v2"], 2: ["ant2-progress-v1", "anthro-class-v1"] };
+    for (const e in counts) {
+      const seen = new Set();
+      for (const k of counts[e]) { const st = JSON.parse(localStorage.getItem(k) || "null"); if (st && st.mark) for (const id in st.mark) if (st.mark[id].m === "review") seen.add(k + id) }
+      const n = seen.size; if (n) document.getElementById("reviewCount" + e).textContent = n === 1 ? "1 question marked for review" : n + " questions marked for review";
+    }
   } catch (e) { }
+  // Exam panels: closed until clicked; remember which ones a student left open
+  document.querySelectorAll("details.exampanel").forEach(d => {
+    const k = "anthro-home-open-" + d.dataset.ep;
+    try { if (localStorage.getItem(k) === "1") d.open = true } catch (e) { }
+    d.addEventListener("toggle", () => { try { localStorage.setItem(k, d.open ? "1" : "0") } catch (e) { } });
+  });
   // Countdown to Exam 2 (Tue, Nov 10, 2026, 10:45 am)
   const exam = new Date(2026, 10, 10, 10, 45), now = new Date();
   // A live clock: days : hours : minutes : seconds, updated every second.

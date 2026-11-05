@@ -49,6 +49,16 @@
 (() => {
   const isProf = src => !/^Practice/i.test(String(src));   // every source except the practice sets came straight from the professor
   const RB = window.REVIEW_BANK, DRILLS = Object.keys(RB);
+  // ?exam=1 or ?exam=2: show only that exam's drills (Exam 2 = the Exam 2 and Classification drills, incl. mock-exam flags)
+  const EXAM = new URLSearchParams(location.search).get("exam");
+  const SHOW = EXAM === "1" ? ["exam1"] : EXAM === "2" ? ["exam2", "classification"] : DRILLS;
+  if (EXAM === "1" || EXAM === "2") {
+    document.title = `Exam ${EXAM} Review List`;
+    document.querySelector(".rhead h1").textContent = `Exam ${EXAM} Review List`;
+    document.getElementById("lede").innerHTML = EXAM === "1"
+      ? "Every Exam 1 question you've marked for review. Mark questions with <b>⚑ Mark for review</b> in the Exam 1 drill."
+      : "Every Exam 2 question you've marked for review, from the Exam 2 and Classification drills and your mock exams. Mark questions with <b>⚑ Mark for review</b> in a drill, or flag them in a mock exam.";
+  }
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const txt = (d, s) => RB[d].html ? String(s) : esc(s);       // Exam 1 questions contain small bits of markup
@@ -69,7 +79,7 @@
   // Every flagged question, newest flag first
   function flagged() {
     const out = [];
-    for (const d of DRILLS) {
+    for (const d of SHOW) {
       const s = load(d); if (!s || !s.mark) continue;
       for (const id in s.mark) if (s.mark[id] && s.mark[id].m === "review" && RB[d].items[id]) out.push({ d, id, t: s.mark[id].t || 0, q: RB[d].items[id] });
     }
