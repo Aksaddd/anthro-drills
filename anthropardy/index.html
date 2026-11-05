@@ -31,17 +31,19 @@ h1{font:700 clamp(28px,6vw,40px)/1.08 var(--display);letter-spacing:-.03em}
 .newgame{font:400 15px var(--body);border:0;border-radius:999px;background:var(--accent);color:#fff;padding:9px 18px;cursor:pointer}
 .newgame:hover{background:#0077ed}
 /* Board */
-.boardwrap{overflow-x:auto;margin:0 -16px;padding:2px 16px 8px;-webkit-overflow-scrolling:touch}
-.board{display:grid;gap:8px;min-width:calc(var(--cols) * 112px);background:#141418;border-radius:22px;padding:10px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
-.cat{display:flex;align-items:center;justify-content:center;text-align:center;min-height:68px;padding:8px;border-radius:14px;background:var(--c);color:#fff;font:700 13.5px/1.25 var(--body);letter-spacing:-.01em;text-wrap:balance;text-shadow:0 1px 2px rgba(0,0,0,.25)}
-.tile{position:relative;min-height:66px;border:0;border-radius:14px;background:color-mix(in srgb,var(--c) var(--mix),#141418);cursor:pointer;font:800 23px var(--display);letter-spacing:-.02em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .15s,filter .15s,box-shadow .15s}
+.boardwrap{padding:2px 0 8px}
+.board{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));grid-template-rows:auto repeat(var(--vals),auto);gap:clamp(5px,.8vw,8px);background:#141418;border-radius:22px;padding:10px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.col{display:grid;grid-row:span calc(var(--vals) + 1);grid-template-rows:subgrid;gap:inherit;min-width:0}
+.cat{display:flex;align-items:center;justify-content:center;text-align:center;min-height:68px;padding:8px;hyphens:auto;overflow-wrap:anywhere;border-radius:14px;background:var(--c);color:#fff;font:700 clamp(11.5px,1.35vw,14px)/1.25 var(--body);letter-spacing:-.01em;text-wrap:balance;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.tile{position:relative;min-height:66px;border:0;border-radius:14px;background:color-mix(in srgb,var(--c) var(--mix),#141418);cursor:pointer;font:800 clamp(17px,2.3vw,24px) var(--display);letter-spacing:-.02em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .15s,filter .15s,box-shadow .15s}
 .tile:hover:not(:disabled){transform:translateY(-2px) scale(1.02);filter:brightness(1.12);box-shadow:0 6px 18px color-mix(in srgb,var(--c) 45%,transparent)}
 .tile:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .tile:disabled{cursor:default;font:700 15px var(--body);letter-spacing:0;background:#232329;text-shadow:none}
 .tile.right{color:#4ade80;box-shadow:inset 0 0 0 2px #2c6e43}
 .tile.wrong{color:#fb7185;box-shadow:inset 0 0 0 2px #7a2f3b}
 .tile small{display:block;font:600 11.5px var(--body);color:rgba(255,255,255,.7);margin-top:2px}
-.clue .chead{margin:-24px -24px 4px;padding:16px 24px;border-radius:24px 24px 0 0;background:var(--c,#1d1d1f);color:#fff}
+@media (max-width:480px){.clue{padding:12px 10px 30px}.clue .card{padding:18px;border-radius:20px}.clue .chead{margin:-18px -18px 4px !important;padding:14px 18px !important;border-radius:20px 20px 0 0 !important}}
+.clue .chead{margin:-22px -22px 4px;padding:16px 22px;border-radius:24px 24px 0 0;background:var(--c,#1d1d1f);color:#fff}
 .clue .ctag{color:rgba(255,255,255,.9)}
 .clue .cval{color:#fff}
 /* Clue card */
@@ -60,8 +62,17 @@ h1{font:700 clamp(28px,6vw,40px)/1.08 var(--display);letter-spacing:-.03em}
 .inc input{width:20px;height:20px;accent-color:var(--accent);margin:0;flex:none}
 .inc b{color:var(--ink)}
 .note{font-size:12.5px;color:var(--muted);margin:0}
-.swipe{display:none;font-size:13px;color:var(--muted);margin:-4px 0}
-@media (max-width:760px){.swipe{display:block}}
+/* Phones: each category becomes a row (colored header, then its five tiles side by side) */
+@media (max-width:719px){
+  .board{display:flex;flex-direction:column;gap:12px;padding:10px;border-radius:20px}
+  .col{display:grid;grid-template-columns:repeat(var(--vals),minmax(0,1fr));grid-template-rows:none;grid-row:auto;gap:6px}
+  .cat{grid-column:1 / -1;min-height:0;padding:9px 12px;justify-content:flex-start;text-align:left;font-size:14px;border-radius:12px}
+  .tile{min-height:54px;font-size:clamp(14px,4.4vw,19px);border-radius:12px;padding:0 2px}
+  .tile:disabled{font-size:14px}
+  .tile small{font-size:10px}
+}
+/* Short landscape phones: keep the grid but make it compact */
+@media (max-height:500px) and (min-width:720px){.cat{min-height:48px;padding:6px}.tile{min-height:46px}}
 </style>
 </head><body>
 <div class="wrap">
@@ -75,7 +86,6 @@ h1{font:700 clamp(28px,6vw,40px)/1.08 var(--display);letter-spacing:-.03em}
     <div class="rules"><label><input type="checkbox" id="harsh"> Lose money on wrong answers</label><button type="button" class="newgame" id="newGame">New game</button></div>
   </div>
   <div class="scorebox" aria-live="polite"><span class="score" id="score">$0</span><span class="slab"><span id="played">0 of 0 played</span><span id="best"></span></span></div>
-  <p class="swipe">Swipe the board sideways to see every category →</p>
   <div class="boardwrap"><div class="board" id="board" role="grid" aria-label="Anthro-pardy board"></div></div>
   <label class="inc" id="incRow" hidden><input type="checkbox" id="inc"><span><b>Add these questions to my Exam 2 drill.</b> Turn it off to keep the drill to the other sources. You can also switch it in the drill itself.</span></label>
   <p class="note">Clues are worded as in the in-class game; the answer choices were added to make it multiple choice. Your games are saved in this browser only, separately from your drill progress.</p>
@@ -133,12 +143,12 @@ h1{font:700 clamp(28px,6vw,40px)/1.08 var(--display);letter-spacing:-.03em}
       if (bump) { $("score").classList.remove("bump"); void $("score").offsetWidth; $("score").classList.add("bump") }
       $("played").innerHTML = `<b>${n} of ${total}</b> played · ${Object.values(G.done).filter(d => d.ok).length} right`;
       $("best").textContent = G.best != null ? `Best finished game: ${money(G.best)}` : "";
-      const b = $("board"); b.style.setProperty("--cols", cats.length); b.style.gridTemplateColumns = `repeat(${cats.length}, minmax(104px, 1fr))`;
-      b.innerHTML = cats.map((c, i) => `<div class="cat" role="columnheader" style="--c:${colorOf(c)}">${esc(c)}</div>`).join("") +
-        vals.map(v => cats.map(c => { const id = at(c, v); if (!id) return `<div></div>`; const d = G.done[id];
-          const st = `--c:${colorOf(c)};--mix:${mixOf(v)}`;
+      const b = $("board"); b.style.setProperty("--cols", cats.length); b.style.setProperty("--vals", vals.length);
+      b.innerHTML = cats.map(c => `<div class="col" role="group" aria-label="${esc(c)}" style="--c:${colorOf(c)}"><div class="cat">${esc(c)}</div>` +
+        vals.map(v => { const id = at(c, v); if (!id) return `<div></div>`; const d = G.done[id];
+          const st = `--mix:${mixOf(v)}`;
           return d ? `<button class="tile ${d.ok ? "right" : "wrong"}" style="${st}" disabled aria-label="${esc(c)} ${money(v)}: ${d.ok ? "right" : "wrong"}">${d.ok ? "✓" : "✗"}<small>${d.gain ? (d.gain > 0 ? "+" : "") + money(d.gain) : "$0"}</small></button>`
-            : `<button class="tile" style="${st}" data-id="${id}" aria-label="${esc(c)} for ${money(v)}">${money(v)}</button>` }).join("")).join("");
+            : `<button class="tile" style="${st}" data-id="${id}" aria-label="${esc(c)} for ${money(v)}">${money(v)}</button>` }).join("") + `</div>`).join("");
       b.querySelectorAll(".tile[data-id]").forEach(t => t.onclick = () => openClue(t.dataset.id));
       if (n === total) showEnd();
     }
