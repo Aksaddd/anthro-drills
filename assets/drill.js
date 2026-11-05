@@ -29,6 +29,15 @@
   DECKS.ALL = { name: "Mixed", full: "Mixed", sub: "Every question from every subject, weakest first. Good for a final run-through before the exam." }; IDS.ALL = ALL;
   const FIRST = Object.keys(DECKS)[0];
 
+  // ===== Sources: the same questions grouped by where they came from. Students tick one or more sources
+  // and practice them together as one round (a Focus round). Shown only when a drill has 2+ sources.
+  const SOURCES = [];
+  for (const id of ALL) { const n = srcOf(id); let g = SOURCES.find(x => x.name === n); if (!g) SOURCES.push(g = { name: n, ids: [] }); g.ids.push(id) }
+  SOURCES.sort((x, y) => /^Practice/.test(x.name) - /^Practice/.test(y.name));   // class materials first, practice sets last (stable otherwise)
+  const BY_SOURCE_OK = SOURCES.length > 1, GB_KEY = "anthro-groupby", SEL_KEY = B.storageKey + "-sources";
+  let groupBy = "subject"; try { if (BY_SOURCE_OK && localStorage.getItem(GB_KEY) === "source") groupBy = "source" } catch (e) { }
+  let srcSel = new Set(); try { for (const n of JSON.parse(localStorage.getItem(SEL_KEY) || "[]")) if (SOURCES.some(g => g.name === n)) srcSel.add(n) } catch (e) { }
+
   // ===== Question status (no streak-based levels): a question is not answered yet, right or wrong
   // (its most recent answer), or marked for review by the student, which takes priority.
   const flagged = id => S.mark[id] && S.mark[id].m === "review";
@@ -206,16 +215,24 @@
   let tabsCollapsed = false; try { tabsCollapsed = localStorage.getItem(TABS_KEY) === "1" } catch (e) { }
   function setTabsCollapsed(on) {
     tabsCollapsed = on; try { localStorage.setItem(TABS_KEY, on ? "1" : "0") } catch (e) { }
-    $("tabs").hidden = on; $("tabsBar").classList.toggle("collapsed", on);
-    $("tabsToggle").setAttribute("aria-expanded", !on); $("tabsToggle").textContent = on ? "Show subjects ▾" : "Hide subjects ▴";
+    $("tabs").hidden = on; $("tabsBar").classList.toggle("collapsed", on); if ($("srcPick")) $("srcPick").hidden = on || groupBy !== "source";
+    $("tabsToggle").setAttribute("aria-expanded", !on); const what = groupBy === "source" ? "sources" : "subjects"; $("tabsToggle").textContent = on ? `Show ${what} ▾` : `Hide ${what} ▴`;
   }
+  let PROG_SPAN = "";
   function buildTabs() {
     const box = $("tabs"); box.innerHTML = "";
     if (!$("tabsBar")) {
       const bar = document.createElement("div"); bar.id = "tabsBar"; bar.className = "tabsbar";
-      bar.innerHTML = `<span class="tbnow" id="tbNow"></span><button type="button" class="chip" id="tabsToggle" aria-controls="tabs"></button>`;
+      bar.innerHTML = `<span class="tbnow" id="tbNow"></span>${BY_SOURCE_OK ? `<div class="gb" role="group" aria-label="Group questions by"><span>Group by</span><button type="button" data-gb="subject">Subject</button><button type="button" data-gb="source">Source</button></div>` : ""}<button type="button" class="chip" id="tabsToggle" aria-controls="tabs"></button>`;
       box.before(bar);
       $("tabsToggle").onclick = () => setTabsCollapsed(!tabsCollapsed);
+      bar.querySelectorAll("[data-gb]").forEach(b => b.onclick = () => {
+        groupBy = b.dataset.gb; try { localStorage.setItem(GB_KEY, groupBy) } catch (e) { }
+        setTabsCollapsed(false);
+        paintChrome();
+      });
+      const pk = document.createElement("section"); pk.id = "srcPick"; pk.className = "srcpick"; pk.hidden = true; pk.setAttribute("aria-label", "Questions by source");
+      box.before(pk);
     }
     const make = (key, label, onclick, extra = "") => {
       const b = document.createElement("button"); b.className = "tab " + extra; b.setAttribute("role", "tab"); b.id = "tab" + key;
@@ -226,7 +243,7 @@
     make("PROG", "Progress", () => { stopAuto(); view = "progress"; paint() }, "tab-prog");
     // keep the 3-column grid tidy: Progress fills whatever is left of the last row
     const n = box.children.length, rem = n % 3;
-    if (rem === 1) $("tabPROG").style.gridColumn = "1 / -1"; else if (rem === 2) $("tabPROG").style.gridColumn = "span 2";
+    PROG_SPAN = rem === 1 ? "1 / -1" : rem === 2 ? "span 2" : "";
   }
   // Optional promo card (Classification drill: the drag-and-drop chart)
   const PROMO_ILLU = `<svg class="dd-illu" viewBox="0 0 132 84" aria-hidden="true">
@@ -259,6 +276,35 @@
       <button class="fclose" id="featClose" aria-label="Hide this reminder">×</button>`;
     $("featClose").onclick = () => { try { localStorage.setItem(SP_KEY, "1") } catch (e) { } el.hidden = true };
   }
+  const srcLeft = g => g.ids.filter(id => !mastered(id));
+  function selectedIds() { return SOURCES.filter(g => srcSel.has(g.name)).flatMap(srcLeft) }
+  function srcLabel() {
+    const names = SOURCES.filter(g => srcSel.has(g.name)).map(g => g.name);
+    return names.length === SOURCES.length ? "every source" : names.join(" + ");
+  }
+  function paintGoBtn() {
+    const n = selectedIds().length, k = srcSel.size;
+    $("spGo").disabled = !n;
+    $("spGo").innerHTML = `<span>${k ? `Practice ${plural(n, "question")}${k > 1 ? ` from ${k} sources` : ""}` : "Tick one or more sources"}</span>`;
+  }
+  function paintSources() {
+    const pk = $("srcPick"); if (!pk) return;
+    const on = groupBy === "source";
+    document.querySelectorAll("[data-gb]").forEach(b => b.setAttribute("aria-pressed", b.dataset.gb === groupBy));
+    for (const d in DECKS) $("tab" + d).hidden = on;
+    $("tabPROG").style.gridColumn = on ? "span 2" : PROG_SPAN;
+    pk.hidden = !on || tabsCollapsed;
+    if (!on) return;
+    pk.innerHTML = `<div class="sp-head"><b>Pick sources to practice together</b><span><button type="button" class="chip" id="spAll">Select all</button><button type="button" class="chip" id="spNone">Clear</button></span></div>
+      <div class="sp-list">${SOURCES.map((g, i) => { const s = sumUp(g.ids), left = srcLeft(g).length; return `<label class="sp-row"><input type="checkbox" data-i="${i}"${srcSel.has(g.name) ? " checked" : ""}><span class="sp-name">${esc(g.name)}</span><span class="sp-n">${MASTERY && s.n.mastered ? `${left} left · ${s.n.mastered} mastered` : `${s.seen}/${s.total} answered`}</span><span class="mini">${segs(s.n)}</span></label>` }).join("")}</div>
+      <button type="button" class="btn" id="spGo"></button>`;
+    const keep = () => { try { localStorage.setItem(SEL_KEY, JSON.stringify([...srcSel])) } catch (e) { } paintGoBtn() };
+    pk.querySelectorAll("input[data-i]").forEach(c => c.onchange = () => { const n = SOURCES[+c.dataset.i].name; c.checked ? srcSel.add(n) : srcSel.delete(n); keep() });
+    $("spAll").onclick = () => { SOURCES.forEach(g => srcSel.add(g.name)); pk.querySelectorAll("input[data-i]").forEach(c => c.checked = true); keep() };
+    $("spNone").onclick = () => { srcSel.clear(); pk.querySelectorAll("input[data-i]").forEach(c => c.checked = false); keep() };
+    $("spGo").onclick = () => { const ids = selectedIds(); if (ids.length) { stopAuto(); startFocus("Sources: " + srcLabel(), ids) } };
+    paintGoBtn();
+  }
   function paintTabs() {
     for (const d in DECKS) {
       const s = sumUp(IDS[d]);
@@ -288,13 +334,13 @@
     }).join("");
   }
   function paintChrome() {
-    paintHabit(); paintTabs(); paintFeature(); paintPromo();
+    paintHabit(); paintTabs(); paintSources(); paintFeature(); paintPromo();
     const inDeck = view === "deck";
     for (const id of ["toolbar", "barRow", "map"]) $(id).hidden = !inDeck;
     if (!inDeck) { $("deckSub").textContent = "Your strengths and weak spots, from every answer you've given on this device."; return }
     const d = S.deck, r = R(), n = r.order.length, done = doneIn(r);
     $("deckSub").innerHTML = d === "MISSED" ? esc(`Every question you got wrong on your last try: ${plural(ALL.filter(id => missed.has(id)).length, "question")} right now. Answer one right and it leaves this bank.`)
-      : d === "FOCUS" ? esc(`Focus round: ${S.focus.label}. ${plural(pool(d).length, "question")}, weakest first. Pick a subject tab to leave.`)
+      : d === "FOCUS" ? esc(`Focus round: ${S.focus.label}. ${plural(pool(d).length, "question")}, weakest first. Pick another tab${BY_SOURCE_OK ? " or other sources" : ""} to leave.`)
       : esc(DECKS[d].sub) + (DECKS[d].link ? ` <a class="sublink" href="${DECKS[d].link.href}">${esc(DECKS[d].link.label)}</a>` : "");
     paintMap();
     $("roundInfo").innerHTML = n ? `<span>${r.pos < n ? `Question <b>${r.pos + 1}</b> of ${n}` : "<b>Results</b>"}</span><span><b>${done}</b> answered</span><span><b>${rightIn(r)}</b> right</span><span>Streak <b>${r.streak}</b></span>` : "";
