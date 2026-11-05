@@ -41,13 +41,14 @@
 .fb{font-size:calc(14.5px * var(--rs));color:var(--muted)}
 .score{font:800 44px var(--display);margin:0}
 .row{display:flex;flex-wrap:wrap;gap:8px}
+a.btn{text-decoration:none;display:inline-flex;align-items:center}
 </style>
 </head><body>
 <div class="wrap">
   <header style="display:flex;flex-direction:column;gap:6px">
     <a class="back" href="../index.html">← All drills</a>
     <h1>Word Roots</h1>
-    <p class="sub">Most course terms are built from a few Greek and Latin parts. Learn the parts and you can work out what a word means, even one you haven't memorized.</p>
+    <p class="sub"><b>Your warm-up before the drills.</b> Most course terms are built from a few Greek and Latin parts. Skim the roots for your exam, take the 10-question quiz, then start drilling: the terms in the questions will make sense on sight.</p>
   </header>
   <div class="xtabs" role="tablist" id="xtabs"></div>
   <main id="app" style="display:flex;flex-direction:column;gap:12px"></main>
@@ -57,6 +58,8 @@
 <script>
 (() => {
   const R = window.ROOTS, EX = Object.keys(R), KEY = "anthro-roots-tab";
+  const DRILL = { exam1: "../exam1/index.html#continue", exam2: "../exam2/index.html#continue" };
+  const nextStep = () => `<a class="btn" href="${DRILL[ex]}">Warmed up? Start the ${esc(R[ex].name)} drill →</a>`;
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const shuffle = a => { a = a.slice(); for (let k = a.length - 1; k > 0; k--) { const j = Math.random() * (k + 1) | 0; [a[k], a[j]] = [a[j], a[k]] } return a };
@@ -100,7 +103,8 @@
       <div class="tip"><b>How to use it:</b> split a new word into its parts. <i>Platy-</i> (flat) + <i>-rrhine</i> (nose) = flat-nosed. <i>Allo-</i> (other) + <i>patr-</i> (homeland) = speciation in another place.</div>
       <div class="tools"><input class="search" id="search" type="search" placeholder="Search a root, meaning or term…" value="${esc(query)}" aria-label="Search roots"><button class="btn" id="quizBtn" type="button">Quiz me</button></div>
       ${q ? "" : `<nav class="jump" aria-label="Jump to a section">${groups.map(([g]) => `<a href="#${slug(g)}">${esc(g)}</a>`).join("")}</nav>`}
-      ${groups.length ? groups.map(([g, rs]) => `<section class="grp"><h2 id="${slug(g)}">${esc(g)}</h2><div class="grid">${rs.map(card).join("")}</div></section>`).join("") : `<p class="none">No roots match “${esc(query)}”.</p>`}`;
+      ${groups.length ? groups.map(([g, rs]) => `<section class="grp"><h2 id="${slug(g)}">${esc(g)}</h2><div class="grid">${rs.map(card).join("")}</div></section>`).join("") : `<p class="none">No roots match “${esc(query)}”.</p>`}
+      ${q ? "" : `<div class="row" style="justify-content:center;padding-top:6px">${nextStep()}</div>`}`;
     const s = $("search");
     s.oninput = () => { query = s.value; const pos = s.selectionStart; list(); const n = $("search"); n.focus(); n.setSelectionRange(pos, pos) };
     $("quizBtn").onclick = startQuiz;
@@ -145,7 +149,7 @@
     $("app").innerHTML = `<article class="card" style="align-items:flex-start">
       <p class="sub">${esc(R[ex].name)} roots quiz</p><p class="score">${right} / ${items.length}</p>
       <p class="fb">${right === items.length ? "Every one right." : "Look over the roots you missed in the list, then try a new round."}</p>
-      <div class="row"><button class="btn" id="again" type="button">New round</button><button class="btn ghost" id="back" type="button">Back to the list</button></div></article>`;
+      <div class="row">${nextStep()}<button class="btn ghost" id="again" type="button">New round</button><button class="btn ghost" id="back" type="button">Back to the list</button></div></article>`;
     $("again").onclick = startQuiz; $("back").onclick = () => { quiz = null; list() };
   }
 
