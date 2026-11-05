@@ -5,7 +5,7 @@ Multiple-choice study drills for **ANTH 102: Introduction to Human Evolution**. 
 | Drill | Folder | Subject tabs |
 |---|---|---|
 | Exam 1 | `exam1/` | Science · Natural selection · Scientists · Cells & DNA · Protein synthesis · Genetics · Forces of evolution (192 questions) |
-| Exam 2 | `exam2/` | Speciation · Phylogeny · Primate traits · Taxonomy · Picture ID · Sociality · Chimps & bonobos · Putting it together (286 questions, including the 36 original worksheet questions and 100 synthesis questions that connect lectures) |
+| Exam 2 | `exam2/` | Speciation · Phylogeny · Primate traits · Taxonomy · Picture ID · Sociality · Chimps & bonobos · Putting it together (344 questions, including the 36 original worksheet questions and 100 synthesis questions that connect lectures) |
 | Classification | `classification/` | Where traits go · Chart structure · Compare & connect (149 questions) + `chart.html` drag-and-drop chart |
 
 Each drill also has a **Mixed** tab and a **Progress** tab. Tabs group questions by subject; every question shows a "Source:" label above it (Top Hat, a Brightspace activity, a worksheet, or practice).
@@ -49,7 +49,7 @@ There is no timer by default anywhere on the site. Students can turn one on with
 
 ## Mock exam
 
-`mock/index.html` builds a fresh 50- or 100-question exam (student's choice, 50 by default) each time from the Exam 2 and Classification drills (388 unique questions; shared and repeated questions appear once). 40% of every exam (20 of 50, or 40 of 100) comes from the "Putting it together" synthesis questions; the rest is random. Answers can be changed until submitting; results show the score, a subject breakdown and a full review. Exams in progress and past scores are saved per device.
+`mock/index.html` builds a fresh 50- or 100-question exam (student's choice, 50 by default) each time from the Exam 2 and Classification drills (446 unique questions; shared and repeated questions appear once). 40% of every exam (20 of 50, or 40 of 100) comes from the "Putting it together" synthesis questions; the rest is random. Answers can be changed until submitting; results show the score, a subject breakdown and a full review. Exams in progress and past scores are saved per device.
 
 The mock exam reads `mock/bank.js` and the Review list reads `review/bank.js`; both are generated. **After changing any question bank, run:**
 
