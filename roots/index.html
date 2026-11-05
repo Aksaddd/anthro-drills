@@ -32,7 +32,7 @@
 .ex{margin:2px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;font-size:calc(14.5px * var(--rs))}
 .ex li{border-top:1px dashed var(--line);padding-top:5px}
 .ex .term{font-weight:600}
-.ex mark{background:var(--gold-soft);color:inherit;border-radius:3px;padding:0 1px;box-shadow:inset 0 -2px 0 var(--gold)}
+mark{background:var(--gold-soft);color:inherit;border-radius:3px;padding:0 1px;box-shadow:inset 0 -2px 0 var(--gold)}
 .none{text-align:center;color:var(--muted);padding:24px 0}
 .tip{background:var(--gold-soft);border:1px solid #ecd9ae;border-radius:14px;padding:12px 16px;font-size:calc(14.5px * var(--rs))}
 .qtop{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13.5px;color:var(--muted)}
@@ -42,13 +42,28 @@
 .score{font:800 44px var(--display);margin:0}
 .row{display:flex;flex-wrap:wrap;gap:8px}
 a.btn{text-decoration:none;display:inline-flex;align-items:center}
+.pool{gap:10px;padding:16px 18px}
+.pbar{height:10px;border-radius:999px;background:var(--line);overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--good);transition:width .3s}
+.pstats{margin:0;font-size:calc(14.5px * var(--rs));color:var(--muted)}
+.pstats b{color:var(--ink)}
+.alldone{font-weight:600;color:var(--good);align-self:center}
+.badge{font:600 11.5px var(--body);padding:3px 8px;border-radius:999px;margin-left:auto}
+.badge.m{background:var(--good-soft);color:var(--good)}
+.badge.r{background:var(--gold-soft);color:var(--gold)}
+.root.done{opacity:.6}
+.marks{align-items:center}
+.mk{font:600 14px var(--body);border:1.5px solid var(--line);background:var(--paper);border-radius:12px;padding:10px 14px;min-height:46px;cursor:pointer}
+.mk.m[aria-pressed="true"]{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.mk.r[aria-pressed="true"]{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
+.marks .btn{margin-left:auto}
 </style>
 </head><body>
 <div class="wrap">
   <header style="display:flex;flex-direction:column;gap:6px">
     <a class="back" href="../index.html">← All drills</a>
     <h1>Word Roots</h1>
-    <p class="sub"><b>Your warm-up before the drills.</b> Most course terms are built from a few Greek and Latin parts. Skim the roots for your exam, take the 10-question quiz, then start drilling: the terms in the questions will make sense on sight.</p>
+    <p class="sub">Most course terms are built from a few Greek and Latin parts. Drill every root for your exam: mark the ones you know as <b>mastered</b> and they leave the pool, mark tricky ones for <b>review</b> and they come back first. Keep going until the pool is empty.</p>
   </header>
   <div class="xtabs" role="tablist" id="xtabs"></div>
   <main id="app" style="display:flex;flex-direction:column;gap:12px"></main>
@@ -60,7 +75,13 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   const R = window.ROOTS, EX = Object.keys(R), KEY = "anthro-roots-tab";
   try { localStorage.setItem("anthro-roots-seen", "1") } catch (e) { }
   const DRILL = { exam1: "../exam1/index.html#continue", exam2: "../exam2/index.html#continue" };
-  const nextStep = () => `<a class="btn" href="${DRILL[ex]}">Warmed up? Start the ${esc(R[ex].name)} drill →</a>`;
+  const nextStep = (cls = "btn ghost") => `<a class="${cls}" href="${DRILL[ex]}">Go to the ${esc(R[ex].name)} drill →</a>`;
+  // Saved per exam: m = mastered roots, r = roots marked for review. Only this page uses it.
+  const SKEY = "anthro-roots-v1";
+  let ST = {}; try { ST = JSON.parse(localStorage.getItem(SKEY) || "{}") || {} } catch (e) { }
+  const st = () => (ST[ex] = ST[ex] || { m: {}, r: {} });
+  const saveST = () => { try { localStorage.setItem(SKEY, JSON.stringify(ST)) } catch (e) { } };
+  const isM = r => !!st().m[r.root], isR = r => !!st().r[r.root];
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const shuffle = a => { a = a.slice(); for (let k = a.length - 1; k > 0; k--) { const j = Math.random() * (k + 1) | 0; [a[k], a[j]] = [a[j], a[k]] } return a };
@@ -102,56 +123,78 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     $("app").innerHTML = `
       <p class="sub">${esc(R[ex].sub)}</p>
       <div class="tip"><b>How to use it:</b> split a new word into its parts. <i>Platy-</i> (flat) + <i>-rrhine</i> (nose) = flat-nosed. <i>Allo-</i> (other) + <i>patr-</i> (homeland) = speciation in another place.</div>
-      <div class="tools"><input class="search" id="search" type="search" placeholder="Search a root, meaning or term…" value="${esc(query)}" aria-label="Search roots"><button class="btn" id="quizBtn" type="button">Quiz me</button></div>
+      ${panel()}
+      <div class="tools"><input class="search" id="search" type="search" placeholder="Search a root, meaning or term…" value="${esc(query)}" aria-label="Search roots"></div>
       ${q ? "" : `<nav class="jump" aria-label="Jump to a section">${groups.map(([g]) => `<a href="#${slug(g)}">${esc(g)}</a>`).join("")}</nav>`}
       ${groups.length ? groups.map(([g, rs]) => `<section class="grp"><h2 id="${slug(g)}">${esc(g)}</h2><div class="grid">${rs.map(card).join("")}</div></section>`).join("") : `<p class="none">No roots match “${esc(query)}”.</p>`}
       ${q ? "" : `<div class="row" style="justify-content:center;padding-top:6px">${nextStep()}</div>`}`;
+    wirePanel();
     const s = $("search");
     s.oninput = () => { query = s.value; const pos = s.selectionStart; list(); const n = $("search"); n.focus(); n.setSelectionRange(pos, pos) };
-    $("quizBtn").onclick = startQuiz;
   }
-  const card = r => `<article class="root"><div class="rt"><b>${esc(r.root)}</b><span class="mean">${esc(r.mean)}</span></div><span class="orig">${esc(r.orig)}</span><ul class="ex">${r.exs.map(([t, m]) => `<li><span class="term">${mark(t, r.root)}</span>: ${esc(m)}</li>`).join("")}</ul></article>`;
+  const card = r => `<article class="root${isM(r) ? " done" : ""}"><div class="rt"><b>${esc(r.root)}</b><span class="mean">${esc(r.mean)}</span>${isM(r) ? `<span class="badge m">✓ Mastered</span>` : isR(r) ? `<span class="badge r">⚑ Review</span>` : ""}</div><span class="orig">${esc(r.orig)}</span><ul class="ex">${r.exs.map(([t, m]) => `<li><span class="term">${mark(t, r.root)}</span>: ${esc(m)}</li>`).join("")}</ul></article>`;
 
-  // ===== Quiz: 10 questions, half "what does this root mean?" and half "which root means…?"
+  // ===== Progress panel: how much of the pool is left
+  function counts() { const a = all(ex), m = a.filter(isM).length, r = a.filter(x => !isM(x) && isR(x)).length; return { total: a.length, m, r, left: a.length - m } }
+  function panel() {
+    const c = counts(), pct = Math.round(c.m / c.total * 100);
+    return `<section class="card pool">
+      <div class="pbar" role="img" aria-label="${c.m} of ${c.total} mastered"><i style="width:${pct}%"></i></div>
+      <p class="pstats"><b>${c.m}</b> of ${c.total} mastered · <b>${c.r}</b> marked for review · <b>${c.left}</b> left in the pool</p>
+      <div class="row">${c.left ? `<button class="btn" id="drillBtn" type="button">${c.m ? `Drill the ${c.left} left` : `Drill all ${c.total} roots`}</button>` : `<span class="alldone">Every ${esc(R[ex].name)} root mastered.</span>`}
+      ${c.m ? `<button class="btn ghost" id="resetBtn" type="button">Put mastered roots back</button>` : ""}</div>
+    </section>`;
+  }
+  function wirePanel() {
+    if ($("drillBtn")) $("drillBtn").onclick = startDrill;
+    if ($("resetBtn")) $("resetBtn").onclick = () => { if (!confirm(`Put all ${counts().m} mastered ${R[ex].name} roots back in the pool?`)) return; st().m = {}; saveST(); list() };
+  }
+
+  // ===== Drill: every root left in the pool, review-marked ones first. Mastered roots leave the pool.
   const STOP = new Set(["a", "an", "the", "of", "to", "on", "and", "or", "by", "for", "from", "it", "its", "ending", "latin", "greek"]);
   const words = m => new Set(m.toLowerCase().split(/[^a-z]+/).filter(w => w && !STOP.has(w)));
   const clash = (a, b) => { const A = words(a.mean); return [...words(b.mean)].some(w => A.has(w)) };   // e.g. allo- and altru- both mean "other"
-  function startQuiz() {
-    const pool = all(ex);
-    quiz = { i: 0, right: 0, items: shuffle(pool).slice(0, 10).map((r, k) => {
-      const others = shuffle(pool.filter(o => o !== r && !clash(o, r)));
-      const picks = [];
-      for (const o of others) { if (picks.length === 3) break; if (!picks.some(p => clash(p, o))) picks.push(o) }
-      return { r, dir: k % 2, opts: shuffle([r, ...picks]) };
-    }) };
+  function item(r) {
+    const others = shuffle(all(ex).filter(o => o !== r && !clash(o, r))), picks = [];
+    for (const o of others) { if (picks.length === 3) break; if (!picks.some(p => clash(p, o))) picks.push(o) }
+    return { r, dir: Math.random() < .5 ? 1 : 0, opts: shuffle([r, ...picks]) };
+  }
+  function startDrill() {
+    const left = all(ex).filter(r => !isM(r));
+    if (!left.length) return list();
+    quiz = { i: 0, right: 0, done: 0, items: [...shuffle(left.filter(isR)), ...shuffle(left.filter(r => !isR(r)))].map(item) };
     ask();
   }
   function ask() {
-    const it = quiz.items[quiz.i], { r, dir } = it;
-    const ex1 = r.exs[0];
+    const it = quiz.items[quiz.i], { r, dir } = it, ex1 = r.exs[0];
     $("app").innerHTML = `<article class="card">
-      <div class="qtop"><span>${esc(R[ex].name)} roots · Question ${quiz.i + 1} of ${quiz.items.length}</span><button class="chip" id="quit" type="button">Back to the list</button></div>
+      <div class="qtop"><span>${esc(R[ex].name)} roots · ${quiz.i + 1} of ${quiz.items.length} this round · <b id="leftN">${counts().left}</b> left in the pool</span><button class="chip" id="quit" type="button">Back to the list</button></div>
       <p class="qbig">${dir ? `Which root means “${esc(r.mean)}”?` : `What does <code>${esc(r.root)}</code> mean?`}</p>
       <div class="opts">${it.opts.map((o, k) => `<button class="opt" data-k="${k}" type="button"><span class="bub">${"ABCD"[k]}</span><span>${esc(dir ? o.root : o.mean)}</span></button>`).join("")}</div>
-      <p class="fb" id="fb" hidden>As in <b>${mark(ex1[0], r.root)}</b>: ${esc(ex1[1])}.</p>
-      <div class="row"><button class="btn" id="next" type="button" hidden>${quiz.i + 1 < quiz.items.length ? "Next" : "See my score"}</button></div>
+      <p class="fb" id="fb" hidden><b>${esc(r.root)}</b> = ${esc(r.mean)}. As in <b>${mark(ex1[0], r.root)}</b>: ${esc(ex1[1])}.</p>
+      <div class="row marks"><button class="mk m" id="mkM" type="button" aria-pressed="${isM(r)}">✓ Mastered</button><button class="mk r" id="mkR" type="button" aria-pressed="${isR(r)}">⚑ Review</button>
+        <button class="btn" id="next" type="button" hidden>${quiz.i + 1 < quiz.items.length ? "Next →" : "Finish round"}</button></div>
     </article>`;
     $("quit").onclick = () => { quiz = null; list() };
+    const paint = () => { $("mkM").setAttribute("aria-pressed", isM(r)); $("mkR").setAttribute("aria-pressed", isR(r)); $("leftN").textContent = counts().left };
+    $("mkM").onclick = () => { const S = st(); if (S.m[r.root]) delete S.m[r.root]; else { S.m[r.root] = 1; delete S.r[r.root] } saveST(); paint() };
+    $("mkR").onclick = () => { const S = st(); if (S.r[r.root]) delete S.r[r.root]; else { S.r[r.root] = 1; delete S.m[r.root] } saveST(); paint() };
     document.querySelectorAll(".opt").forEach(b => b.onclick = () => {
-      const pick = it.opts[+b.dataset.k], ok = pick === r;
-      if (ok) quiz.right++;
+      const ok = it.opts[+b.dataset.k] === r;
+      if (ok) quiz.right++; quiz.done++;
       document.querySelectorAll(".opt").forEach(x => { x.disabled = true; const o = it.opts[+x.dataset.k]; if (o === r) x.classList.add("right"); else if (x === b) x.classList.add("wrong") });
       $("fb").hidden = false; $("next").hidden = false; $("next").focus();
     });
     $("next").onclick = () => { quiz.i++; quiz.i < quiz.items.length ? ask() : done() };
   }
   function done() {
-    const { right, items } = quiz;
+    const { right, done: n } = quiz, c = counts();
     $("app").innerHTML = `<article class="card" style="align-items:flex-start">
-      <p class="sub">${esc(R[ex].name)} roots quiz</p><p class="score">${right} / ${items.length}</p>
-      <p class="fb">${right === items.length ? "Every one right." : "Look over the roots you missed in the list, then try a new round."}</p>
-      <div class="row">${nextStep()}<button class="btn ghost" id="again" type="button">New round</button><button class="btn ghost" id="back" type="button">Back to the list</button></div></article>`;
-    $("again").onclick = startQuiz; $("back").onclick = () => { quiz = null; list() };
+      <p class="sub">${esc(R[ex].name)} roots · round finished</p><p class="score">${right} / ${n}</p>
+      <p class="fb">${c.left ? `<b>${c.m}</b> of ${c.total} mastered. <b>${c.left}</b> roots are still in the pool${c.r ? `, and the ${c.r} marked for review come first next round` : ""}.` : `You've mastered every ${esc(R[ex].name)} root.`}</p>
+      <div class="row">${c.left ? `<button class="btn" id="again" type="button">Next round (${c.left})</button>` : ""}<button class="btn ghost" id="back" type="button">Back to the list</button>${nextStep()}</div></article>`;
+    if ($("again")) $("again").onclick = startDrill;
+    $("back").onclick = () => { quiz = null; list() };
   }
 
   tabs(); list();

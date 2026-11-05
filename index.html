@@ -149,19 +149,19 @@ footer a{color:inherit}
     <div class="guide" aria-label="Which modules go with which exam">
       <div><b>Exam 1</b><span><a href="exam1/index.html">Exam 1 Drill</a></span></div>
       <div><b>Exam 2</b><span><a href="exam2/index.html">Exam 2 Drill</a> · <a href="classification/index.html">Classification Chart</a> · <a href="mock/index.html">Mock Exam</a></span></div>
-      <div><b>Both</b><span><a href="roots/index.html">Word Roots</a> (warm-up) · <a href="review/index.html">Review List</a></span></div>
+      <div><b>Both</b><span><a href="roots/index.html">Word Roots</a> · <a href="review/index.html">Review List</a></span></div>
     </div>
   </div>
 </header>
 
 <main class="inner">
-  <h2 class="h2">Start here · warm up before you study</h2>
+  <h2 class="h2">Start here · learn the word roots</h2>
   <div class="cards">
     <article class="card rootcard">
       <div class="chead"><span class="num" aria-hidden="true">Aa</span>
         <div><h3><a href="roots/index.html">Word Roots</a></h3>
-        <p>A 10-minute warm-up before the drills. Learn the Greek and Latin parts behind the course terms for your exam, so new words make sense on sight: <i>platy-</i> (flat) + <i>-rrhine</i> (nose) = flat-nosed.</p></div></div>
-      <div class="prow"><span class="ptext">Exam 1 · Exam 2 · quick quiz</span><a class="plink" href="roots/index.html">Warm up →</a></div>
+        <p>Drill the Greek and Latin parts behind the course terms for your exam: <i>platy-</i> (flat) + <i>-rrhine</i> (nose) = flat-nosed. Mark roots as mastered and the pool shrinks until you know them all.</p></div></div>
+      <div class="prow"><span class="ptext" id="rootsTxt">Exam 1 · Exam 2</span><a class="plink" href="roots/index.html">Open →</a></div>
     </article>
   </div>
 
@@ -292,6 +292,11 @@ footer a{color:inherit}
 
   // Mock exam: last score
   try { const h = JSON.parse(localStorage.getItem("anthro-mock-history-v1") || "[]"); if (h.length) { const l = h[h.length - 1]; document.getElementById("mockLast").textContent = `Last exam: ${l.pct}% (${l.right}/${l.total}) · ${h.length} taken` } } catch (e) { }
+  // Word Roots: how many mastered
+  try {
+    const rs = JSON.parse(localStorage.getItem("anthro-roots-v1") || "{}") || {}, n = k => Object.keys((rs[k] || {}).m || {}).length;
+    if (n("exam1") || n("exam2")) document.getElementById("rootsTxt").textContent = `Mastered: ${n("exam1")} Exam 1 · ${n("exam2")} Exam 2`;
+  } catch (e) { }
   // Review list: how many questions are marked for review across all drills
   try {
     let n = 0; const seen = new Set();
