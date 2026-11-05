@@ -237,8 +237,8 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 .marks{display:flex;flex-wrap:wrap;gap:8px}
 .mk{display:inline-flex;align-items:center;gap:6px;font:500 13px var(--body);border:1px dashed var(--line);background:transparent;color:var(--muted);padding:6px 12px;border-radius:999px;cursor:pointer}
 .mk:hover{border-color:var(--accent);color:var(--ink)}
-.mk-mastered[aria-pressed="true"]{border-style:solid;border-color:var(--lv-mastered);background:var(--good-soft);color:var(--good)}
 .mk-review[aria-pressed="true"]{border-style:solid;border-color:var(--lv-shaky);background:var(--gold-soft);color:var(--gold)}
+.mk-mastered[aria-pressed="true"]{border-style:solid;border-color:var(--st-mastered);background:#d5f0ec;color:var(--st-mastered)}
 .sq.flag::before{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--lv-learning);border:1.5px solid var(--bg);z-index:1}
 .callout.flagc{background:var(--gold-soft);display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .callout.flagc strong{color:var(--gold);width:100%;margin:0}
@@ -277,7 +277,8 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 @media (prefers-reduced-motion:reduce){.dd-chip,.dd-hand,.dd-target{animation:none}.dd-chip{transform:translate(76px,32px)}.dd-hand{transform:translate(102px,38px)}}
 
 /* ===== Question status colors (replaces the old mastery levels) */
-:root{--st-right:#16a34a;--st-wrong:#e2572b;--st-review:#d4a017;--st-new:#d6dbe6}
+:root{--st-right:#16a34a;--st-wrong:#e2572b;--st-review:#d4a017;--st-new:#d6dbe6;--st-mastered:#0f766e}
+.lv-c-mastered{background:var(--st-mastered)!important} .stack i.lv-c-mastered,.mini i.lv-c-mastered{background:var(--st-mastered)}
 .lv-c-right{background:var(--st-right)!important} .lv-c-wrong{background:var(--st-wrong)!important}
 .lv-c-review{background:var(--st-review)!important} .lv-c-new{background:var(--st-new)!important}
 .stack i.lv-c-right,.mini i.lv-c-right{background:var(--st-right)} .stack i.lv-c-wrong,.mini i.lv-c-wrong{background:var(--st-wrong)} .stack i.lv-c-review,.mini i.lv-c-review{background:var(--st-review)}
