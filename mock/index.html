@@ -92,7 +92,7 @@
   <header class="examhead">
     <a class="back" href="../index.html">← All drills</a>
     <h1>Exam 2 Mock Exam</h1>
-    <p class="sub">50 or 100 random questions from the Exam 2 and Classification drills. A brand-new exam every time.</p>
+    <p class="sub">50 or 100 random questions from the Exam 2 and Classification drills. A brand-new exam every time. 40% are &ldquo;putting it together&rdquo; questions that connect several lectures, like the real exam.</p>
   </header>
   <main id="app"></main>
 </div>
@@ -101,7 +101,7 @@
 <script src="bank.js"></script>
 <script>
 (() => {
-  const BANK = window.MOCK_BANK, SIZES = [50, 100], PASS = 90, SIZE_KEY = "anthro-mock-size";
+  const BANK = window.MOCK_BANK, SIZES = [50, 100], PASS = 90, SIZE_KEY = "anthro-mock-size"; const SYN_SHARE = 0.4;
   let N = 50; try { const v = +localStorage.getItem(SIZE_KEY); if (SIZES.includes(v)) N = v } catch (e) { }
   const KEY = "anthro-mock-v1", HIST = "anthro-mock-history-v1";
   const $ = id => document.getElementById(id);
@@ -131,7 +131,10 @@
   function stopClock() { if (runFrom) { E.ms += Date.now() - runFrom; runFrom = 0 } clearInterval(tick); save() }
 
   function newExam() {
-    const pick = shuffle(BANK).slice(0, Math.min(N, BANK.length));
+    const isSyn = q => q.subject === "Putting it together";
+    const syn = shuffle(BANK.filter(isSyn)), rest = shuffle(BANK.filter(q => !isSyn(q)));
+    const total = Math.min(N, BANK.length), nSyn = Math.min(syn.length, Math.round(total * SYN_SHARE));
+    const pick = shuffle([...syn.slice(0, nSyn), ...rest.slice(0, total - nSyn), ...syn.slice(nSyn)].slice(0, total));
     E = { items: pick.map(q => ({ id: q.id, opts: shuffle([q.ok, ...q.wrong]) })), ans: pick.map(() => null), flag: pick.map(() => false), pos: 0, ms: 0, started: Date.now(), done: false };
     save(); paused = false; runFrom = 0; confirmOpen = false; render(true); window.scrollTo({ top: 0 });
   }
