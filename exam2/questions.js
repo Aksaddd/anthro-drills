@@ -477,4 +477,4 @@ const STUDY_PROMPT = { key: "anthro-class-v1", total: 149, title: "Study for Exa
   links: [{ href: "../classification/index.html", label: "Multiple choice" }, { href: "../classification/chart.html", label: "Drag-and-drop chart" }] };
 // Group by Source: sources ticked by default (the student's own choice replaces this once they change it)
 const SOURCE_PRESET = ["Top Hat (lecture)", "Brightspace Activity 5", "Brightspace Activity 4 (Life in Trees film)", "“Why Sex” film worksheet", "Practice, from the study guide", "Practice, from the lecture slides"];
-window.BANK = { mastery: true, sourcePreset: SOURCE_PRESET, title: "Anthro Exam 2 Drill", storageKey: "ant2-progress-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true, topics: SUBJECTS2, studyPrompt: STUDY_PROMPT };
+window.BANK = { mastery: true, sourcePreset: SOURCE_PRESET, title: "Anthro Exam 2 Multiple-Choice Drill", storageKey: "ant2-progress-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true, topics: SUBJECTS2, studyPrompt: STUDY_PROMPT };

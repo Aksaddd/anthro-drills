@@ -286,4 +286,4 @@ const SUBJECTS1=[
   {name:TOPIC1.FOR,short:"Forces of evolution",sub:"Mutation, gene flow, drift, founder effect, bottlenecks and sexual selection."}
 ];
 
-window.BANK={mastery:true,title:"Anthro Exam 1 Drill",storageKey:"ant1-progress-v2",decks:DECKS,ids:IDS,q:Q,img:IMG,topics:SUBJECTS1};
+window.BANK={mastery:true,title:"Anthro Exam 1 Multiple-Choice Drill",storageKey:"ant1-progress-v2",decks:DECKS,ids:IDS,q:Q,img:IMG,topics:SUBJECTS1};
