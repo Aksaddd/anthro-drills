@@ -27,7 +27,10 @@ const FIG = {
   jaws3: ["img/three-jaws.jpg", "Three lower jaws side by side: left, middle, right"],
   molars: ["img/molars-compare.jpg", "Two rows of molars: top and bottom"],
   dimorph: ["img/dimorphism-graph.jpg", "Bar graphs of male-to-female canine length and body weight by mating system"],
-  modes: ["img/speciation-modes.jpg", "Three rows showing Species A changing over time"]
+  modes: ["img/speciation-modes.jpg", "Three rows showing Species A changing over time"],
+  apSkull: ["img/ap-closure-skull.jpg", "Primate skull seen from the front: bony cups fully enclose the eyes"],
+  apPads: ["img/ap-callosities.jpg", "Two monkeys seen from behind, with large pads on their rumps"],
+  apNose: ["img/ap-proboscis.jpg", "Male proboscis monkey with a long nose hanging over his mouth"]
 };
 
 const DECKS = {
@@ -37,7 +40,8 @@ const DECKS = {
   LT: { name: "Activity 4", sub: "Brightspace Activity 4: the Life in Trees film." },
   CH: { name: "Chart", sub: "The Primate Classification worksheet: which level of the chart does each trait belong to?" },
   WS: { name: "Why Sex", sub: "Chimpanzees vs. bonobos, from the “Why Sex” film worksheet. Exam questions are drawn from it." },
-  PR: { name: "Practice", sub: "Every topic on the Exam 2 study guide, including picture questions." }
+  PR: { name: "Practice", sub: "Every topic on the Exam 2 study guide, including picture questions." },
+  AP: { name: "Anthro-pardy", sub: "The Exam 2 Anthro-pardy review game from class, turned into multiple choice." }
 };
 
 // ===== Top Hat =====
@@ -426,7 +430,41 @@ const SY = [
 ];
 SY.forEach(r => { r[5] = r[5] || ""; r[6] = "Putting it together" });
 
-const DATA = { TH, A5, CH, WS, PR, LT, SY };
+// Anthro-pardy: the in-class Exam 2 review game. Clue wording is the professor's; options were added to make it multiple choice.
+const AP = [
+["Anthro-pardy · How to make a Primate $100", "The most encephalized part of a primate brain is the", "Neocortex", ["Cerebellum", "Brain stem", "Olfactory bulb"], "Primates have large brains for their body size, and the expansion is mostly in the neocortex.", "", "Primate features & distribution"],
+["Anthro-pardy · How to make a Primate $200", "Lemurs rely more on their sense of smell than on vision, as indicated by this moist structure at the tip of the nose:", "Rhinarium", ["Tapetum lucidum", "Dental comb", "Post-orbital bar"], "The rhinarium is the wet, bare nose tip of strepsirrhines.", "", "Primate taxonomy"],
+["Anthro-pardy · How to make a Primate $300", "Living (non-captive) primates are found on these continents:", "Central & South America, Africa and Asia", ["Africa, Asia and Europe", "Africa, Asia and Australia", "Every continent except Antarctica"], "Wild primates live in the Americas (Central & South), Africa (including Madagascar) and Asia.", "", "Primate features & distribution"],
+["Anthro-pardy · How to make a Primate $400", "The bony protection around the entire orbit that distinguishes haplorrhines from strepsirrhines is called", "Post-orbital closure (plate)", ["Post-orbital bar", "Sagittal crest", "Mandibular symphysis"], "Haplorrhines have a closed bony cup behind the eye; strepsirrhines only have a thin bar.", "apSkull", "Primate taxonomy"],
+["Anthro-pardy · How to make a Primate $500", "According to this class, which of these is one of the factors that influence how big a primate social group can get and who is in it?", "Food availability and distribution", ["Whether the species has a prehensile tail", "The species' dental formula", "Whether the species has nails or claws"], "The class names food availability and distribution, predation pressure, and dispersal (female vs. male philopatry).", "", "Primate sociality"],
+["Anthro-pardy · Guess that Taxa! $100", "A primate with no tail, a modified scapula and clavicle for brachiating, and Y-5 molars can only belong to this taxonomic group:", "Hominoids (apes)", ["Cercopithecoids (OWM)", "Platyrrhines (NWM)", "Strepsirrhines"], "No tail + brachiating shoulders + Y-5 molars = apes.", "", "Primate taxonomy"],
+["Anthro-pardy · Guess that Taxa! $200", "A primate with a 2.1.3.3 dentition, post-orbital closure and a prehensile tail can only belong to this taxonomic group:", "Platyrrhines (NWM)", ["Cercopithecoids (OWM)", "Strepsirrhines", "Hominoids (apes)"], "Closure rules out strepsirrhines; three premolars and a prehensile tail mean New World monkey.", "", "Primate taxonomy"],
+["Anthro-pardy · Guess that Taxa! $300", "Hardened fleshy pads on the rear end (ischial callosities) are found pervasively in this primate group, although not only in it:", "Cercopithecoids (OWM)", ["Platyrrhines (NWM)", "Strepsirrhines", "Tarsiers"], "Old World monkeys have them throughout; gibbons have them too, which is why they aren't exclusive.", "apPads", "Primate taxonomy"],
+["Anthro-pardy · Guess that Taxa! $400", "A primate that is small, nocturnal, insectivorous and has a dental comb can only belong to this taxonomic group:", "Strepsirrhines", ["Haplorrhines", "Platyrrhines (NWM)", "Catarrhines"], "The dental comb is the giveaway: only strepsirrhines have one.", "", "Primate taxonomy"],
+["Anthro-pardy · Guess that Taxa! $500", "A primate with a 2.1.2.3 dentition can only belong to this taxonomic group:", "Catarrhines", ["Platyrrhines (NWM)", "Strepsirrhines", "Hominoids only"], "Two premolars = catarrhine: Old World monkeys and apes both have 2.1.2.3, so “hominoids only” is too narrow.", "", "Primate taxonomy"],
+["Anthro-pardy · The Essence of Primates $100", "In addition to nails and a reduced reliance on smell, this primate structural adaptation allows for binocular and stereoscopic (3D) vision:", "Convergent (forward-facing) orbits", ["A post-orbital bar", "A tapetum lucidum", "A moist rhinarium"], "Eyes facing forward overlap their fields of view, giving depth perception.", "", "Primate features & distribution"],
+["Anthro-pardy · The Essence of Primates $200", "This type of grip, where the pointer finger and thumb can pick up small objects, is found across many primate groups:", "Precision grip", ["Power grip", "Hook grip", "Prehensile-tail grip"], "Thumb-to-finger pinching for small objects.", "", "Primate features & distribution"],
+["Anthro-pardy · The Essence of Primates $300", "The window of time during which primate females are sexually receptive is known as", "Estrus", ["Gestation", "Lactation", "Weaning"], "Often advertised by sexual swellings in Old World monkeys and chimpanzees.", "", "Primate sociality"],
+["Anthro-pardy · The Essence of Primates $400", "Male chimpanzees remain in their natal group. This is another word for staying in one's natal group:", "Philopatry", ["Dispersal", "Infanticide", "Fission-fusion"], "Philo- (love) + patr- (homeland).", "", "Primate sociality"],
+["Anthro-pardy · The Essence of Primates $500", "These high-cusped teeth help cercopithecoids grind up leafy, fibrous foods, and set them apart from hominoid teeth:", "Bilophodont molars", ["Y-5 molars", "A dental comb", "Homodont teeth"], "Four cusps in two pairs, each pair joined by a ridge. Apes have Y-5 molars instead.", "", "Primate taxonomy"],
+["Anthro-pardy · Primates Behaving… Like Primates $100", "Many non-human primates spend a huge part of their day doing this, a behavior that acts as social cement, reinforces bonds and lowers stress in both the actor and the recipient:", "Grooming", ["Play", "Displays", "Foraging"], "Grooming is hygiene, but above all it builds and maintains relationships.", "", "Primate sociality"],
+["Anthro-pardy · Primates Behaving… Like Primates $200", "According to Life in the Trees, the Koshima macaques throwing unhusked rice and sand into sea water, across many generations, can be interpreted as", "Culture", ["Instinct", "Genetic drift", "Kin selection"], "A learned behavior passed on socially across generations.", "", "Primate sociality"],
+["Anthro-pardy · Primates Behaving… Like Primates $300", "A primate mating system that includes two males and one female caring for offspring:", "Polyandry", ["Polygyny", "Monogamy", "Polygynandry"], "Poly- (many) + -andry (males): one female, several males.", "", "Primate sociality"],
+["Anthro-pardy · Primates Behaving… Like Primates $400", "Chimpanzees (and other primates) have this foraging structure: a small subset of the community breaks off into a foraging party and, over time, returns to the larger community.", "Fission-fusion", ["A one-male unit", "A dominance hierarchy", "Pair bonding"], "Fission (split up) and fusion (come back together).", "", "Primate sociality"],
+["Anthro-pardy · Primates Behaving… Like Primates $500", "In single-male, multi-female groups, male-male competition for mates is fierce, so this degree of sexual dimorphism is expected:", "High", ["Low", "None at all", "Females larger than males"], "Fierce competition among males favors big males with big canines.", "", "Primate sociality"],
+["Anthro-pardy · Macroevolution $100", "A group of organisms separated by a land barrier may undergo this common type of speciation:", "Allopatric speciation", ["Sympatric speciation", "Peripatric speciation", "Anagenesis"], "Allo- (other) + patr- (homeland): a barrier splits the population.", "", "Macroevolution & speciation"],
+["Anthro-pardy · Macroevolution $200", "This concept defines a species as a group of interbreeding individuals naturally reproductively isolated from other groups (they cannot reproduce, or produce sterile hybrids):", "The Biological Species Concept", ["The Morphological Species Concept", "The Ecological Species Concept", "The Phylogenetic Species Concept"], "Defined by reproductive isolation, which is why it can't be applied to fossils.", "", "Macroevolution & speciation"],
+["Anthro-pardy · Macroevolution $300", "One pattern of speciation involves species A gradually evolving into species B; this contrasts with species A evolving into two or more different species. The first pattern is", "Anagenesis", ["Cladogenesis", "Adaptive radiation", "Punctuated equilibrium"], "Ana-genesis: change along one line, with no split. A splitting into two or more is cladogenesis.", "", "Macroevolution & speciation"],
+["Anthro-pardy · Macroevolution $400", "The pace of evolution characterized by long periods of stasis followed by rapid evolutionary change is called", "Punctuated equilibrium", ["Gradualism", "Anagenesis", "Uniformitarianism"], "Long stasis, then bursts of change.", "", "Macroevolution & speciation"],
+["Anthro-pardy · Macroevolution $500", "This type of speciation involves a spontaneous mutation within an individual, preventing gene flow with the parent population:", "Sympatric speciation", ["Allopatric speciation", "Peripatric speciation", "Adaptive radiation"], "Sym- (same) + patr- (homeland): isolation without moving away, like the slough crayfish.", "", "Macroevolution & speciation"],
+["Anthro-pardy · Primate Fitness Regime $100", "Offspring of these females have better survival and growth rates:", "High-ranking females", ["Low-ranking females", "Females who left their natal group", "The youngest females in the group"], "High rank brings better access to food and support.", "", "Primate sociality"],
+["Anthro-pardy · Primate Fitness Regime $200", "The prevailing evolutionary explanation for why some primates engage in a behavior that benefits another at an increased risk to themselves is called", "The kin selection hypothesis", ["The sexual selection hypothesis", "The display hypothesis", "The fission-fusion hypothesis"], "Helping relatives passes on shared genes.", "", "Primate sociality"],
+["Anthro-pardy · Primate Fitness Regime $300", "Male proboscis monkeys have an elongated nose that hangs over the mouth. Females may prefer large noses and the louder calls they produce. If so, the nose evolved through this mechanism:", "Sexual selection", ["Genetic drift", "Kin selection", "Artificial selection"], "Selection driven by mate choice: a trait spreads because the other sex prefers it.", "apNose", "Primate sociality"],
+["Anthro-pardy · Primate Fitness Regime $400", "The killing of a nursing infant by males (infanticide) serves this function:", "It speeds the mother's return to estrus", ["It lowers competition among siblings", "It lets the mother save her energy", "It removes sick infants from the group"], "Nursing suppresses ovulation; without an infant, the mother becomes receptive sooner and the new male can sire her next offspring.", "", "Primate sociality"],
+["Anthro-pardy · Primate Fitness Regime $500", "A behavior that benefits another individual at a cost to oneself is called", "Altruism", ["Kin selection", "Philopatry", "Infanticide"], "Kin selection is one explanation for altruism, not the behavior itself.", "", "Primate sociality"]
+];
+
+const DATA = { TH, A5, CH, WS, PR, LT, SY, AP };
 
 // ===== Topics for the Progress tab (match the study guide's sections)
 // A new question gets its topic from its tag. Tags not listed fall back to the tab's name.
@@ -454,7 +492,7 @@ for (const d in DECKS) {
   });
 }
 // Origin labels shown on each question
-DECKS.TH.src = "Top Hat (lecture)"; DECKS.A5.src = "Brightspace Activity 5"; DECKS.CH.src = "Primate Classification worksheet"; DECKS.WS.src = "“Why Sex” film worksheet"; DECKS.LT.src = "Brightspace Activity 4 (Life in Trees film)"; DECKS.SY.src = "Practice: putting it together (connects lectures)"; DECKS.PR.src = "Practice, from the study guide";
+DECKS.AP.src = "Anthro-pardy Exam 2 review (in-class game)"; DECKS.TH.src = "Top Hat (lecture)"; DECKS.A5.src = "Brightspace Activity 5"; DECKS.CH.src = "Primate Classification worksheet"; DECKS.WS.src = "“Why Sex” film worksheet"; DECKS.LT.src = "Brightspace Activity 4 (Life in Trees film)"; DECKS.SY.src = "Practice: putting it together (connects lectures)"; DECKS.PR.src = "Practice, from the study guide";
 // Subject tabs, in study-guide order
 const SUBJECTS2 = [
   { name: "Macroevolution & speciation", short: "Speciation", sub: "Species concepts, gradualism vs. punctuated equilibrium, modes and types of speciation, extinction." },
@@ -476,5 +514,5 @@ const STUDY_PROMPT = { key: "anthro-class-v1", total: 149, title: "Study for Exa
   text: "The chart is on the Exam 2 study guide. Practice it in the Classification drill, then test yourself with the drag-and-drop chart.",
   links: [{ href: "../classification/index.html", label: "Multiple choice" }, { href: "../classification/chart.html", label: "Drag-and-drop chart" }] };
 // Group by Source: sources ticked by default (the student's own choice replaces this once they change it)
-const SOURCE_PRESET = ["Top Hat (lecture)", "Brightspace Activity 5", "Brightspace Activity 4 (Life in Trees film)", "“Why Sex” film worksheet", "Practice, from the study guide", "Practice, from the lecture slides"];
+const SOURCE_PRESET = ["Top Hat (lecture)", "Anthro-pardy Exam 2 review (in-class game)", "Brightspace Activity 5", "Brightspace Activity 4 (Life in Trees film)", "“Why Sex” film worksheet", "Practice, from the study guide", "Practice, from the lecture slides"];
 window.BANK = { mastery: true, sourcePreset: SOURCE_PRESET, title: "Anthro Exam 2 Multiple-Choice Drill", storageKey: "ant2-progress-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true, topics: SUBJECTS2, studyPrompt: STUDY_PROMPT };
