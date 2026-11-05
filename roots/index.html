@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Word Roots · ANTH 102</title>
+<meta name="description" content="The Greek and Latin word parts behind ANTH 102 terms, organized by exam, with a quick quiz.">
+<meta name="theme-color" content="#2a46cf">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="../assets/drill.css">
+<style>
+/* Layout: header → exam switch (Exam 1 / Exam 2) → search + Quiz me → roots grouped by theme.
+   Quiz mode replaces the list with one question card at a time (10 per round). */
+.xtabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.xtab{border:1.5px solid var(--line);background:var(--paper);border-radius:14px;padding:12px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.xtab b{font:800 18px var(--display)}
+.xtab span{font:500 12.5px var(--mono);color:var(--muted)}
+.xtab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.xtab[aria-selected="true"] span{color:var(--accent-ink);opacity:.85}
+.tools{display:flex;gap:8px;align-items:center}
+.search{flex:1;min-width:0;font:calc(15px * var(--rs)) var(--read);padding:11px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink)}
+.search:focus{outline:none;border-color:var(--accent)}
+.jump{display:flex;flex-wrap:wrap;gap:6px}
+.jump a{font:500 12.5px var(--body);color:var(--accent);background:var(--accent-soft);padding:4px 10px;border-radius:999px;text-decoration:none}
+.grp h2{font:800 20px var(--display);margin:10px 0 8px;scroll-margin-top:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.root{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px}
+.rt{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.rt b{font:600 calc(19px * var(--rs)) var(--mono);color:var(--accent)}
+.rt .mean{font:600 calc(16px * var(--rs)) var(--read)}
+.orig{font-size:12.5px;color:var(--muted);font-style:italic}
+.ex{margin:2px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;font-size:calc(14.5px * var(--rs))}
+.ex li{border-top:1px dashed var(--line);padding-top:5px}
+.ex .term{font-weight:600}
+.ex mark{background:var(--gold-soft);color:inherit;border-radius:3px;padding:0 1px;box-shadow:inset 0 -2px 0 var(--gold)}
+.none{text-align:center;color:var(--muted);padding:24px 0}
+.tip{background:var(--gold-soft);border:1px solid #ecd9ae;border-radius:14px;padding:12px 16px;font-size:calc(14.5px * var(--rs))}
+.qtop{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13.5px;color:var(--muted)}
+.qbig{font:600 calc(19px * var(--rs))/1.4 var(--read);margin:0}
+.qbig code{font:600 1.05em var(--mono);color:var(--accent)}
+.fb{font-size:calc(14.5px * var(--rs));color:var(--muted)}
+.score{font:800 44px var(--display);margin:0}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+</style>
+</head><body>
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:6px">
+    <a class="back" href="../index.html">← All drills</a>
+    <h1>Word Roots</h1>
+    <p class="sub">Most course terms are built from a few Greek and Latin parts. Learn the parts and you can work out what a word means, even one you haven't memorized.</p>
+  </header>
+  <div class="xtabs" role="tablist" id="xtabs"></div>
+  <main id="app" style="display:flex;flex-direction:column;gap:12px"></main>
+  <p class="foot">Root meanings are standard Greek and Latin etymologies. The example terms all come from the course material for that exam.</p>
+</div>
+<script src="roots.js"></script>
+<script>
+(() => {
+  const R = window.ROOTS, EX = Object.keys(R), KEY = "anthro-roots-tab";
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const shuffle = a => { a = a.slice(); for (let k = a.length - 1; k > 0; k--) { const j = Math.random() * (k + 1) | 0; [a[k], a[j]] = [a[j], a[k]] } return a };
+  let ex = EX.includes(localStorage.getItem(KEY)) ? localStorage.getItem(KEY) : "exam2", query = "", quiz = null;
+
+  // Reading settings from the drills apply here too
+  try {
+    const r = JSON.parse(localStorage.getItem("anthro-reading") || "null");
+    const stacks = { atkinson: ['"Atkinson Hyperlegible Next",system-ui,sans-serif', "https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&display=swap"], literata: ['Literata,Georgia,serif', "https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;600;700&display=swap"], system: ['system-ui,-apple-system,"Segoe UI",Roboto,sans-serif'] };
+    if (r && stacks[r.font]) { const [st, href] = stacks[r.font]; if (href) { const l = document.createElement("link"); l.rel = "stylesheet"; l.href = href; document.head.appendChild(l) } document.documentElement.style.setProperty("--read", st) }
+    if (r && [.9, 1, 1.12, 1.25][r.size]) document.documentElement.style.setProperty("--rs", [.9, 1, 1.12, 1.25][r.size]);
+  } catch (e) { }
+
+  const all = e => R[e].groups.flatMap(([g, rows]) => rows.map(([root, mean, orig, exs]) => ({ g, root, mean, orig, exs })));
+  // The letters of a root to highlight inside a term: "rhin- / -rrhine" → ["rrhin", "rhin"]
+  const keys = root => root.split(/[/ ]/).map(s => s.replace(/[^a-zA-Z]/g, "").toLowerCase()).filter(s => s.length > 1).sort((a, b) => b.length - a.length);
+  function mark(term, root) {
+    const low = term.toLowerCase();
+    for (let k of keys(root)) {
+      // try the full root, then drop a final vowel (chromo- → chrom in "chromatid")
+      for (const t of [k, k.replace(/[aeiouy]$/, "")]) {
+        const i = t.length > 1 ? low.indexOf(t) : -1;
+        if (i >= 0) return esc(term.slice(0, i)) + "<mark>" + esc(term.slice(i, i + t.length)) + "</mark>" + esc(term.slice(i + t.length));
+      }
+    }
+    return esc(term);
+  }
+
+  function tabs() {
+    $("xtabs").innerHTML = EX.map(e => `<button class="xtab" role="tab" aria-selected="${e === ex}" data-e="${e}"><b>${esc(R[e].name)}</b><span>${all(e).length} roots</span></button>`).join("");
+    $("xtabs").querySelectorAll(".xtab").forEach(b => b.onclick = () => { ex = b.dataset.e; localStorage.setItem(KEY, ex); quiz = null; query = ""; tabs(); list() });
+  }
+
+  function list() {
+    const q = query.trim().toLowerCase();
+    const hit = r => !q || [r.root, r.mean, r.orig, ...r.exs.flat()].join(" ").toLowerCase().includes(q);
+    const groups = R[ex].groups.map(([g]) => [g, all(ex).filter(r => r.g === g && hit(r))]).filter(([, rs]) => rs.length);
+    const slug = g => "g-" + g.toLowerCase().replace(/[^a-z]+/g, "-");
+    $("app").innerHTML = `
+      <p class="sub">${esc(R[ex].sub)}</p>
+      <div class="tip"><b>How to use it:</b> split a new word into its parts. <i>Platy-</i> (flat) + <i>-rrhine</i> (nose) = flat-nosed. <i>Allo-</i> (other) + <i>patr-</i> (homeland) = speciation in another place.</div>
+      <div class="tools"><input class="search" id="search" type="search" placeholder="Search a root, meaning or term…" value="${esc(query)}" aria-label="Search roots"><button class="btn" id="quizBtn" type="button">Quiz me</button></div>
+      ${q ? "" : `<nav class="jump" aria-label="Jump to a section">${groups.map(([g]) => `<a href="#${slug(g)}">${esc(g)}</a>`).join("")}</nav>`}
+      ${groups.length ? groups.map(([g, rs]) => `<section class="grp"><h2 id="${slug(g)}">${esc(g)}</h2><div class="grid">${rs.map(card).join("")}</div></section>`).join("") : `<p class="none">No roots match “${esc(query)}”.</p>`}`;
+    const s = $("search");
+    s.oninput = () => { query = s.value; const pos = s.selectionStart; list(); const n = $("search"); n.focus(); n.setSelectionRange(pos, pos) };
+    $("quizBtn").onclick = startQuiz;
+  }
+  const card = r => `<article class="root"><div class="rt"><b>${esc(r.root)}</b><span class="mean">${esc(r.mean)}</span></div><span class="orig">${esc(r.orig)}</span><ul class="ex">${r.exs.map(([t, m]) => `<li><span class="term">${mark(t, r.root)}</span>: ${esc(m)}</li>`).join("")}</ul></article>`;
+
+  // ===== Quiz: 10 questions, half "what does this root mean?" and half "which root means…?"
+  const STOP = new Set(["a", "an", "the", "of", "to", "on", "and", "or", "by", "for", "from", "it", "its", "ending", "latin", "greek"]);
+  const words = m => new Set(m.toLowerCase().split(/[^a-z]+/).filter(w => w && !STOP.has(w)));
+  const clash = (a, b) => { const A = words(a.mean); return [...words(b.mean)].some(w => A.has(w)) };   // e.g. allo- and altru- both mean "other"
+  function startQuiz() {
+    const pool = all(ex);
+    quiz = { i: 0, right: 0, items: shuffle(pool).slice(0, 10).map((r, k) => {
+      const others = shuffle(pool.filter(o => o !== r && !clash(o, r)));
+      const picks = [];
+      for (const o of others) { if (picks.length === 3) break; if (!picks.some(p => clash(p, o))) picks.push(o) }
+      return { r, dir: k % 2, opts: shuffle([r, ...picks]) };
+    }) };
+    ask();
+  }
+  function ask() {
+    const it = quiz.items[quiz.i], { r, dir } = it;
+    const ex1 = r.exs[0];
+    $("app").innerHTML = `<article class="card">
+      <div class="qtop"><span>${esc(R[ex].name)} roots · Question ${quiz.i + 1} of ${quiz.items.length}</span><button class="chip" id="quit" type="button">Back to the list</button></div>
+      <p class="qbig">${dir ? `Which root means “${esc(r.mean)}”?` : `What does <code>${esc(r.root)}</code> mean?`}</p>
+      <div class="opts">${it.opts.map((o, k) => `<button class="opt" data-k="${k}" type="button"><span class="bub">${"ABCD"[k]}</span><span>${esc(dir ? o.root : o.mean)}</span></button>`).join("")}</div>
+      <p class="fb" id="fb" hidden>As in <b>${mark(ex1[0], r.root)}</b>: ${esc(ex1[1])}.</p>
+      <div class="row"><button class="btn" id="next" type="button" hidden>${quiz.i + 1 < quiz.items.length ? "Next" : "See my score"}</button></div>
+    </article>`;
+    $("quit").onclick = () => { quiz = null; list() };
+    document.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+      const pick = it.opts[+b.dataset.k], ok = pick === r;
+      if (ok) quiz.right++;
+      document.querySelectorAll(".opt").forEach(x => { x.disabled = true; const o = it.opts[+x.dataset.k]; if (o === r) x.classList.add("right"); else if (x === b) x.classList.add("wrong") });
+      $("fb").hidden = false; $("next").hidden = false; $("next").focus();
+    });
+    $("next").onclick = () => { quiz.i++; quiz.i < quiz.items.length ? ask() : done() };
+  }
+  function done() {
+    const { right, items } = quiz;
+    $("app").innerHTML = `<article class="card" style="align-items:flex-start">
+      <p class="sub">${esc(R[ex].name)} roots quiz</p><p class="score">${right} / ${items.length}</p>
+      <p class="fb">${right === items.length ? "Every one right." : "Look over the roots you missed in the list, then try a new round."}</p>
+      <div class="row"><button class="btn" id="again" type="button">New round</button><button class="btn ghost" id="back" type="button">Back to the list</button></div></article>`;
+    $("again").onclick = startQuiz; $("back").onclick = () => { quiz = null; list() };
+  }
+
+  tabs(); list();
+})();
+</script>
+</body></html>
