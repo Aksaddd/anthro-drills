@@ -16,6 +16,9 @@
   const imgOf = id => Q[id].img || (B.img && B.img[id]) || null;
   const topicOf = id => Q[id].topic || SRC[Q[id].d].name;
   const isProf = src => !/^Practice/i.test(String(src));   // every source except the practice sets came straight from the professor
+  // Practice questions were written from the professor's material: say which
+  const basedOn = src => { src = String(src); if (!/^Practice/i.test(src)) return ""; return /study guide/i.test(src) ? "the professor's study guide" : /lecture slides/i.test(src) ? "the lecture slides" : /worksheet/i.test(src) ? "the professor's worksheet" : "class material" };
+  const basedBadge = src => basedOn(src) ? `<span class="based" title="Written for this site from ${basedOn(src)}">☆ Based on ${basedOn(src)}</span>` : "";
   const srcOf = id => Q[id].src || SRC[Q[id].d].src || SRC[Q[id].d].name;
   const shuffle = a => { a = a.slice(); for (let k = a.length - 1; k > 0; k--) { const j = Math.random() * (k + 1) | 0; [a[k], a[j]] = [a[j], a[k]] } return a };
   const pct = (c, a) => a ? Math.round(c / a * 100) : 0;
@@ -303,7 +306,7 @@
     pk.hidden = !on || tabsCollapsed;
     if (!on) return;
     pk.innerHTML = `<div class="sp-head"><b>Pick sources to practice together</b><span>${SOURCES.some(g => isProf(g.name)) && SOURCES.some(g => !isProf(g.name)) ? `<button type="button" class="chip" id="spProf">★ Professor's only</button>` : ""}<button type="button" class="chip" id="spAll">Select all</button><button type="button" class="chip" id="spNone">Clear</button></span></div>
-      <div class="sp-list">${SOURCES.map((g, i) => { const s = sumUp(g.ids), left = srcLeft(g).length; return `<label class="sp-row"><input type="checkbox" data-i="${i}"${srcSel.has(g.name) ? " checked" : ""}><span class="sp-name">${esc(g.name)}${isProf(g.name) ? ` <span class="prof sm">★ Professor</span>` : ""}</span><span class="sp-n">${MASTERY && s.n.mastered ? `${left} left · ${s.n.mastered} mastered` : `${s.seen}/${s.total} answered`}</span><span class="mini">${segs(s.n)}</span></label>` }).join("")}</div>
+      <div class="sp-list">${SOURCES.map((g, i) => { const s = sumUp(g.ids), left = srcLeft(g).length; return `<label class="sp-row"><input type="checkbox" data-i="${i}"${srcSel.has(g.name) ? " checked" : ""}><span class="sp-name">${esc(g.name)}${isProf(g.name) ? ` <span class="prof sm">★ Professor</span>` : basedOn(g.name) ? ` <span class="based sm">☆ Based on ${basedOn(g.name)}</span>` : ""}</span><span class="sp-n">${MASTERY && s.n.mastered ? `${left} left · ${s.n.mastered} mastered` : `${s.seen}/${s.total} answered`}</span><span class="mini">${segs(s.n)}</span></label>` }).join("")}</div>
       <button type="button" class="btn" id="spGo"></button>`;
     const keep = () => { try { localStorage.setItem(SEL_KEY, JSON.stringify([...srcSel])) } catch (e) { } paintGoBtn() };
     pk.querySelectorAll("input[data-i]").forEach(c => c.onchange = () => { const n = SOURCES[+c.dataset.i].name; c.checked ? srcSel.add(n) : srcSel.delete(n); keep() });
@@ -365,7 +368,7 @@
   }
   function wireZoom() { $("card").querySelectorAll(".zoom").forEach(b => b.onclick = () => openLightbox(b.dataset.src, b.dataset.alt)) }
   function metaRow(id, right) {
-    return `<div class="meta"><span class="meta-l">${isProf(srcOf(id)) ? `<span class="prof" title="This question comes straight from the professor's course materials">★ From the professor</span>` : ""}<span class="origin">Source: ${esc(srcOf(id))}</span><span>${esc(Q[id].tag)}</span></span>${right}</div>`;
+    return `<div class="meta"><span class="meta-l">${basedBadge(srcOf(id))}${isProf(srcOf(id)) ? `<span class="prof" title="This question comes straight from the professor's course materials">★ From the professor</span>` : ""}<span class="origin">Source: ${esc(srcOf(id))}</span><span>${esc(Q[id].tag)}</span></span>${right}</div>`;
   }
   // Bottom navigation: Previous on the left, the forward action on the right.
   function navBar(fwdLabel, fwdId, ghostFwd) {
@@ -376,7 +379,7 @@
 
   // ===== Main paint
   // Before a student's first round: with Source view on, show the picker and a start card instead of a question.
-  const notStarted = () => groupBy === "source" && S.deck !== "FOCUS" && S.deck !== "MISSED" && !Object.keys(S.stats).length;
+  const notStarted = () => !!B.sourcePreset && groupBy === "source" && S.deck !== "FOCUS" && S.deck !== "MISSED" && !Object.keys(S.stats).length;
   function paintStart() {
     if (!S.rounds[S.deck]) newRound(S.deck);
     paintChrome(); answered = false;

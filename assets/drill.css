@@ -330,3 +330,5 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 .optdeck input{width:20px;height:20px;accent-color:var(--accent);margin:0}
 .optdeck b{color:var(--ink)}
 .optdeck .sublink{grid-column:2;text-decoration:none;font-size:13.5px}
+.based{text-transform:none;letter-spacing:0;display:inline-flex;align-items:center;font:600 11.5px/1.2 var(--body);color:#7a6a4a;background:transparent;border:1px dashed #d9c69c;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.based.sm{font-size:10.5px;padding:2px 7px;vertical-align:2px;margin-left:4px;white-space:normal}
