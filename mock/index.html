@@ -101,6 +101,7 @@
 </div>
 <div class="paused-cover" id="pausedCover" hidden><div><strong>Paused</strong><span class="sub">The timer is stopped and the questions are hidden.</span><button class="btn" id="resumeBtn"><span>Resume</span></button></div></div>
 <div class="lightbox" id="lightbox" hidden><img id="lbImg" alt=""><button id="lbClose" type="button">Close</button></div>
+<script src="../assets/glossary.js"></script>
 <script src="bank.js"></script>
 <script>
 (() => {
@@ -108,6 +109,7 @@
   // Practice questions were written from the professor's material: say which
   const basedOn = src => { src = String(src); if (!/^Practice/i.test(src)) return ""; return /study guide/i.test(src) ? "the professor's study guide" : /lecture slides/i.test(src) ? "the lecture slides" : /worksheet/i.test(src) ? "the professor's worksheet" : "class material" };
   const basedBadge = src => basedOn(src) ? `<span class="based" title="Written for this site from ${basedOn(src)}">✎ Based on ${basedOn(src)}</span>` : "";
+  const whyNot = t => { const d = window.GLOSS && window.GLOSS.look(t); return d ? `<span class="whynot"><b>Why not “${esc(String(t).replace(/<[^>]*>/g, ""))}”?</b> ${esc(d)}</span>` : "" };
   const BANK = window.MOCK_BANK, SIZES = [50, 100], PASS = 90, SIZE_KEY = "anthro-mock-size"; const SYN_SHARE = 0.4;
   let N = 50; try { const v = +localStorage.getItem(SIZE_KEY); if (SIZES.includes(v)) N = v } catch (e) { }
   const KEY = "anthro-mock-v1", HIST = "anthro-mock-history-v1";
@@ -274,7 +276,7 @@
             <p class="q">${esc(r.q.q)}</p>
             ${r.q.img ? `<figure class="fig"><img src="${r.q.img[0]}" alt="${esc(r.q.img[1])}"></figure>` : ""}
             <div class="mini-opts">${r.it.opts.map((t, j) => `<div class="${t === r.q.ok ? "r" : j === r.a ? "w" : ""}">${"ABCDE"[j]}. ${esc(t)}${t === r.q.ok ? " ✓" : j === r.a ? " (your answer)" : ""}</div>`).join("")}${r.a === null ? `<div class="w">Not answered</div>` : ""}</div>
-            ${r.q.ex ? `<div class="explain ${r.ok ? "good" : "bad"}">${esc(r.q.ex)}</div>` : ""}
+            ${r.q.ex || (!r.ok && r.a !== null) ? `<div class="explain ${r.ok ? "good" : "bad"}">${r.q.ex ? `<span class="exwhy"><b>Why:</b> ${esc(r.q.ex)}</span>` : ""}${!r.ok && r.a !== null ? whyNot(r.it.opts[r.a]) : ""}</div>` : ""}
           </article>`).join("") : `<p class="hint">Nothing here.</p>`}</div>
       </section>`;
     $("again").onclick = newExam;

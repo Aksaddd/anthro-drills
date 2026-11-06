@@ -81,12 +81,12 @@
   // each position is either unanswered (live question) or answered (read-only review).
   const L = B.storageKey;
   let S = fresh(), missed = new Set(), answered = false, view = "deck", curOpts = null, autoTimer = null, menuOpen = false;
-  function fresh() { return { v: 2, updatedAt: 0, deck: FIRST, shuffle: true, onlyMissed: false, auto: true, missed: [], hist: {}, stats: {}, log: {}, mark: {}, days: {}, rounds: {}, focus: null } }
+  function fresh() { return { v: 2, updatedAt: 0, deck: FIRST, shuffle: true, onlyMissed: false, auto: false, autoV2: true, missed: [], hist: {}, stats: {}, log: {}, mark: {}, days: {}, rounds: {}, focus: null } }
   const pool = d => d === "FOCUS" ? (S.focus ? S.focus.ids : []) : d === "MISSED" ? ALL.filter(id => missed.has(id)) : IDS[d];
   function apply(s) {
     if (!s || s.v !== 2) return false;
     const n = fresh();
-    n.updatedAt = s.updatedAt || 0; n.shuffle = s.shuffle !== false; n.onlyMissed = false; n.auto = s.auto !== false;   // onlyMissed is retired: the Missed tab replaces it
+    n.updatedAt = s.updatedAt || 0; n.shuffle = s.shuffle !== false; n.onlyMissed = false; n.auto = s.autoV2 ? s.auto === true : false; n.autoV2 = true;   // onlyMissed is retired: the Missed tab replaces it
     n.missed = (s.missed || []).filter(id => Q[id]);
     for (const k in (s.hist || {})) if (Q[k]) n.hist[k] = s.hist[k] ? 1 : 0;
     for (const k in (s.stats || {})) if (Q[k] && Array.isArray(s.stats[k])) n.stats[k] = [s.stats[k][0] | 0, s.stats[k][1] | 0];
@@ -431,6 +431,12 @@
     wireZoom();
   }
 
+  // After every answer: why the right answer is right, and (when wrong) what the picked option actually means.
+  function explainHTML(id, pickedText, good, lead) {
+    const x = Q[id], why = window.GLOSS && !good ? window.GLOSS.look(pickedText) : null;
+    const ex = String(x.ex || "").trim();
+    return `<div class="explain ${good ? "good" : "bad"}"><strong>${lead}</strong>${ex ? `<span class="exwhy"><b>Why:</b> ${txt(ex)}</span>` : ""}${why ? `<span class="whynot"><b>Why not “${esc(plain(pickedText))}”?</b> ${esc(why)}</span>` : ""}</div>`;
+  }
   function pick(b, id, pickedIdx) {
     if (answered) return; answered = true;
     const x = Q[id], r = R(), good = b.dataset.c === "true", now = Date.now();
@@ -444,7 +450,7 @@
     save(); paintChrome();
     const sq = $("map").querySelector(`[data-k="${r.pos}"]`); if (sq) sq.classList.add("just");
     const more = nextUnanswered(r, r.pos) >= 0;
-    $("fb").innerHTML = `<div class="explain ${good ? "good" : "bad"}"><strong>${good ? "Correct." : "Answer: " + txt(x.ok)}</strong>${txt(x.ex || "")}</div>
+    $("fb").innerHTML = `${explainHTML(id, curOpts[pickedIdx].t, good, good ? "Correct!" : "Not quite. The answer is: " + txt(x.ok))}
       ${!good && !flagged(id) ? `<p class="lvnote">Want to come back to this one? Mark it for review below.</p>` : ""}
       ${navBar(more ? "Next question →" : "See results →", "next")}`;
     const mr = $("card").querySelector(".marks"); if (mr) { mr.outerHTML = marksRow(id); wireMarks(id) }
@@ -475,7 +481,7 @@
     c.innerHTML = `${metaRow(id, `<span class="revtag">Answered · ${k + 1} / ${r.order.length}</span>`)}
       <p class="q">${txt(x.q)}</p>${figure(id)}
       <div class="opts">${e.o.map((t, j) => `<button class="opt${j === e.c ? " right" : ""}${j === e.p ? " picked" : ""}${j === e.p && j !== e.c ? " wrong" : ""}" disabled><span class="bub">${"ABCDE"[j]}</span><span>${txt(t)}</span></button>`).join("")}</div>
-      <div class="explain ${e.p === e.c ? "good" : "bad"}"><strong>${e.p === e.c ? "You got this one right." : "You picked " + "ABCDE"[e.p] + ". Answer: " + txt(x.ok)}</strong>${txt(x.ex || "")}</div>
+      ${explainHTML(id, e.o[e.p], e.p === e.c, e.p === e.c ? "You got this one right." : "You picked " + "ABCDE"[e.p] + ". The answer is: " + txt(x.ok))}
       <p class="hint">Already answered in this round, so it can't be changed.</p>
       ${marksRow(id)}
       ${navBar(isLast ? lastLabel(r) : "Next →", "fwdBtn")}`;

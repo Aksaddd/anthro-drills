@@ -47,6 +47,7 @@
 </div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <div class="lightbox" id="lightbox" hidden><img id="lbImg" alt=""><button id="lbClose" type="button">Close</button></div>
+<script src="../assets/glossary.js"></script>
 <script src="bank.js"></script>
 <script>
 (() => {
@@ -54,6 +55,7 @@
   // Practice questions were written from the professor's material: say which
   const basedOn = src => { src = String(src); if (!/^Practice/i.test(src)) return ""; return /study guide/i.test(src) ? "the professor's study guide" : /lecture slides/i.test(src) ? "the lecture slides" : /worksheet/i.test(src) ? "the professor's worksheet" : "class material" };
   const basedBadge = src => basedOn(src) ? `<span class="based" title="Written for this site from ${basedOn(src)}">✎ Based on ${basedOn(src)}</span>` : "";
+  const whyNot = t => { const d = window.GLOSS && window.GLOSS.look(t); return d ? `<span class="whynot"><b>Why not “${esc(String(t).replace(/<[^>]*>/g, ""))}”?</b> ${esc(d)}</span>` : "" };
   const RB = window.REVIEW_BANK, DRILLS = Object.keys(RB);
   // ?exam=1 or ?exam=2: show only that exam's drills (Exam 2 = the Exam 2 and Classification drills, incl. mock-exam flags)
   const EXAM = new URLSearchParams(location.search).get("exam");
@@ -168,7 +170,7 @@
       b.classList.add("picked", good ? "pop" : "shake"); if (!good) b.classList.add("wrong");
       if (good) quiz.right++;
       record(x, good);
-      $("fb").innerHTML = `<div class="explain ${good ? "good" : "bad"}"><strong>${good ? "Correct." : "Answer: " + txt(x.d, x.q.ok)}</strong>${txt(x.d, x.q.ex || "")}</div>
+      $("fb").innerHTML = `<div class="explain ${good ? "good" : "bad"}"><strong>${good ? "Correct!" : "Not quite. The answer is: " + txt(x.d, x.q.ok)}</strong>${x.q.ex ? `<span class="exwhy"><b>Why:</b> ${txt(x.d, x.q.ex)}</span>` : ""}${!good ? whyNot(opts[j]) : ""}</div>
         <div class="nav">${good ? `<button class="mk mk-review" aria-pressed="true" id="rmNow">⚑ Remove from review</button>` : `<span class="hint">Kept on your review list.</span>`}<button class="btn" id="nextQ"><span>${i + 1 < list.length ? "Next →" : "Finish"}</span></button></div>`;
       if ($("rmNow")) $("rmNow").onclick = () => { unflag(x); $("rmNow").outerHTML = `<span class="hint">Removed from review.</span>` };
       $("nextQ").onclick = () => { quiz.i++; renderQuiz() }; $("nextQ").focus({ preventScroll: true });

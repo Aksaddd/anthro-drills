@@ -137,4 +137,45 @@ CH.forEach((r, n) => { const id = "CH" + n;
   if (n >= 36) Q[id].src = "Practice, built from the worksheet's answer key";   // CH0–CH35 are the worksheet itself
   IDS.CH.push(id) });
 const PROMO = { eyebrow: "Drag and drop", title: "Build the chart yourself", text: "Drag each worksheet trait onto the classification chart: order, suborders, infraorders and superfamilies. The best way to check you know it before Exam 2.", href: "chart.html", label: "Open the drag-and-drop chart" };
+// Explanations for questions that had none (shown after every answer)
+const MORE_EXC = {
+"CH0": "Grasping (prehensile) hands and feet are shared by every primate, so they go at the top of the chart: Order Primates.",
+"CH1": "Opposable thumbs are a general primate trait, listed under Order Primates.",
+"CH2": "Nails instead of claws, and fingerprint ridges (dermatoglyphs), are shared by all primates: Order Primates.",
+"CH3": "Forward-facing eyes give all primates binocular, stereoscopic (3D) vision: Order Primates.",
+"CH4": "Strepsirrhines (lemurs, lorises, galagos) have a moist rhinarium at the tip of the nose: the \"wet-nose\" primates.",
+"CH5": "Strepsirrhines have only a thin bony bar behind the eye. Haplorrhines have full post-orbital closure.",
+"CH6": "The dental comb, forward-tilted lower incisors and canines used for grooming, is a strepsirrhine trait.",
+"CH7": "The tapetum lucidum, a reflective layer behind the retina for night vision, is a strepsirrhine trait; haplorrhines lack it.",
+"CH8": "Strepsirrhines have a 2.1.3.3 dental formula: 2 incisors, 1 canine, 3 premolars and 3 molars in each quarter of the mouth.",
+"CH9": "Haplorrhines (tarsiers, monkeys and apes) have a dry nose with no rhinarium: the \"dry-nose\" primates.",
+"CH10": "Haplorrhines have a bony plate that closes off the back of the eye socket: post-orbital closure.",
+"CH11": "Haplorrhines rely more on vision and less on smell than strepsirrhines do.",
+"CH12": "Lemurs (Lemuriformes) live only on Madagascar.",
+"CH13": "Tarsiers used to be grouped with lemurs and lorises as prosimians; now they are haplorrhines, in Tarsiiformes.",
+"CH14": "Each tarsier eye is about as big as its brain: they hunt at night without a tapetum lucidum.",
+"CH15": "Platyrrhine means \"flat nose\": New World monkeys have broad nostrils facing sideways.",
+"CH16": "New World monkeys (platyrrhines) live in Central and South America.",
+"CH17": "Only some New World monkeys, like spider and howler monkeys, have a grasping (prehensile) tail.",
+"CH18": "Most New World monkeys have 2.1.3.3 teeth; marmosets and tamarins are the exceptions (2.1.3.2).",
+"CH19": "Catarrhine means \"down nose\": Old World monkeys and apes have narrow nostrils facing down.",
+"CH20": "Catarrhines (Old World monkeys and apes) have two premolars per quarter: 2.1.2.3.",
+"CH21": "Bilophodont molars, four cusps joined in two ridged pairs, mark the Old World monkeys (Cercopithecoidea).",
+"CH22": "Ischial callosities (sitting pads) are an Old World monkey trait, though gibbons have them too.",
+"CH23": "Apes (Hominoidea) have Y-5 molars: five low cusps separated by a Y-shaped groove.",
+"CH24": "Apes (Hominoidea) have no tail.",
+"CH25": "Apes have a modified clavicle and scapula, with very mobile shoulders, for swinging beneath branches.",
+"CH26": "Apes have the longest growing-up period (ontogeny) of all primates, which gives the most time to learn.",
+"CH27": "Tarsiers keep this strepsirrhine-like trait even though they're haplorrhines.",
+"CH28": "Lemurs get “found only on Madagascar” instead; many lemurs are bigger and active by day.",
+"CH29": "Study guide: suborder = haplorrhines vs strepsirrhines; infraorder = platyrrhines vs catarrhines; superfamily = cercopithecoids vs hominoids.",
+"CH30": "Cercopithecoidea (Old World monkeys) and Hominoidea (apes) are the two superfamilies inside the catarrhines.",
+"CH31": "Haplorrhini and Strepsirrhini are the two suborders of the order Primates.",
+"CH32": "From the largest group to the smallest: Order (Primates) → Suborder → Infraorder → Superfamily.",
+"CH33": "Old system: prosimians. Current system: haplorrhines (dry nose, partial postorbital closure, no tapetum lucidum).",
+"CH34": "Catarrhini = Cercopithecoidea (Old World monkeys) + Hominoidea (apes).",
+"CH35": "Count premolars first: 3 = NWM or strepsirrhine, 2 = catarrhine."
+};
+Object.assign(MORE_EXC, {"CH135": "Apes (hominoids) have Y-5 molars: five low cusps with a Y-shaped groove. Bilophodont molars are the Old World monkey pattern.", "CH138": "Lorises and galagos (Lorisiformes) are small, nocturnal tree-dwellers, and so are tarsiers, so the chart lists that trait under both.", "CH141": "Haplorrhines rely more on vision and less on smell than strepsirrhines, so reduced olfaction goes under the haplorrhines.", "CH142": "Apes (Hominoidea) have no tail and mobile shoulders (a modified clavicle and scapula) for swinging beneath branches.", "CH147": "Old World monkeys sit inside the catarrhines (\"down nose\"), so they share the catarrhine trait of downward-facing nostrils."});
+for (const id in MORE_EXC) if (Q[id] && !String(Q[id].ex || "").trim()) Q[id].ex = MORE_EXC[id];
 window.BANK = { mastery: true, promo: PROMO, title: "Classification Chart Drill", storageKey: "anthro-class-v1", decks: DECKS, ids: IDS, q: Q, textOnly: true, topics: SUBJECTS };
