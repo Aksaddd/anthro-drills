@@ -135,3 +135,7 @@ Every question was gathered from, or written to match, ANTH 102 class materials:
 ## A note on content
 
 The question figures are cropped from course slides and screenshots. They're shared here as a study aid for classmates and aren't official course material.
+
+## Analytics
+
+Every page loads Vercel Web Analytics with the plain-HTML snippet (`/_vercel/insights/script.js`); there is no build step, so the `@vercel/analytics` npm package isn't used. Turn on **Analytics** for the project in the Vercel dashboard to start collecting anonymous page views. Drill progress never leaves the browser.
