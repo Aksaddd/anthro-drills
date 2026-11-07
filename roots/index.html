@@ -59,6 +59,13 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .gnote{margin:3px 0 0;font-size:calc(13.5px * var(--rs));color:var(--muted);max-width:52ch}
 .gdrill{min-height:40px;padding:8px 14px;font-size:14px}
 .gdone{font:600 13.5px var(--body);color:var(--good)}
+.rtabs{margin-top:2px}
+.rtabs .tab-all b::before{content:"▦ ";opacity:.7}
+.rtabs .tab-missed b{color:var(--bad)}
+.rtabs .tab-missed[aria-selected="true"] b{color:var(--accent-ink)}
+.missstart{background:linear-gradient(135deg,#d9480f,#e8590c)}
+.missstart .mc-list code{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.35);color:#fff}
+.missstart .bigstart{color:#c2410c}
 .freq{font:600 11.5px var(--body);color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:2px 9px;align-self:flex-start}
 .badge.x{background:var(--bad-soft);color:var(--bad)}
 .misscard{gap:10px;border-color:color-mix(in srgb,var(--bad) 35%,var(--line));background:color-mix(in srgb,var(--bad-soft) 60%,var(--paper))}
@@ -97,7 +104,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   <header style="display:flex;flex-direction:column;gap:6px">
     <a class="back" href="../index.html">← All drills</a>
     <h1>Word Roots</h1>
-    <p class="sub"><b>Optional, but recommended.</b> Most course terms are built from a few Greek and Latin parts. Drill every root for your exam: mark the ones you know as <b>mastered</b> and they leave the pool, mark tricky ones for <b>review</b> and they come back first. Keep going until the pool is empty.</p>
+    <p class="sub"><b>Optional, but recommended.</b> Most course terms are built from a few Greek and Latin parts. Pick a subject to drill just its roots, or <b>All roots</b> for one big drill. Mark the ones you know as <b>mastered</b> and they leave the pool; roots you miss collect under <b>Missed</b>.</p>
   </header>
   <div class="xtabs" role="tablist" id="xtabs"></div>
   <main id="app" style="display:flex;flex-direction:column;gap:12px"></main>
@@ -149,56 +156,80 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 
   function tabs() {
     $("xtabs").innerHTML = EX.map(e => `<button class="xtab" role="tab" aria-selected="${e === ex}" data-e="${e}"><b>${esc(R[e].name)}</b><span>${all(e).length} roots</span></button>`).join("");
-    $("xtabs").querySelectorAll(".xtab").forEach(b => b.onclick = () => { ex = b.dataset.e; localStorage.setItem(KEY, ex); quiz = null; query = ""; tabs(); list() });
+    $("xtabs").querySelectorAll(".xtab").forEach(b => b.onclick = () => { ex = b.dataset.e; localStorage.setItem(KEY, ex); quiz = null; query = ""; tab = null; tabs(); list() });
+  }
+
+  // ===== Subject tabs, like the multiple-choice drills: one tab per subject, plus "All roots" (one big drill) and "Missed"
+  const TAB_KEY = () => "anthro-roots-subject-" + ex;
+  const subjects = () => R[ex].groups.map(g => g[0]);
+  let tab = null;
+  function curTab() { let v = tab; if (!v) try { v = localStorage.getItem(TAB_KEY()) } catch (e) { } return v === "ALL" || v === "MISSED" || subjects().includes(v) ? v : subjects()[0] }
+  const missedRoots = () => all(ex).filter(r => isX(r) && !isM(r)).map(r => r.root);
+  const scope = t => t === "ALL" ? all(ex) : t === "MISSED" ? all(ex).filter(r => isX(r) && !isM(r)) : all(ex).filter(r => r.g === t);
+  function seg(rows) {
+    const n = rows.length || 1, m = rows.filter(isM).length, rv = rows.filter(r => !isM(r) && isR(r)).length, x = rows.filter(r => !isM(r) && !isR(r) && isX(r)).length;
+    return [["mastered", m], ["review", rv], ["wrong", x]].map(([c, k]) => k ? `<i class="lv-c-${c}" style="width:${k / n * 100}%"></i>` : "").join("");
+  }
+  function subjectTabs(t) {
+    const nm = missedRoots().length;
+    const list = [...subjects().map(g => { const rs = scope(g), m = rs.filter(isM).length; return [g, g, seg(rs), m ? `${rs.length - m} left · ${m} mastered` : `${rs.length} roots`, ""] }),
+      ["ALL", "All roots", seg(all(ex)), `all ${all(ex).length} in one drill`, " tab-all"],
+      ["MISSED", "Missed", nm ? `<i class="lv-c-wrong" style="width:100%"></i>` : "", nm ? `${nm} to retry` : "none right now", " tab-missed"]];
+    return `<div class="tabs rtabs" role="tablist" aria-label="${esc(R[ex].name)} root subjects">${list.map(([k, l, bar, sub, cls]) => `<button class="tab${cls}" type="button" role="tab" data-t="${esc(k)}" aria-selected="${k === t}"><b>${esc(l)}</b><span class="mini">${bar}</span><span class="tcount">${esc(sub)}</span></button>`).join("")}</div>`;
   }
 
   function list() {
-    const q = query.trim().toLowerCase();
+    const t = curTab(), q = query.trim().toLowerCase();
     const hit = r => !q || [r.root, r.mean, r.orig, ...r.exs.flat()].join(" ").toLowerCase().includes(q);
-    const groups = R[ex].groups.map(([g]) => [g, all(ex).filter(r => r.g === g && hit(r))]).filter(([, rs]) => rs.length);
-    const slug = g => "g-" + g.toLowerCase().replace(/[^a-z]+/g, "-");
-    $("app").innerHTML = `
-      ${panel()}
-      ${missedPanel()}
-      <p class="sub">Each root sits under the ${esc(R[ex].name)} drill subject whose questions use its terms most often, with the most frequent roots first. Study the section for whatever you're working on.</p>
-      <div class="tip"><b>How to use it:</b> split a new word into its parts. <i>Platy-</i> (flat) + <i>-rrhine</i> (nose) = flat-nosed. <i>Allo-</i> (other) + <i>patr-</i> (homeland) = speciation in another place.</div>
-      <div class="tools"><input class="search" id="search" type="search" placeholder="Search a root, meaning or term…" value="${esc(query)}" aria-label="Search roots"></div>
-      ${q ? "" : `<nav class="jump" aria-label="Jump to a section">${groups.map(([g]) => `<a href="#${slug(g)}">${esc(g)}</a>`).join("")}</nav>`}
-      ${groups.length ? groups.map(([g, rs]) => { const left = all(ex).filter(r => r.g === g && !isM(r)).length; return `<section class="grp"><div class="ghead"><div><h2 id="${slug(g)}">${esc(g)}</h2>${noteOf(g) ? `<p class="gnote">${esc(noteOf(g))}</p>` : ""}</div>${left ? `<button class="btn ghost gdrill" type="button" data-g="${esc(g)}">▶ Drill this section (${left})</button>` : `<span class="gdone">✓ All mastered</span>`}</div><div class="grid">${rs.map(card).join("")}</div></section>` }).join("") : `<p class="none">No roots match “${esc(query)}”.</p>`}
+    const rows = scope(t).filter(hit);
+    let body;
+    if (!rows.length) body = q ? `<p class="none">No roots match “${esc(query)}” here.</p>` : t === "MISSED" ? `<p class="none">No missed roots. Roots you get wrong in a drill collect here so you can try them again.</p>` : "";
+    else if (t === "ALL") body = R[ex].groups.map(([g]) => [g, rows.filter(r => r.g === g)]).filter(([, rs]) => rs.length)
+      .map(([g, rs]) => `<section class="grp"><div class="ghead"><div><h2>${esc(g)}</h2><p class="gnote">${rs.length} roots</p></div><button class="btn ghost gdrill" type="button" data-g="${esc(g)}">Open this subject →</button></div><div class="grid">${rs.map(card).join("")}</div></section>`).join("");
+    else body = `<div class="grid">${rows.map(card).join("")}</div>`;
+    const lede = t === "ALL" ? `Every ${esc(R[ex].name)} root, pooled into one big drill. Each one sits under the subject whose questions use its terms most often.`
+      : t === "MISSED" ? "Roots you got wrong last time, from every subject. Answer one right and it leaves this list."
+      : esc(noteOf(t));
+    $("app").innerHTML = `${subjectTabs(t)}
+      ${panel(t)}
+      ${lede ? `<p class="sub">${lede}</p>` : ""}
+      ${t === "ALL" ? `<div class="tip"><b>How to use it:</b> split a new word into its parts. <i>Platy-</i> (flat) + <i>-rrhine</i> (nose) = flat-nosed. <i>Allo-</i> (other) + <i>patr-</i> (homeland) = speciation in another place.</div>` : ""}
+      ${scope(t).length ? `<div class="tools"><input class="search" id="search" type="search" placeholder="Search ${t === "ALL" ? "all roots" : t === "MISSED" ? "missed roots" : esc(t) + " roots"}…" value="${esc(query)}" aria-label="Search roots"></div>` : ""}
+      ${body}
       ${q ? "" : `<div class="row" style="justify-content:center;padding-top:6px">${nextStep()}</div>`}`;
-    wirePanel();
-    $("app").querySelectorAll(".gdrill").forEach(b => b.onclick = () => startDrill(b.dataset.g));
+    $("app").querySelectorAll(".rtabs .tab").forEach(b => b.onclick = () => openTab(b.dataset.t));
+    $("app").querySelectorAll(".gdrill").forEach(b => b.onclick = () => openTab(b.dataset.g));
+    wirePanel(t);
     const s = $("search");
-    s.oninput = () => { query = s.value; const pos = s.selectionStart; list(); const n = $("search"); n.focus(); n.setSelectionRange(pos, pos) };
+    if (s) s.oninput = () => { query = s.value; const pos = s.selectionStart; list(); const n = $("search"); n.focus(); n.setSelectionRange(pos, pos) };
   }
+  function openTab(t) { tab = t; try { localStorage.setItem(TAB_KEY(), t) } catch (e) { } query = ""; quiz = null; list(); window.scrollTo({ top: 0, behavior: "smooth" }) }
   const card = r => `<article class="root${isM(r) ? " done" : ""}"><div class="rt"><b>${esc(r.root)}</b><span class="mean">${esc(r.mean)}</span>${isM(r) ? `<span class="badge m">✓ Mastered</span>` : isR(r) ? `<span class="badge r">⚑ Review</span>` : isX(r) ? `<span class="badge x">✗ Missed</span>` : ""}</div><span class="orig">${esc(r.orig)}</span>${r.freq ? `<span class="freq">Most common in ${esc(r.freq.s)} questions (${r.freq.n}×)</span>` : ""}<ul class="ex">${r.exs.map(([t, m]) => `<li><span class="term">${mark(t, r.root)}</span>: ${esc(m)}</li>`).join("")}</ul></article>`;
 
-  // ===== Progress panel: how much of the pool is left
+  // ===== Start card for the open tab: progress and one big button
   function counts() { const a = all(ex), m = a.filter(isM).length, r = a.filter(x => !isM(x) && isR(x)).length; return { total: a.length, m, r, left: a.length - m } }
-  function panel() {
-    const c = counts(), pct = Math.round(c.m / c.total * 100);
+  function panel(t) {
+    if (t === "MISSED") {
+      const ms = missedRoots();
+      return `<section class="card pool startcard missstart"><div class="sc-top"><div><p class="sc-eyebrow">${esc(R[ex].name)} word roots · missed</p><h2 class="sc-title">${ms.length ? `${ms.length} ${ms.length === 1 ? "root" : "roots"} to try again` : "Nothing to retry"}</h2></div></div>
+        ${ms.length ? `<div class="mc-list">${ms.map(x => `<code>${esc(x)}</code>`).join("")}</div><button class="bigstart" id="drillBtn" type="button"><span aria-hidden="true">↻</span> Try the missed ${ms.length === 1 ? "root" : "roots"} again</button>` : `<p class="pstats">Roots you get wrong in any subject show up here.</p>`}</section>`;
+    }
+    const rows = scope(t), total = rows.length, m = rows.filter(isM).length, rv = rows.filter(x => !isM(x) && isR(x)).length, left = total - m, pct = total ? Math.round(m / total * 100) : 0;
+    const what = t === "ALL" ? `All ${total} roots` : `${esc(t)} · ${total} roots`;
     return `<section class="card pool startcard">
-      <div class="sc-top"><div><p class="sc-eyebrow">${esc(R[ex].name)} word roots</p><h2 class="sc-title">${c.left ? (c.m ? `${c.left} roots left to learn` : `Drill all ${c.total} roots`) : "All roots mastered"}</h2></div><span class="sc-pct">${pct}%</span></div>
-      <div class="pbar" role="img" aria-label="${c.m} of ${c.total} mastered"><i style="width:${pct}%"></i></div>
-      <p class="pstats"><b>${c.m}</b> of ${c.total} mastered · <b>${c.r}</b> marked for review · <b>${c.left}</b> left in the pool</p>
-      ${c.left ? `<button class="bigstart" id="drillBtn" type="button"><span aria-hidden="true">▶</span> ${c.m ? `Continue drilling (${c.left} left)` : "Start the roots drill"}</button>` : `<span class="alldone">Every ${esc(R[ex].name)} root mastered.</span>`}
-      <div class="row">
-      ${c.m ? `<button class="btn ghost" id="resetBtn" type="button">Put mastered roots back</button>` : ""}</div>
+      <div class="sc-top"><div><p class="sc-eyebrow">${esc(R[ex].name)} word roots${t === "ALL" ? " · every subject" : ""}</p><h2 class="sc-title">${what}</h2></div><span class="sc-pct">${pct}%</span></div>
+      <div class="pbar" role="img" aria-label="${m} of ${total} mastered"><i style="width:${pct}%"></i></div>
+      <p class="pstats"><b>${m}</b> of ${total} mastered · <b>${rv}</b> marked for review · <b>${left}</b> left in the pool</p>
+      ${left ? `<button class="bigstart" id="drillBtn" type="button"><span aria-hidden="true">▶</span> ${m ? `Continue drilling (${left} left)` : t === "ALL" ? "Start the big drill: every root" : `Start the ${esc(t)} drill`}</button>` : `<span class="alldone">Every root here is mastered.</span>`}
+      ${m ? `<div class="row"><button class="btn ghost" id="resetBtn" type="button">Put mastered roots back</button></div>` : ""}
     </section>`;
   }
-  const missedRoots = () => all(ex).filter(r => isX(r) && !isM(r)).map(r => r.root);
-  function missedPanel() {
-    const ms = missedRoots();
-    if (!ms.length) return `<section class="card misscard empty"><p class="mc-title">✗ Missed roots</p><p class="pstats">Roots you get wrong in a drill collect here so you can try them again. None right now.</p></section>`;
-    return `<section class="card misscard" id="missed"><div class="mc-head"><p class="mc-title">✗ Missed roots <span class="mc-n">${ms.length}</span></p></div>
-      <p class="pstats">You got ${ms.length === 1 ? "this one" : "these"} wrong last time. Answer right and ${ms.length === 1 ? "it leaves" : "they leave"} this list.</p>
-      <div class="mc-list">${ms.map(x => `<code>${esc(x)}</code>`).join("")}</div>
-      <button class="btn" id="missBtn" type="button">↻ Try the ${ms.length} missed ${ms.length === 1 ? "root" : "roots"} again</button></section>`;
-  }
-  function wirePanel() {
-    if ($("missBtn")) $("missBtn").onclick = () => startDrill(null, missedRoots());
-    if ($("drillBtn")) $("drillBtn").onclick = () => startDrill();
-    if ($("resetBtn")) $("resetBtn").onclick = () => { if (!confirm(`Put all ${counts().m} mastered ${R[ex].name} roots back in the pool?`)) return; st().m = {}; saveST(); list() };
+  function wirePanel(t) {
+    if ($("drillBtn")) $("drillBtn").onclick = () => t === "MISSED" ? startDrill(null, missedRoots()) : t === "ALL" ? startDrill() : startDrill(t);
+    if ($("resetBtn")) $("resetBtn").onclick = () => {
+      const rows = scope(t).filter(isM); if (!confirm(`Put ${rows.length} mastered ${t === "ALL" ? R[ex].name : t} roots back in the pool?`)) return;
+      const S = st(); rows.forEach(r => delete S.m[r.root]); saveST(); list();
+    };
   }
 
   // ===== Drill: every root left in the pool, review-marked ones first. Mastered roots leave the pool.
