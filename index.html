@@ -225,6 +225,8 @@ footer.site a{color:var(--link-dark)}
 @media (max-width:560px){.card{padding:20px}.how{padding:20px}.unit b{font-size:26px}}
 @media (prefers-reduced-motion:reduce){.card:hover{transform:none}}
 </style>
+<link rel="stylesheet" href="assets/shell.css">
+<script src="assets/shell.js"></script>
 <!-- Vercel Web Analytics: anonymous page views, no cookies (enable Analytics for the project in the Vercel dashboard) -->
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -285,7 +287,7 @@ footer.site a{color:var(--link-dark)}
   </details>
 
   <details class="exampanel ep2" data-ep="2">
-    <summary class="ephead"><span class="eptext"><h2 id="ep2">Exam 2</h2><p>Macroevolution, primates and primate sociality. Tue, Nov 10, 10:45 am.</p><span class="eptools">Multiple-Choice Drill · Anthro-pardy · Word Roots · Classification Chart · Mock Exam · Review List</span></span><span class="epgo" aria-hidden="true"><span class="ep-open">Open</span><span class="ep-close">Close</span></span></summary>
+    <summary class="ephead"><span class="eptext"><h2 id="ep2">Exam 2</h2><p>Macroevolution, primates and primate sociality. <span id="ep2When">Tue, Nov 10, 10:45 am</span>.</p><span class="eptools">Multiple-Choice Drill · Anthro-pardy · Word Roots · Classification Chart · Mock Exam · Review List</span></span><span class="epgo" aria-hidden="true"><span class="ep-open">Open</span><span class="ep-close">Close</span></span></summary>
     <div class="cards">
     <article class="card" data-key="ant2-progress-v1" data-total="376" data-optional="ant2-progress-v1-include-AP:30">
       <div class="chead"><span class="num">2</span>
@@ -444,8 +446,11 @@ footer.site a{color:var(--link-dark)}
     try { if (localStorage.getItem(k) === "1") d.open = true } catch (e) { }
     d.addEventListener("toggle", () => { try { localStorage.setItem(k, d.open ? "1" : "0") } catch (e) { } });
   });
-  // Countdown to Exam 2 (Tue, Nov 10, 2026, 10:45 am)
-  const exam = new Date(2026, 10, 10, 10, 45), now = new Date();
+  // Countdown to Exam 2: the date comes from Settings (default Tue, Nov 10, 2026, 10:45 am)
+  let exam = window.ANTHRO ? window.ANTHRO.examDate() : new Date(2026, 10, 10, 10, 45);
+  const when = (d, sep) => d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) + sep + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).replace("AM", "am").replace("PM", "pm");
+  function showExamDate() { $("examTitle").textContent = "Exam 2 · " + when(exam, " · "); $("ep2When").textContent = when(exam, ", ") }
+  showExamDate();
   // A live clock: days : hours : minutes : seconds, updated every second.
   const pad = n => String(n).padStart(2, "0");
   function tickClock() {
@@ -457,6 +462,11 @@ footer.site a{color:var(--link-dark)}
   }
   let clockTimer = setInterval(tickClock, 1000);
   tickClock();
+  if (window.ANTHRO) window.ANTHRO.onChange(e => {
+    if (e.detail.what !== "exam") return;
+    exam = window.ANTHRO.examDate(); showExamDate();
+    clearInterval(clockTimer); $("countdown").hidden = false; clockTimer = setInterval(tickClock, 1000); tickClock();
+  });
 
   // Continue button + today's activity, from Exam 2's saved progress
   // New visitors begin in the Exam 2 drill. Returning visitors continue in the drill they used last.

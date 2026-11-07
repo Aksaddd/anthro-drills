@@ -139,3 +139,11 @@ The question figures are cropped from course slides and screenshots. They're sha
 ## Analytics
 
 Every page loads Vercel Web Analytics with the plain-HTML snippet (`/_vercel/insights/script.js`); there is no build step, so the `@vercel/analytics` npm package isn't used. Turn on **Analytics** for the project in the Vercel dashboard to start collecting anonymous page views. Drill progress never leaves the browser.
+
+## Top bar and Settings
+
+`assets/shell.js` and `assets/shell.css` are loaded in the `<head>` of every page. They add the fixed top bar (links to the study modules, current page highlighted) and the **Settings** sheet:
+
+- **Appearance**: Light (default), Dark, or Automatic (follows the device). Saved as `anthro-theme`; dark colors live in `shell.css` under `html[data-theme="dark"]`.
+- **Exam date & time**: the home page countdown and exam title use it (`anthro-exam-date`, default 2026-11-10 10:45).
+- **Reading font** and **Text size**: the same `anthro-reading` setting as the drills' Options menu.

@@ -652,6 +652,11 @@
 
   // ===== Start
   buildReadingMenu(); applyReading();
+  addEventListener("anthro-settings", e => {   // changed in the Settings sheet
+    if (e.detail.what !== "reading") return;
+    try { const r = JSON.parse(localStorage.getItem(READ_KEY) || "null"); if (r && FONTS[r.font]) reading.font = r.font; if (r && SIZES[r.size]) reading.size = r.size } catch (er) { }
+    applyReading();
+  });
   buildTabs();
   setTabsCollapsed(tabsCollapsed);
   apply(load());
