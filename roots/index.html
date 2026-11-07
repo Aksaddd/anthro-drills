@@ -59,6 +59,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .gnote{margin:3px 0 0;font-size:calc(13.5px * var(--rs));color:var(--muted);max-width:52ch}
 .gdrill{min-height:40px;padding:8px 14px;font-size:14px}
 .gdone{font:600 13.5px var(--body);color:var(--good)}
+.freq{font:600 11.5px var(--body);color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:2px 9px;align-self:flex-start}
 .badge.x{background:var(--bad-soft);color:var(--bad)}
 .misscard{gap:10px;border-color:color-mix(in srgb,var(--bad) 35%,var(--line));background:color-mix(in srgb,var(--bad-soft) 60%,var(--paper))}
 .misscard.empty{background:var(--paper);border-color:var(--line);padding:14px 18px}
@@ -130,7 +131,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     if (r && [.9, 1, 1.12, 1.25][r.size]) document.documentElement.style.setProperty("--rs", [.9, 1, 1.12, 1.25][r.size]);
   } catch (e) { }
 
-  const all = e => R[e].groups.flatMap(([g, rows]) => rows.map(([root, mean, orig, exs]) => ({ g, root, mean, orig, exs })));
+  const all = e => R[e].groups.flatMap(([g, rows]) => rows.map(([root, mean, orig, exs, freq]) => ({ g, root, mean, orig, exs, freq })));
   const noteOf = g => (R[ex].groups.find(x => x[0] === g) || [])[2] || "";
   // The letters of a root to highlight inside a term: "rhin- / -rrhine" → ["rrhin", "rhin"]
   const keys = root => root.split(/[/ ]/).map(s => s.replace(/[^a-zA-Z]/g, "").toLowerCase()).filter(s => s.length > 1).sort((a, b) => b.length - a.length);
@@ -159,7 +160,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     $("app").innerHTML = `
       ${panel()}
       ${missedPanel()}
-      <p class="sub">Roots are grouped by the subject tabs in the ${esc(R[ex].name)} multiple-choice drill, so you can learn the ones for whatever you're studying.</p>
+      <p class="sub">Each root sits under the ${esc(R[ex].name)} drill subject whose questions use its terms most often, with the most frequent roots first. Study the section for whatever you're working on.</p>
       <div class="tip"><b>How to use it:</b> split a new word into its parts. <i>Platy-</i> (flat) + <i>-rrhine</i> (nose) = flat-nosed. <i>Allo-</i> (other) + <i>patr-</i> (homeland) = speciation in another place.</div>
       <div class="tools"><input class="search" id="search" type="search" placeholder="Search a root, meaning or term…" value="${esc(query)}" aria-label="Search roots"></div>
       ${q ? "" : `<nav class="jump" aria-label="Jump to a section">${groups.map(([g]) => `<a href="#${slug(g)}">${esc(g)}</a>`).join("")}</nav>`}
@@ -170,7 +171,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
     const s = $("search");
     s.oninput = () => { query = s.value; const pos = s.selectionStart; list(); const n = $("search"); n.focus(); n.setSelectionRange(pos, pos) };
   }
-  const card = r => `<article class="root${isM(r) ? " done" : ""}"><div class="rt"><b>${esc(r.root)}</b><span class="mean">${esc(r.mean)}</span>${isM(r) ? `<span class="badge m">✓ Mastered</span>` : isR(r) ? `<span class="badge r">⚑ Review</span>` : isX(r) ? `<span class="badge x">✗ Missed</span>` : ""}</div><span class="orig">${esc(r.orig)}</span><ul class="ex">${r.exs.map(([t, m]) => `<li><span class="term">${mark(t, r.root)}</span>: ${esc(m)}</li>`).join("")}</ul></article>`;
+  const card = r => `<article class="root${isM(r) ? " done" : ""}"><div class="rt"><b>${esc(r.root)}</b><span class="mean">${esc(r.mean)}</span>${isM(r) ? `<span class="badge m">✓ Mastered</span>` : isR(r) ? `<span class="badge r">⚑ Review</span>` : isX(r) ? `<span class="badge x">✗ Missed</span>` : ""}</div><span class="orig">${esc(r.orig)}</span>${r.freq ? `<span class="freq">Most common in ${esc(r.freq.s)} questions (${r.freq.n}×)</span>` : ""}<ul class="ex">${r.exs.map(([t, m]) => `<li><span class="term">${mark(t, r.root)}</span>: ${esc(m)}</li>`).join("")}</ul></article>`;
 
   // ===== Progress panel: how much of the pool is left
   function counts() { const a = all(ex), m = a.filter(isM).length, r = a.filter(x => !isM(x) && isR(x)).length; return { total: a.length, m, r, left: a.length - m } }
