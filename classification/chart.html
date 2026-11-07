@@ -41,6 +41,7 @@ body{padding-block:max(12px,env(safe-area-inset-top,0px)) 12px}
 
 /* The chart as a tree: 6 columns. Order spans all; strepsirrhines over lemurs + lorises;
    haplorrhines over tarsiers, NWM and catarrhines; the two superfamilies sit under catarrhines. */
+.board:has(> .bank[hidden]){grid-template-columns:minmax(0,1fr)}   /* answers shown: the chart takes the full width */
 .chart{min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:min-content;gap:10px;align-content:start;padding:2px}
 .taxon[data-t="PRI"]{grid-column:1 / -1}
 .taxon[data-t="STR"]{grid-column:1 / 3} .taxon[data-t="HAP"]{grid-column:3 / 7}
@@ -222,7 +223,7 @@ body.dragging,body.dragging *{cursor:grabbing!important}
     placed = {}; Object.keys(CAP).forEach(t => placed[t] = []);
     left = {}; KEY.forEach(([w, ts]) => left[w] = ts.length);
     selected = null; mistakes = 0; hints = 0; startT = 0; elapsed = 0; finished = false; revealed = false; clearInterval(timer); setPaused(false); $("pauseBtn").hidden = true;
-    $("doneBox").innerHTML = ""; $("bank").classList.remove("finished");
+    $("doneBox").innerHTML = ""; $("bank").classList.remove("finished"); $("bank").hidden = false;
     build(); nums(); say(""); measureTray();
   }
   function select(w) {
@@ -323,15 +324,21 @@ body.dragging,body.dragging *{cursor:grabbing!important}
   function finish() {
     if (startT) elapsed += Date.now() - startT; startT = 0; finished = true; clearInterval(timer); $("pauseBtn").hidden = true;
     const secs = secsNow();
-    $("bank").classList.add("finished"); measureTray();
+    $("bank").classList.add("finished");
+    if (revealed) {   // answers shown: no card over the chart, just the full chart (Start over is in the toolbar)
+      $("doneBox").innerHTML = ""; $("bank").hidden = true; measureTray();
+      nums(); window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" }); $("chart").scrollTo({ top: 0 });
+      return;
+    }
+    measureTray();
     if (!revealed) {
       let best = null; try { best = JSON.parse(localStorage.getItem(BEST_KEY) || "null") } catch (e) { }
       const isBest = !best || mistakes < best.m || (showTimer && mistakes === best.m && secs < best.s);
       if (isBest) { try { localStorage.setItem(BEST_KEY, JSON.stringify({ m: mistakes, s: showTimer ? secs : (best && best.m === mistakes ? best.s : 0) })) } catch (e) { } }
       toast(isBest ? "New best result" : "Chart complete");
     }
-    $("doneBox").innerHTML = `<div class="done-card"><h2>${revealed ? "Here's the full chart" : "Chart complete"}</h2>
-      <p class="sub">${revealed ? "Answers shown. Start over to try it yourself." : `${TOTAL} traits placed with ${mistakes} mistake${mistakes === 1 ? "" : "s"}${hints ? ` and ${hints} hint${hints === 1 ? "" : "s"}` : ""}${showTimer ? " in " + mmss(secs) : ""}.`}</p>
+    $("doneBox").innerHTML = `<div class="done-card"><h2>Chart complete</h2>
+      <p class="sub">${TOTAL} traits placed with ${mistakes} mistake${mistakes === 1 ? "" : "s"}${hints ? ` and ${hints} hint${hints === 1 ? "" : "s"}` : ""}${showTimer ? " in " + mmss(secs) : ""}.</p>
       <div class="nav"><button class="btn" id="again"><span>Start over</span></button><a class="btn ghost" href="index.html" style="text-decoration:none"><span>Practice the Classification questions</span></a></div></div>`;
     $("again").onclick = reset;
     nums(); window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" }); $("chart").scrollTo({ top: 0 });
