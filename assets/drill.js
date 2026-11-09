@@ -4,6 +4,8 @@
 // Everything is stored in this browser's localStorage under BANK.storageKey. Nothing leaves the device.
 (() => {
   const B = window.BANK, SRC = B.decks, Q = B.q;
+  // Simple layout (the default, set in Settings): open straight on a question; subjects, question map and banners start tucked away.
+  const SIMPLE = (() => { try { return localStorage.getItem("anthro-simple") !== "0" } catch (e) { return true } })();
   // Optional decks (BANK.optional: { deck: label }) can be switched off by the student; they're on by default.
   const OPTIONAL = B.optional || {}, OPT_KEY = d => B.storageKey + "-include-" + d;
   const optOn = d => { try { return localStorage.getItem(OPT_KEY(d)) !== "0" } catch (e) { return true } };
@@ -44,7 +46,7 @@
   SOURCES.sort((x, y) => /^Practice/.test(x.name) - /^Practice/.test(y.name));   // class materials first, practice sets last (stable otherwise)
   const BY_SOURCE_OK = SOURCES.length > 1, GB_KEY = "anthro-groupby", SEL_KEY = B.storageKey + "-sources";
   // Group by: the student's last choice; with none, drills that have a source preset open on Source.
-  let groupBy = "subject"; try { const g = localStorage.getItem(GB_KEY); if (BY_SOURCE_OK && (g === "source" || (g === null && B.sourcePreset))) groupBy = "source" } catch (e) { }
+  let groupBy = "subject"; try { const g = localStorage.getItem(GB_KEY); if (BY_SOURCE_OK && g === "source") groupBy = "source" } catch (e) { }
   // Ticked sources: the student's own choice once they've made one, otherwise the drill's preset (BANK.sourcePreset).
   let srcSel = new Set(); try { const saved = localStorage.getItem(SEL_KEY); for (const n of saved !== null ? JSON.parse(saved) : (B.sourcePreset || [])) if (SOURCES.some(g => g.name === n)) srcSel.add(n) } catch (e) { }
 
@@ -81,7 +83,7 @@
   // each position is either unanswered (live question) or answered (read-only review).
   const L = B.storageKey;
   let S = fresh(), missed = new Set(), answered = false, view = "deck", curOpts = null, autoTimer = null, menuOpen = false;
-  function fresh() { return { v: 2, updatedAt: 0, deck: FIRST, shuffle: true, onlyMissed: false, auto: false, autoV2: true, missed: [], hist: {}, stats: {}, log: {}, mark: {}, days: {}, rounds: {}, focus: null } }
+  function fresh() { return { v: 2, updatedAt: 0, deck: SIMPLE ? "ALL" : FIRST, shuffle: true, onlyMissed: false, auto: false, autoV2: true, missed: [], hist: {}, stats: {}, log: {}, mark: {}, days: {}, rounds: {}, focus: null } }
   const pool = d => d === "FOCUS" ? (S.focus ? S.focus.ids : []) : d === "MISSED" ? ALL.filter(id => missed.has(id)) : IDS[d];
   function apply(s) {
     if (!s || s.v !== 2) return false;
@@ -222,10 +224,14 @@
   }
   // Subjects grid can be collapsed to one slim bar (remembered on this device for every drill).
   const TABS_KEY = "anthro-tabs-collapsed";
-  let tabsCollapsed = false; try { tabsCollapsed = localStorage.getItem(TABS_KEY) === "1" } catch (e) { }
+  let tabsCollapsed = SIMPLE; try { const v = localStorage.getItem(TABS_KEY); if (v !== null) tabsCollapsed = v === "1" } catch (e) { }
+  // Question map (one square per question): hidden by default in the simple layout; Options can show it
+  const MAP_KEY = "anthro-showmap";
+  let showMap = !SIMPLE; try { const v = localStorage.getItem(MAP_KEY); if (v !== null) showMap = v === "1" } catch (e) { }
   function setTabsCollapsed(on) {
     tabsCollapsed = on; try { localStorage.setItem(TABS_KEY, on ? "1" : "0") } catch (e) { }
-    $("tabs").hidden = on; $("tabsBar").classList.toggle("collapsed", on); if ($("srcPick")) $("srcPick").hidden = on || groupBy !== "source";
+    $("tabs").hidden = on; $("tabsBar").classList.toggle("collapsed", on);
+    if ($("promo")) $("promo").hidden = on || view !== "deck"; if ($("srcPick")) $("srcPick").hidden = on || groupBy !== "source";
     $("tabsToggle").setAttribute("aria-expanded", !on); const what = groupBy === "source" ? "sources" : "subjects"; $("tabsToggle").textContent = on ? `Show ${what} ▾` : `Hide ${what} ▴`;
   }
   let PROG_SPAN = "";
@@ -275,7 +281,7 @@
   const SP = B.studyPrompt, SP_KEY = B.storageKey + "-prompt-hidden";
   function paintFeature() {
     let el = $("feature"), hidden = false;
-    try { hidden = localStorage.getItem(SP_KEY) === "1" } catch (e) { }
+    try { hidden = localStorage.getItem(SP_KEY) === "1" || (SIMPLE && localStorage.getItem(SP_KEY) === null) } catch (e) { }
     if (!SP || hidden || view !== "deck") { if (el) el.hidden = true; return }
     if (!el) { el = document.createElement("aside"); el.id = "feature"; el.className = "feature"; $("tabs").before(el) }
     let done = "";
@@ -348,6 +354,7 @@
     paintHabit(); paintTabs(); paintSources(); paintFeature(); paintPromo();
     const inDeck = view === "deck";
     for (const id of ["toolbar", "barRow", "map"]) $(id).hidden = !inDeck;
+    if (!showMap) $("map").hidden = true;
     if (!inDeck) { $("deckSub").textContent = "Your strengths and weak spots, from every answer you've given on this device."; return }
     const d = S.deck, r = R(), n = r.order.length, done = doneIn(r);
     $("deckSub").innerHTML = d === "MISSED" ? esc(`Every question you got wrong on your last try: ${plural(ALL.filter(id => missed.has(id)).length, "question")} right now. Answer one right and it leaves this bank.`)
@@ -628,6 +635,10 @@
   $("shuffleBtn").onclick = () => { S.shuffle = !S.shuffle; setMenu(false); restart() };
   $("autoBtn").onclick = () => { S.auto = !S.auto; save(); $("autoBtn").setAttribute("aria-checked", S.auto); if (!S.auto) stopAuto() };
   $("restartBtn").onclick = () => { setMenu(false); restart() };
+  { const mb = document.createElement("button"); mb.className = "mi"; mb.id = "mapBtn"; mb.setAttribute("role", "menuitemcheckbox"); mb.setAttribute("aria-checked", showMap);
+    mb.innerHTML = '<span class="box"></span>Show the question map (a square per question)';
+    $("menu").insertBefore(mb, $("restartBtn"));
+    mb.onclick = () => { showMap = !showMap; try { localStorage.setItem(MAP_KEY, showMap ? "1" : "0") } catch (e) { } mb.setAttribute("aria-checked", showMap); setMenu(false); paintChrome() } }
   $("randBtn").onclick = () => { stopAuto(); setMenu(false); randomize() };
   let armed = null;
   $("resetBtn").onclick = () => {
@@ -664,6 +675,7 @@
     if (location.hash === "#progress") view = "progress";
     else if (location.hash === "#missed") { view = "deck"; S.deck = "MISSED"; const r = S.rounds.MISSED; if (!r || !r.order.length || doneIn({ log: r.log || [] }) >= r.order.length) delete S.rounds.MISSED }
     else if (location.hash === "#continue") {   // from the landing page: open the subject that most needs work
+      if (!Object.keys(S.stats).length) { view = "deck"; S.deck = "ALL"; return }   // brand new: the Mixed set
       const w = weakest(); if (w) { const r = S.rounds[w.key]; if (r && doneIn({ log: r.log || [] }) >= r.order.length) delete S.rounds[w.key]; view = "deck"; S.deck = w.key }
     }
   }

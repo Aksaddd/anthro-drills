@@ -147,3 +147,4 @@ Every page loads Vercel Web Analytics with the plain-HTML snippet (`/_vercel/ins
 - **Appearance**: Light (default), Dark, or Automatic (follows the device). Saved as `anthro-theme`; dark colors live in `shell.css` under `html[data-theme="dark"]`.
 - **Exam date & time**: the home page countdown and exam title use it (`anthro-exam-date`, default 2026-11-10 10:45).
 - **Reading font** and **Text size**: the same `anthro-reading` setting as the drills' Options menu.
+- **Layout**: Simple (default) or Detailed (`anthro-simple`). Simple opens drills straight on a question in the Mixed set, with the subject tabs, question map (`anthro-showmap`) and reminder banners tucked away, trims the drill header, hides the home page's link guide, and folds "How it works" and the sources table into one collapsed section. Detailed shows everything up front.

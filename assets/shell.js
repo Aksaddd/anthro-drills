@@ -3,7 +3,7 @@
 (() => {
   const ROOT = new URL("..", document.currentScript.src);          // the site's root (this file lives in /assets/)
   const at = p => new URL(p, ROOT).href;
-  const KEYS = { theme: "anthro-theme", exam: "anthro-exam-date", read: "anthro-reading" };
+  const KEYS = { theme: "anthro-theme", exam: "anthro-exam-date", read: "anthro-reading", simple: "anthro-simple" };
   const get = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v } catch (e) { return d } };
   const set = (k, v) => { try { localStorage.setItem(k, v) } catch (e) { } };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -20,6 +20,7 @@
     if (m) m.content = dark ? "#1c1c1e" : "#f5f5f7";
   }
   applyTheme();
+  document.documentElement.dataset.layout = get(KEYS.simple, "1") === "0" ? "detailed" : "simple";
   if (mq && mq.addEventListener) mq.addEventListener("change", applyTheme);
 
   // ===== Reading font and text size (shared with the drills' Options menu)
@@ -81,6 +82,11 @@
           ${[["light", "Light"], ["dark", "Dark"], ["auto", "Automatic"]].map(([k, l]) => `<label class="gs-theme"><span class="gs-phone gs-${k}" aria-hidden="true"><i></i><i></i><i></i></span><span>${l}</span><input type="radio" name="gsTheme" value="${k}"${pref === k ? " checked" : ""}><span class="gs-radio" aria-hidden="true"></span></label>`).join("")}
         </div>
         <p class="gs-note">Automatic matches your device's light or dark setting.</p>
+        <p class="gs-label">Layout</p>
+        <div class="gs-group" role="radiogroup" aria-label="Layout">
+          ${[["1", "Simple", "Recommended. Opens straight on a question, with less on screen"], ["0", "Detailed", "Shows the subject tabs, question map and tips right away"]].map(([k, l, n]) => `<label class="gs-row gs-font"><span><b>${l}</b><small>${n}</small></span><input type="radio" name="gsLayout" value="${k}"${get(KEYS.simple, "1") === k ? " checked" : ""}><span class="gs-check" aria-hidden="true">✓</span></label>`).join("")}
+        </div>
+        <p class="gs-note">You can always open the subjects and the question map from inside a drill.</p>
         <p class="gs-label">Exam</p>
         <div class="gs-group"><label class="gs-row"><span>Date &amp; time</span><input type="datetime-local" id="gsExam" value="${toLocalInput(examDate())}"></label></div>
         <p class="gs-note">The home page counts down to this. Saved on this device only. <button type="button" class="gs-link" id="gsExamReset">Reset to Tue, Nov 10, 10:45 am</button></p>
@@ -98,6 +104,11 @@
     const save = () => { const rr = reading(); rr.font = wrap.querySelector('[name="gsFont"]:checked').value; rr.size = +wrap.querySelector('[name="gsSize"]:checked').value; set(KEYS.read, JSON.stringify(rr)); applyReading(); changed("reading") };
     wrap.querySelectorAll('[name="gsTheme"]').forEach(i => i.onchange = () => { set(KEYS.theme, i.value); applyTheme(); changed("theme") });
     wrap.querySelectorAll('[name="gsFont"],[name="gsSize"]').forEach(i => i.onchange = save);
+    wrap.querySelectorAll('[name="gsLayout"]').forEach(i => i.onchange = () => {
+      set(KEYS.simple, i.value);
+      try { localStorage.removeItem("anthro-tabs-collapsed"); localStorage.removeItem("anthro-showmap") } catch (e) { }   // let the new layout's defaults apply
+      location.reload();
+    });
     const ex = wrap.querySelector("#gsExam");
     ex.onchange = () => { if (ex.value && !isNaN(new Date(ex.value))) { set(KEYS.exam, ex.value); changed("exam") } };
     wrap.querySelector("#gsExamReset").onclick = () => { set(KEYS.exam, DEFAULT_EXAM); ex.value = DEFAULT_EXAM; changed("exam") };

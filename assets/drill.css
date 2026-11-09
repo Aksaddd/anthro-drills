@@ -337,3 +337,13 @@ h1{font:800 clamp(24px,6vw,32px)/1.05 var(--display);margin:0;letter-spacing:-.0
 .explain .exwhy,.explain .whynot{display:block;margin-top:6px}
 .explain .whynot{padding-top:6px;border-top:1px dashed color-mix(in srgb,currentColor 25%,transparent)}
 .explain .exwhy b,.explain .whynot b{font-weight:700}
+
+/* Simple layout: the optional-deck switch tucks away with the subjects */
+#tabs[hidden]+.optdeck{display:none}
+/* Simple layout (default): less above the question */
+html[data-layout="simple"] header .back,
+html[data-layout="simple"] header .habit,
+html[data-layout="simple"] #deckSub,
+html[data-layout="simple"] .roundinfo span:not(:first-child){display:none}
+html[data-layout="simple"] header h1{font-size:clamp(20px,5vw,26px)}
+html[data-layout="simple"] .wrap{gap:10px}

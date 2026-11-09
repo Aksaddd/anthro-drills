@@ -222,6 +222,15 @@ footer.site p{margin:0}
 footer.site a{color:var(--link-dark)}
 .hero{background:#0c1410}
 .hero .fadetop{position:absolute;inset:0 0 auto 0;height:110px;z-index:-1;background:linear-gradient(180deg,#0c1410 0%,rgba(12,20,16,.85) 35%,rgba(12,20,16,0) 100%);pointer-events:none}
+.go2{display:inline-flex;align-items:center;color:#fff;font:400 17px/1.18 var(--body);text-decoration:none;padding:11px 22px;border-radius:980px;border:1px solid rgba(255,255,255,.45)}
+.go2:hover{background:rgba(255,255,255,.1)}
+html[data-layout="simple"] .guide{display:none}
+.about{display:flex;flex-direction:column;gap:14px}
+.about>summary{list-style:none;cursor:pointer;font:600 15px var(--body);color:var(--muted);padding:12px 4px;text-align:center}
+.about>summary::-webkit-details-marker{display:none}
+.about>summary::after{content:" ⌄";}
+.about[open]>summary::after{content:" ⌃"}
+.about>summary:hover{color:var(--ink)}
 @media (max-width:560px){.card{padding:20px}.how{padding:20px}.unit b{font-size:26px}}
 @media (prefers-reduced-motion:reduce){.card:hover{transform:none}}
 </style>
@@ -246,6 +255,7 @@ footer.site a{color:var(--link-dark)}
     </div>
     <div class="actions">
       <a class="go" id="goBtn" href="exam2/index.html#continue">Let’s begin</a>
+      <a class="go2" href="mock/index.html">Take a 50-question mock exam</a>
       <span class="today" id="todayTxt"></span>
     </div>
     <div class="guide" aria-label="Which modules go with which exam">
@@ -344,6 +354,8 @@ footer.site a{color:var(--link-dark)}
     </div>
   </details>
 
+  <details class="about" id="about">
+    <summary>About this site: how it works and where the questions come from</summary>
   <div class="how">
     <b>How it works</b>
     <ul>
@@ -387,6 +399,7 @@ footer.site a{color:var(--link-dark)}
       </table>
     </div>
   </section>
+  </details>
 
 </main>
 <footer class="site"><div class="inner">
@@ -440,6 +453,10 @@ footer.site a{color:var(--link-dark)}
       const n = seen.size; if (n) document.getElementById("reviewCount" + e).textContent = n === 1 ? "1 question marked for review" : n + " questions marked for review";
     }
   } catch (e) { }
+  // Detailed layout: the About section starts open
+  if (document.documentElement.dataset.layout === "detailed") document.getElementById("about").open = true;
+  const openAbout = () => { if (location.hash === "#sources") { const d = document.getElementById("about"); d.open = true; setTimeout(() => document.getElementById("sources").scrollIntoView(), 0) } };
+  openAbout(); window.addEventListener("hashchange", openAbout);
   // Exam panels: closed until clicked; remember which ones a student left open
   document.querySelectorAll("details.exampanel").forEach(d => {
     const k = "anthro-home-open-" + d.dataset.ep;
