@@ -222,8 +222,8 @@ footer.site p{margin:0}
 footer.site a{color:var(--link-dark)}
 .hero{background:#0c1410}
 .hero .fadetop{position:absolute;inset:0 0 auto 0;height:110px;z-index:-1;background:linear-gradient(180deg,#0c1410 0%,rgba(12,20,16,.85) 35%,rgba(12,20,16,0) 100%);pointer-events:none}
-.go2{display:inline-flex;align-items:center;color:#fff;font:400 17px/1.18 var(--body);text-decoration:none;padding:11px 22px;border-radius:980px;border:1px solid rgba(255,255,255,.45)}
-.go2:hover{background:rgba(255,255,255,.1)}
+.golink{color:var(--link-dark);font:400 17px/1.3 var(--body);letter-spacing:-.02em;text-decoration:none;padding:6px 2px}
+.golink:hover{text-decoration:underline}
 html[data-layout="simple"] .guide{display:none}
 .about{display:flex;flex-direction:column;gap:14px}
 .about>summary{list-style:none;cursor:pointer;font:600 15px var(--body);color:var(--muted);padding:12px 4px;text-align:center}
@@ -255,7 +255,7 @@ html[data-layout="simple"] .guide{display:none}
     </div>
     <div class="actions">
       <a class="go" id="goBtn" href="exam2/index.html#continue">Let’s begin</a>
-      <a class="go2" href="mock/index.html">Take a 50-question mock exam</a>
+      <a class="golink" href="mock/index.html" title="50 questions, like the real exam">or take a mock exam ›</a>
       <span class="today" id="todayTxt"></span>
     </div>
     <div class="guide" aria-label="Which modules go with which exam">
