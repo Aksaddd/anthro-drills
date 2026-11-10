@@ -160,7 +160,7 @@
         <div class="fact"><b>${hist.length}</b><span>exams taken</span></div>
       </div>
       <div class="sizepick"><span class="sizelbl">Exam length</span><div class="seg2" role="radiogroup" aria-label="Exam length">${SIZES.map(n => `<button type="button" role="radio" aria-checked="${n === N}" data-n="${n}"><b>${n}</b> questions<small>${n === 50 ? "Same length as the real exam" : "Extra-long practice"}</small></button>`).join("")}</div></div>
-      <label class="tgl"><input type="checkbox" id="timerTgl"${showTimer ? " checked" : ""}><span class="sw"></span><span>Show a timer<small>Off by default. Turn it on if you want to practice against the clock.</small></span></label>
+      <div class="tpill-wrap"><label class="tpill"><input type="checkbox" id="timerTgl"${showTimer ? " checked" : ""}><span class="sw" aria-hidden="true"></span><span class="tl">⏱ Timer</span><span class="ts ts-off">Off</span><span class="ts ts-on">On</span></label><small>Off by default. Turn it on to practice against the clock.</small></div>
       <ul class="rules">
         <li>Questions come from every Exam 2 subject and the Classification chart, mixed together at random.</li>
         <li>Pick an answer and change it as often as you like. Nothing is marked until you submit.</li>

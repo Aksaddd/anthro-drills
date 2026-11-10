@@ -107,3 +107,26 @@ html[data-theme="dark"] .feature{background:#2a2414;border-color:#4a3d1c}
 html[data-theme="dark"] mark{background:#4a3d1c;box-shadow:inset 0 -2px 0 #c99a3a}
 html[data-theme="dark"] .mk-mastered[aria-pressed="true"]{background:#10332e}
 html[data-theme="dark"] input,html[data-theme="dark"] select,html[data-theme="dark"] textarea{color-scheme:dark}
+
+/* ===== Timer switch: one big, obvious control on every learning module (shared "anthro-timer" setting, off by default) */
+.tpill{position:relative;display:inline-flex;align-items:center;gap:9px;cursor:pointer;user-select:none;-webkit-user-select:none;border:2px solid var(--line,#d6dbe6);background:var(--paper,#fff);color:var(--ink,#151b2b);border-radius:999px;padding:6px 14px 6px 7px;min-height:44px;font:700 15px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;letter-spacing:-.01em;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:border-color .15s,background .15s}
+.tpill:hover{border-color:var(--accent,#2a46cf)}
+.tpill input{position:absolute;opacity:0;width:1px;height:1px}
+.tpill .sw{position:relative;flex:none;width:46px;height:28px;border-radius:14px;background:#c7c7cc;transition:background .2s}
+.tpill .sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.tpill input:checked+.sw{background:#34c759}
+.tpill input:checked+.sw::after{transform:translateX(18px)}
+.tpill input:focus-visible+.sw{outline:3px solid var(--accent,#2a46cf);outline-offset:2px}
+.tpill .ts{font:800 12px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:5px 8px}
+.tpill .ts-off{background:#e5e5ea;color:#6e6e73}
+.tpill .ts-on{display:none;background:#34c759;color:#fff;font-variant-numeric:tabular-nums}
+.tpill:has(input:checked){border-color:#34c759;background:color-mix(in srgb,#34c759 10%,var(--paper,#fff))}
+.tpill:has(input:checked) .ts-off{display:none}
+.tpill:has(input:checked) .ts-on{display:inline-block}
+.tpill .tt{margin-left:4px}
+.tpill-wrap{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.tpill-wrap small{color:var(--muted,#5b6478);font-size:12.5px}
+.timerrow{display:flex;justify-content:flex-end}
+.timerrow:empty{display:none}
+html[data-theme="dark"] .tpill .sw{background:#48484a}
+html[data-theme="dark"] .tpill .ts-off{background:#3a3a3c;color:#a1a1a6}

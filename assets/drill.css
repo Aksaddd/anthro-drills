@@ -347,3 +347,7 @@ html[data-layout="simple"] #deckSub,
 html[data-layout="simple"] .roundinfo span:not(:first-child){display:none}
 html[data-layout="simple"] header h1{font-size:clamp(20px,5vw,26px)}
 html[data-layout="simple"] .wrap{gap:10px}
+/* Toolbar with the timer switch: wraps instead of overflowing on phones */
+.toolbar{flex-wrap:wrap}
+.tbtns{flex-wrap:wrap;justify-content:flex-end;flex:1 1 auto}
+@media (max-width:560px){.tbtns{justify-content:flex-start}.tbtns [data-timer-slot]{flex-basis:100%}}

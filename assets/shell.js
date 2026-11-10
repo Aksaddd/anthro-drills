@@ -120,5 +120,28 @@
     wrap.querySelector("#gsDone").focus();
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", buildNav); else buildNav();
+
+  // ===== Timer switch for pages without their own timer (drills, Word Roots, Anthro-pardy): a session clock.
+  // Shares the "anthro-timer" setting with the Mock Exam and the chart, so it's on or off everywhere. Off by default.
+  function mountTimers() {
+    const slots = document.querySelectorAll("[data-timer-slot]"); if (!slots.length) return;
+    const isOn = () => { try { return JSON.parse(localStorage.getItem("anthro-timer") || "false") === true } catch (e) { return false } };
+    let secs = 0, tick = null;
+    const fmt = s => (s >= 3600 ? Math.floor(s / 3600) + ":" + String(Math.floor(s / 60) % 60).padStart(2, "0") : Math.floor(s / 60)) + ":" + String(s % 60).padStart(2, "0");
+    const paint = () => document.querySelectorAll(".tpill .tt").forEach(t => t.textContent = fmt(secs));
+    const run = () => { clearInterval(tick); tick = null; if (isOn() && !document.hidden) tick = setInterval(() => { secs++; paint() }, 1000) };
+    slots.forEach(slot => {
+      slot.innerHTML = `<label class="tpill" title="Shows how long you've been studying on this page"><input type="checkbox"${isOn() ? " checked" : ""}><span class="sw" aria-hidden="true"></span><span class="tl">⏱ Timer</span><span class="ts ts-off">Off</span><span class="ts ts-on">On <b class="tt">0:00</b></span></label>`;
+      slot.querySelector("input").onchange = e => {
+        try { localStorage.setItem("anthro-timer", JSON.stringify(e.target.checked)) } catch (er) { }
+        document.querySelectorAll("[data-timer-slot] input").forEach(i => i.checked = e.target.checked);
+        if (!e.target.checked) secs = 0;
+        paint(); run();
+      };
+    });
+    document.addEventListener("visibilitychange", run);
+    paint(); run();
+  }
+  const ready = () => { buildNav(); mountTimers() };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ready); else ready();
 })();
